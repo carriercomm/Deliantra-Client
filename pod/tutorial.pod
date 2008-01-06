@@ -1,0 +1,504 @@
+=head1 Deliantra Tutorial - A gentle introduction to the game client
+
+=head2 What's Deliantra - Basic Game Concepts
+
+#TODO: about.html
+
+Deliantra is freely distributed under the General (Affero)
+Public License (GPL) and the code may be obtained from
+L<http://www.deliantra.net/>.
+
+=head1 Getting Started
+
+First of all, don't be daunted by the apparent complexity of Deliantra -
+in reality, Deliantra is quite easy to play and character generation is
+simple. Later on, when you have some experience playing the game, you may
+wish to read the full manual.
+
+=head2 User Interface Basics
+
+# very short description of all ui elements
+
+=head2 Start Playing
+
+When starting the client you will see a window in the middle of the screen:
+
+=for image sc_login.jpg
+
+There are several settings there:
+
+=over 4
+
+=item B<Host:Port>
+
+In the I<Host:Port> entry you can enter the server hostname followed by
+a colon with the port. The port is per default 13326 if you just enter
+the hostname.
+
+Below the entry there is a button I<Server List>. If you click on it you
+will get a server list:
+
+=for image sc_login_srvlist.jpg
+
+You can choose from the aviable servers there.
+(B<Note:> At the time of this writing (2006-07-23) only I<cf.schmorp.de> supports
+all features that are offered by Deliantra).
+
+=item B<Username>
+
+Here you have to enter the character name you would like to play
+with.
+If you are playing for the first time, type any name you like; this will
+be your character name for the rest of the life of that character.
+As you don't have a character yet you have to create a new
+character. It will be explained below at the L<Character Creation>.
+
+=item B<Password>
+
+Next, type in any password. Remember:
+you will need to remember the same password again to play that character
+again! You can use B<Save Config> (see the buttons on the top of the window) to save your settings,
+including name and password, but if it gets lost recovery is difficult, so remember your
+password or write it down at a safe place.
+
+One more note: it's not a good idea to use "real" passwords to your
+computer accounts! Doing so may make your system vulnerable to
+unscrupulous Deliantra server administrators.
+
+=back
+
+Enter the desired I<Username> and I<Password> and click on I<Login> now.
+
+=head2 Character Creation
+
+=for item sc_char_create.png
+
+Your next step will be to generate random (primary) stats for your
+character (to see the stats, you might have to open the B<Stats Window>
+using the button at the top of the screen).
+
+Hover with the mouse cursor over the stats (Str, Dex, Con, Int, Wis, Pow and Cha)
+to see what they mean or what they do.
+
+Or look at L<Character Stats>.
+
+You can let the dices reroll your stats with the I<Roll Again> button, you can
+I<Swap Stats>.
+You aren't limited to the number of times you can roll your stats - so have fun.
+Notice that the stats are always arranged that the B<Str> stat has the highest value, the
+B<Cha> stat has the lowest. You may rearrange the order of these values
+when you decide that you have rolled some decent stats. Two points: you
+can never roll a character with better stats than an average of straight
+15's, and you can't roll higher than 18 in a stat.
+
+Finally click on I<Accept> stats when you think they are fine.
+
+The next you will see after accepting the stats will be the race selection:
+
+=for image sc_char_create_race.png
+
+On the top right a text is displayed that explains the current selected race.
+If you rearrange the windows like this:
+
+=for image sc_char_create_race2.png
+
+You will also see the face of the selected race. Click on I<Next Race> and read all
+the descriptions until you find the right race for your new character.
+Keep in mind that the races also affect the L<Character Stats>.
+
+After you clicked I<Accept> you will see this:
+
+(I chose a Halfling for now)
+
+=for image sc_new_char.png
+
+The dragon on the right is another player that is currently logging in or creating his character.
+
+Now go to the south (you can move your character by with the keypad or the cursor keys).
+You will enter a hall similar to this:
+
+=for image sc_new_char_hall.png
+
+Step onto the first cell before the teleporter and the description of the character class
+will be displayed in the message window:
+
+=for image sc_new_char_class.png
+
+While each class has its particular strengths and weaknesses, in summary
+its just a fact that some classes are easier to play than others.
+
+For beginning players, the "simple fighter" characters are the easiest
+to play successfully. The B<Dwarf>, B<Human>, and B<Warrior> are among
+good earlier choices. As you gain experience with using Deliantra you
+may wish to branch out into other "fighter" characters such as the
+B<Thief> or B<Elf>, or try your hand at playing "spellcaster" characters
+like the B<Wizard>, B<Mage>, B<Cleric> or B<Priest>. The "exotic" races
+(e.g. B<Fireborn>, B<Quetzalcoatl> and B<Wraith>) and the B<Monk> class
+are the hardest classes to master.
+
+One more note: You will probably find any character class that has a low
+natural B<Int> (for example, the B<Barbarian> class) will have a fairly
+difficult time at higher levels. Skills, and most importantly, spells,
+will be more difficult learn. Plan to spend a lot of loot on grimores,
+prayer books and skill scrolls.
+
+If you found a class that you like step on the teleporter.
+
+=head2 The first dungeons
+
+Next you will land in the nexus:
+
+=for image sc_new_char_nexus.png
+
+Read the signs by stepping on them and read what they say.
+These signs automatically display what they have to say in the message window.
+Other signs you have to read by applying them. You apply something by middle-click
+it in the floorbox:
+
+=for image sc_new_char_floorbox_apply.png
+
+Or you can use the I<spacebar> to apply the topmost thing you see in the floorbox.
+
+For now go to the north into the newbies house. Read all signs there and follow their
+instructions.
+
+If you see NPC's there, click on them and you will enter the NPC dialouge:
+
+=for image sc_newbiew_npc_dialog.jpg
+
+The buttons on the right are options of what you can say to the NPC. You can also
+click on the links in the text to ask the NPC about that.
+
+Another note about entering commands:
+
+In crossfire most things are command driven. You can enter commands in two ways:
+
+=over 4
+
+=item B<Chat Box>
+
+=for image sc_chatbox.jpg
+
+If you plan longer chat sessions you maybe prefer this.
+
+=item B<Command Completer>
+
+=for image sc_command_completer.png
+
+Read the tooltip that occurs when you hover the mouse above the entry.
+This completer can speed up commands a lot.
+
+=back
+
+Ok, I assume now that you finished the newbies house and you are back in the nexus.
+Now walk to the left, to the exit to I<Scorn>, the main town in the world.
+It's the main meeting place for most people on the server and it offers newbie
+dungeons for the beginners.
+
+If you walk into the exit you will be teleported to scorn:
+
+To the west you see the two beginner houses. Step onto the first one:
+
+=for image sc_scorn_beginners_house.png
+
+Press spacebar to apply it to enter the house. Like the newbies house
+in the nexus read all signs and follow their orders:
+
+=for image sc_inthe_beginners_house.png
+
+After you finished that house, enter the second house and finish it.
+
+After finishing those two houses there are multiple dungeons for newbies.
+The best for you to start is the I<Newbie Tower>:
+
+=for image sc_scorn_newbie_tower.png
+
+To the north there is the I<Drinking Fountain> a well that you can enter.
+The first parts of the dungeon there are also very nice.
+
+=for image sc_scorn_drinking_fountain.png
+
+Explore Scorn, there are many dungeons in the houses. Be careful when meeting
+new monsters, ask questions on the server via the I<chat> command and read the
+documentation here for further information about some topics.
+
+Before doing further exploration you maybe want to know how to see your progress
+and where to see what level you are and what your current stats are.
+
+=head2 Displayed information
+
+The most important dialog is the I<Playerbook>, it can be opened by clicking
+on the I<Playerbook> button on the top of the window or by pressing I<Tab>.
+There are also shortcuts to them on the keys I<F2> to I<F5>. (I<F1> brings up this help).
+
+Here is a quick explanation what all main information elements in the client gui mean:
+
+=over 4
+
+=item B<Gauges and Floorbox>
+
+=for image sc_gauges_and_floorbox.png
+
+These are the gauges that display your Health, Spellpoints/Mana,
+Grace and Food. Please hover the mouse cursor above them and read the tooltips.
+On the bottom of the gauges the maximum value is displayed and on the top
+the current value.
+
+Below the gauges there is the experience and level displayed. The level is increased
+once you reached a certain amount of experience points.
+
+Below that there is the range slot. It displays the currently selected range weapon
+that you can fire with ctrl+<direction>. This could be a bow or a spell.
+
+=item B<Statusbox>
+
+=for image sc_statusbox.png
+
+It displays all the current status messages that occur while playing.
+For example what you hit, if you gained experience, if someone entered
+the game or if someone said something. The status messages will disappear over time.
+B<Note:> Most status messages are also displayed in the message window, for example
+chatters and if someone entered/left the game.
+
+=item B<Skill list>
+
+If you press I<F3> or open the playerbook via the I<Playerbook> button on the top
+of the window and select the I<Skills> tab, you will see this:
+
+=for image sc_skill_list.jpg
+
+It displays all the skills you have and displays the experience points and level you gained in each.
+
+=item B<Statistics>
+
+If you want to see what stats and resistancies you currently have, go to the I<Statistics> tab in the
+I<Playerbook> (for example by pressing I<F2>).
+
+=for image sc_statistics.jpg
+
+Resistancies protect you from a certain type of attack.
+
+=item B<Spellbook>
+
+If you want to see what spells you have learned yet, go to the I<Spellbook> tab in the
+I<Playerbook> (for example by pressing I<F4>).
+
+You wont see there any spell if you just started, but if you learn a spell, it will show up there.
+
+If you have learned some spells it should look like this:
+
+=for image sc_spellbook.jpg
+
+=back
+
+=head2 After playing
+
+If you are tired or want to take a break from playing, you have to find a I<Bed to Reality>.
+The I<Wanderers Inn> is the best place to find such a bed for a newbie:
+
+=for image sc_wanderers_inn.png
+
+Go into it and find a I<Bed to Reality>:
+
+=for image sc_bed_to_reality.png
+
+If you apply it your character will be saved. Your score will also be displayed and your rank
+on the hiscore list.
+
+=for image sc_score.png
+
+=head1 Getting Started (old)
+
+=head2 How to create a new Character
+
+When you start up Deliantra, you will be asked for a character name and a
+password (you may need to open the B<Server Setup> dialog for this using
+the button at the top of the screen). If you are playing for the first
+time, type any name you like; this will be your character name for the
+rest of the life of that character. Next, type in any password. Remember:
+you will need to remember the same password again to play that character
+again! You can use B<Save Config> to save your settings, including name
+and password, but if it gets lost recovery is difficult, so remember your
+password or write it down at a safe place.
+
+One more note: it's not a good idea to use "real" passwords to your
+computer accounts! Doing so may make your system vulnerable to
+unscrupulous Deliantra server administrators.
+
+Your next step will be to generate random (primary) stats for your
+character (to see the stats, you might have to open the B<Stats Window>
+using the button at the top of the screen). You aren't limited to the
+number of times you can roll your stats - so have fun. Notice that the
+stats are always arranged that the B<Str> stat has the highest value, the
+B<Cha> stat has the lowest. You may rearrange the order of these values
+when you decide that you have rolled some decent stats. Two points: you
+can never roll a character with better stats than an average of straight
+15's, and you can't roll higher than 18 in a stat.
+
+When you roll your character, the stats displayed are the stats you will
+get as a human (which are unmodified). When satisfied, you can step
+through a number of races, each with special bonuses in stats.
+
+The manual shows how your basic stats will be changed by choosing a
+different race. The difference between the natural stat limit and 20
+indicates the bonus/penalty assigned to rolled primary stats. For example,
+a troll has a maximum strength which is 5 higher than 20-that means he
+will begin with an additional 5 points added to his strength roll. On the
+other hand, a troll can never get above 15 in intelligence. This means
+that your rolled character will have 5 less in intelligence if you choose
+that race. You should also note that any bonus to an ability can't raise
+the final number above your racial maximum, and no penalty can give you an
+ability score less then one; the lowest it can ever get is one.
+
+=head3 Selecting a class
+
+While each class has its particular strengths and weaknesses, in summary
+its just a fact that some classes are easier to play than others.
+
+For beginning players, the "simple fighter" characters are the easiest
+to play successfully. The B<Dwarf>, B<Human>, and B<Warrior> are among
+good earlier choices. As you gain experience with using Deliantra you
+may wish to branch out into other "fighter" characters such as the
+B<Thief> or B<Elf>, or try your hand at playing "spellcaster" characters
+like the B<Wizard>, B<Mage>, B<Cleric> or B<Priest>. The "exotic" races
+(e.g. B<Fireborn>, B<Quetzalcoatl> and B<Wraith>) and the B<Monk> class
+are the hardest classes to master.
+
+One more note: You will probably find any character class that has a low
+natural B<Int> (for example, the B<Barbarian> class) will have a fairly
+difficult time at higher levels. Skills, and most importantly, spells,
+will be more difficult learn. Plan to spend a lot of loot on grimores,
+prayer books and skill scrolls.
+
+=head2 Playing the game
+
+#TODO biggers house, binding keys etc.
+
+=head1 Hints for Beginning Players
+
+I'm done with class selection, now there are three ways to go, where
+should I go? It is a good idea to take the northern path into the
+teleporter leading you to the beginners house. You can learn some basic
+skills there before journeying onward. Once you are there, you will get
+many things explained to you. Make sure you investigate every place in
+that house.
+
+I'm on the starting map, what do I do now? You should be in a city square
+with a few sign posts in the middle. Move over the signs and apply them
+B<spacebar> to read what they say.
+
+For beginners, there are several maps designed for them. Find these areas
+and clear them out. All throughout these levels, a player can find signs
+and books which they can read by stepping onto them and hitting B<space
+bar> to apply the book/sign. These messages will help the player to learn
+the system. Probably the first, best area for a beginning player to start
+out in is "Beginners." This area is a small house located southwest of
+your starting location.
+
+=head2 Flailing about with spells
+
+Some items are perishable. If you shoot a fireball into a room full of
+scrolls, you will notice them going up in smoke! So be careful not to
+destroy valuable items.
+
+=head2 Tips on surviving
+
+Deliantra is populated with a wealth of different monsters. These monsters
+can have varying immunities and attacktypes. In addition, some of them can
+be quite a bit smarter than others. It will be important for new players
+to learn the abilities of different monsters and learn just how much it
+will take to kill them.
+
+Most monsters in the game are out to mindlessly kill and destroy the
+players. Killing monsters will help boost a player's score. When fighting
+a large amount of monsters in a single room, attempt to find a narrower
+hallway so that you are not being attacked from all sides. Charging into a
+room full of Beholders would not be wise, instead, open the door and fight
+them one at a time.
+
+More advice can be found in the Survival Guide
+L<http://crossfire.real-time.com/guides/survival_guide/index.html>.
+
+=head2 Priorities for low-level characters
+
+The priority for characters below about 5th level is to gain some basic
+items. In this regard, better armour and better spells are best. Look for
+a quest among the various islands that will allow you to obtain mithril
+mail. Whenever you scrape together ~100-200 platinum pieces go shopping
+for armour and weapons (or spells). If you are a fighter type, try to have
+at least a +2 weapon, +2 helmet, +2 suit of armour, and +2 shield before
+you reach 5th level. For wizards, attempt to recover enough treasure to
+be able to buy up good attack spells. For priests, first thing to do is
+worship a god! Try to get the holy word prayer as soon as possible. Make
+sure your current god allows good potential use of this spell.
+
+For all classes, get access to the detect magic incantation as soon as
+possible. This will allow you to sort through the treasure you find while
+you're in the dungeon, and will save you time and money at the shops.
+
+=head2 Diseases
+
+Diseases are, well, diseases. They can be contageous or not, and can be
+contracted in a number of ways, and they vary greatly in their symptoms
+and dangerousness.
+
+Diseases have "levels". If you contract a disease and recover naturally,
+you're immune to that disease forever, provided the instance of the
+disease is of equal or lower level than your immunity.
+
+For example, you get a case of the flu cast by yourself at level 15. When
+you get over it, you're immune to any flu of level less than 16. When you
+become level 16 and cast the flu again, you are I<not> immune.
+
+Spells such as B<cure disease> or B<restoration> will remove a disease, but
+will not grant immunity.
+
+When cast as a spell, diseases's severity is level dependent. A 30th level
+cold is a I<lot> more severe than a level 2 cold.
+
+Undead are I<never> affected by any disease.
+
+Any priest player who isn't denied the path of wounding may learn and B<cast
+cause> B<cold>, B<flu>, B<typhoid>, B<anthrax> and B<leprosy> spells.
+
+Any priest with a high enough B<Wis> and with a religion that is attuned
+to wounding may learn to B<cast cause> B<smallpox>, B<white death> and
+B<red death> by praying at his altar.
+
+The I<damage> caused each round varies between 0 and the maximum listed
+for a disease. So you can inflict a I<mild> case of ebola, which would
+I<not> kill a monster, or a severe one capable of killing it.
+
+# TODO: disease table needs heavy reformatting
+anthrax, anthrax, Godpower
+arthritis, arthritis, Godpower
+disease_cold, cold, Godpower
+creeping_frost, creeping frost, Cold
+diarrhea, the runs, Physical
+ebola, Red Death, Godpower
+egg_disease, egg disease, Physical
+flaming_fart, flaming farts, Physical
+flu, flu, Godpower
+immolation, immolation, Fire
+incontinence, lack of bladder control, Physical
+insanity, insanity, Confusion
+leprosy, leprosy, Godpower
+bubonic_plague, Black Death, Godpower
+pneumonic_plague, pneumonic plague, Godpower
+rabies, rabies, Godpower + Confusion
+scurvy, scurvy, Physical
+smallpox, smallpox, Godpower
+tapeworms, tapeworms, Physical
+tooth_decay, tooth decay, Physical
+typhoid, typhoid, Godpower
+warts, warts, Physical
+
+=head1 Authors
+
+Parts of this document were originally compiled, edited, and written by
+Brian Thomas, Klaus Elsbernd, and John W. Klar. Additional information
+compiled by Maciej Kalisiak, Gorlin, Anton Oussik and Gene Alexander.
+
+Adapted for use by I<cfplus>, enhanced and corrected by Pippijn van
+Steenhoven, Marc A. Lehmann and Robin Redeker.
+

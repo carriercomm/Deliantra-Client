@@ -1,0 +1,21 @@
+NAME
+    deliantra - A Deliantra MORPG game client
+
+SYNOPSIS
+    Just run it - no commandline arguments are supported.
+
+USAGE
+    deliantra utilises OpenGL for all UI elements and the game. It is
+    supposed to be used in fullscreen mode and interactively.
+
+DEBUGGING
+    CFPLUS_DEBUG - environment variable
+
+       1   draw borders around widgets
+       2   add low-level widget info to tooltips
+       4   show fps
+       8   suppress tooltips
+
+AUTHOR
+    Marc Lehmann <crossfire@schmorp.de>, Robin Redeker <elmex@ta-sa.org>
+

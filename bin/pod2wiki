@@ -1,0 +1,250 @@
+#! perl
+
+# convert given .pod files to wiki style
+
+# base path of arch tree, only used for new arch graphics
+my $ARCH = "/root/devel/cvs/cf.schmorp.de/arch";
+
+use strict;
+
+use Storable;
+use Pod::POM;
+
+our @result;
+our $indent;
+our $level;
+
+my $MA_BEG = "\x{fcd0}";
+my $MA_SEP = "\x{fcd1}";
+my $MA_END = "\x{fcd2}";
+
+sub asxml($) {
+   local $_ = $_[0];
+
+   s/&/&amp;/g;
+   s/>/&gt;/g;
+   s/</&lt;/g;
+
+   $_
+}
+
+sub flatten($) {
+   local $_ = $_[0];
+
+   s/<[^>]+>//g;
+   s/^\s+//;
+   s/\s+$//;
+   s/\s+/ /g;
+
+   $_
+}
+
+sub special {
+   $MA_BEG . (join $MA_SEP, @_) . $MA_END
+}
+
+package AsParagraphs;
+
+use strict;
+
+use base "Pod::POM::View";
+
+*view_seq_file   =
+*view_seq_code   =
+*view_seq_bold   = sub { "<b>$_[1]</b>" };
+*view_seq_italic = sub { "<i>$_[1]</i>" };
+*view_seq_zero   = sub { };
+*view_seq_space  = sub { my $text = $_[1]; $text =~ s/ /&#160;/g; $text };
+*view_seq_index  = sub { push @{ $result[-1]{index} }, $_[1]; "" };
+
+sub view_seq_text {
+   my $text = $_[1];
+   $text =~ s/\s+/ /g;
+   ::asxml $text
+}
+
+sub view_seq_link {
+   my (undef, $link) = @_;
+
+   my $text = $link =~ s/^(.*)\|// ? $1 : $link;
+
+   if ($link =~ /http:/) {
+      "<u>" . (::asxml $link) . "</u>"
+   } elsif ($link =~ /^\$ARCH\/(.+)$/) {
+      my $path = $1;
+      (my $base = $path) =~ s/.*\///;
+      -f "$ARCH/$path" && system "rsync -av -c \Q$ARCH/$path\E \Qresources/arch/$base";
+      ::special image => "arch/$base", 1;
+   } else {
+      ::special link => $text, $link
+   }
+}
+
+sub view_item {
+   push @result, {
+      indent => $indent * 8,
+      level  => $level,
+   };
+   my $title = $_[1]->title->present ($_[0]);
+   $result[-1]{markup} = "$title\n" if length $title;
+   $title = ::flatten $title; unshift @{ $result[-1]{index} }, $title if length $title;
+   local $level = $level + 1;
+   $_[1]->content->present ($_[0]);
+   ()
+}
+
+sub view_verbatim {
+   push @result, {
+      indent => $indent * 16,
+      level  => $level,
+      markup => "<tt>" . (::asxml $_[1]) . "</tt>\n",
+   };
+   ()
+}
+
+sub view_textblock {
+   push @result, {
+      indent => $indent * 16,
+      level  => $level,
+      markup => "$_[1]\n",
+   };
+   ()
+}
+
+sub view_head1 {
+   push @result, {
+      indent => $indent * 16,
+      level  => $level,
+   };
+   my $title = $_[1]->title->present ($_[0]);
+   $result[-1]{markup} = "\n\n<span foreground='#ffff00' size='x-large'>$title</span>\n" if length $title;
+   $title = ::flatten $title; unshift @{ $result[-1]{index} }, $title if length $title;
+   local $level = $level + 1;
+   $_[1]->content->present ($_[0]);
+   ()
+};
+
+sub view_head2 {
+   push @result, {
+      indent => $indent * 16,
+      level  => $level,
+   };
+   my $title = $_[1]->title->present ($_[0]);
+   $result[-1]{markup} = "\n\n<span foreground='#ccccff' size='large'>$title</span>\n" if length $title;
+   $title = ::flatten $title; unshift @{ $result[-1]{index} }, $title if length $title;
+   local $level = $level + 1;
+   $_[1]->content->present ($_[0]);
+   ()
+};
+
+sub view_head3 {
+   push @result, {
+      indent => $indent * 16,
+      level  => $level,
+   };
+   my $title = $_[1]->title->present ($_[0]);
+   $result[-1]{markup} = "\n\n<span size='large'>$title</span>\n" if length $title;
+   $title = ::flatten $title; unshift @{ $result[-1]{index} }, $title if length $title;
+   local $level = $level + 1;
+   $_[1]->content->present ($_[0]);
+   ()
+};
+
+sub view_over {
+   local $indent = $indent + $_[1]->indent;
+   push @result, { indent => $indent };
+   $_[1]->content->present ($_[0]);
+   ()
+}
+
+sub view_for {
+   if ($_[1]->format eq "image") {
+      push @result, {
+         indent => $indent * 16,
+         level  => $level,
+         markup => (::special image => "pod/" . $_->text),
+      };
+   }
+   ()
+}
+
+sub view_begin {
+   ()
+}
+
+sub view {
+   my ($self, $type, $item) = @_;
+
+   $item->content->present ($self);
+}
+
+#############################################################################
+
+sub as_paragraphs($) {
+   my ($pom) = @_;
+
+   local $indent = 0;
+   local $level  = 1;
+   local @result = ( { } );
+
+   $pom->present ("AsParagraphs");
+
+   [grep $_->{index} || exists $_->{markup}, @result]
+}
+
+#############################################################################
+
+my %wiki;
+
+sub add_node($) {
+   my ($node) = @_;
+
+   for (@{ $node->{kw} || {} }) {
+      push @{$wiki{lc $_}}, $node;
+   }
+}
+
+my $root = {
+   kw => ["pod"],
+};
+
+for my $path (@ARGV) {
+   $path =~ /([^\/\\]+)\.pod$/ or die "$path: illegal pathname";
+   my $base = $1;
+   my $pom = Pod::POM->new->parse_text (do {
+      local $/;
+      open my $pod, "<:utf8", $path
+         or die "$path: $!";
+      <$pod>
+   });
+
+   my $para = as_paragraphs $pom;
+
+   my @parent = (
+      { parent => $root, kw => [$base], doc => $para, par => 0, level => 0 },
+   );
+   add_node $parent[-1];
+
+   for my $idx (0 .. $#$para) {
+      my $par = $para->[$idx];
+
+      while ($parent[-1]{level} >= $par->{level}) {
+         pop @parent;
+      }
+
+      if ($par->{index}) {
+         my $node = {
+            kw     => $par->{index},
+            parent => $parent[-1],
+            doc    => $para,
+            par    => $idx,
+            level  => $par->{level},
+         };
+         push @parent, $node;
+         add_node $node;
+      }
+   }
+}
+
+Storable::nstore \%wiki, "docwiki.pst";
+

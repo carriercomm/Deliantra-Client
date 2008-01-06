@@ -1,0 +1,20 @@
+#!/bin/sh
+
+(
+   <MANIFEST grep -v ^resources/ | grep -v ^pod/
+   echo
+   for file in \
+      resources/*.png			\
+      resources/fonts/*.ttf		\
+      resources/music/*.ogg		\
+      resources/ui/resist/*.png		\
+      resources/pod/*.png		\
+      resources/pod/*.jpg		\
+      resources/arch/*.png		\
+      pod/*.pod
+   do
+      echo "$file"
+   done
+) | uniq >MANIFEST~ && mv MANIFEST~ MANIFEST
+
+

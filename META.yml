@@ -1,0 +1,20 @@
+--- #YAML:1.0
+name:                Deliantra-Client
+version:             0.9963
+abstract:            ~
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.32
+distribution_type:   module
+requires:     
+    AnyEvent:                      2.6
+    BDB:                           1.4
+    Compress::LZF:                 1.6
+    Deliantra:                     1.13
+    EV:                            1.72
+    JSON::XS:                      2.01
+    LWP:                           0
+    Pod::POM:                      0.15
+    Time::HiRes:                   0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2

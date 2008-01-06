@@ -1,0 +1,44 @@
+=head1 Game FAQ/Tips and Tricks
+
+Here are some questions you might asked yourself over time.
+Also some nice Tips and Tricks are listed here, which you may find informative.
+
+=head2 X<faq_igniteandthaw>How do I thaw icecubes? Or: How do I ignite a torch?
+
+There are a few options:
+The right-click context menu in the L<Inventory|playerbook_inventory> reveals
+B<ignite/thaw>, which will ignite something or thaw icecubes.
+You will need a B<flint & steel> L<$ARCH/light/flint_and_steel.base.111.png> for this
+to work!
+
+An alternative would be to use the L<mark|command/mark> and L<apply|command/apply>
+commands like this:
+
+   mark icecube
+   apply flint and steel
+
+If you need to something do this often, I recommend using the L<Bind
+Recorder|binding_recorder>.
+
+=head2 The client is very sluggish and slow, what can I do about this?
+
+Most likely, you don't have accelerated OpenGL support. Try to find a
+newer driver, or a driver from your hardware vendor, that features OpenGL
+support.
+
+If this is not an option, the following Setup options reduce the load and
+will likely make the client playable with software rendering (it will
+still be slow, though):
+
+=over 4
+
+=item * B<Video Mode> should be set as low as possible (e.g. 640x480)
+
+=item * Enable B<Fast & Ugly> mode
+
+=item * Disable B<Fog of War>
+
+=item * Increase B<Map Scale>
+
+=back
+

@@ -1,0 +1,228 @@
+=head1 X<tip_of_the_day>Tips of the Day
+
+This section contains the Tips of the Day, ordered by most important to
+least important.
+
+=head2 Tutorial
+
+For first time users of Deliantra, consider skimming through the
+L<tutorial>. You can also access it by pressing the B<Help> button at the
+top.
+
+=head2 Apply and Examine Keys
+
+The B<Spacebar> usually applies the topmost object on the ground, while
+the B<Return> (or B<Enter>) key examines it. See L<the keyboard|the_keyboard>
+for more keyboard mappings.
+
+=head2 The Completer
+
+You can type most commands by simply typing an B<abbreviation> whenever the
+play area has the keyboard focus.  See L<the keyboard|the_keyboard>
+for more info.
+
+=head2 The Mouse
+
+The left mouse button usually B<examines> an item. The middle mouse
+button usually B<applies> an item (which can mean a lot of things, such
+as drinking, wearing, wielding and so on). The right mouse button usually
+opens a B<menu> with further options. For example, the right-mouse-button
+menu of the playing area gives you quick access to the playerbook and
+autopickup, while the RMB-menu in the skills window lets you create key
+bindings for using skills.
+
+=head2 Autopickup
+
+You can let your character automatically pick up stuff when you are moving
+over a L<map space|glossary/space>: First select which items to pick up in the
+B<Setup/Pickup> window, then enable/disable it using the right mouse
+button menu of the playing area.
+
+It's customary to disable autopickup in civilised areas, to reduce the
+risk of taking an item you should not pick up.
+
+
+=head1 X<tooltip>Tooltips
+
+This section contains some of the tooltips of the Deliantra client.
+
+=head2 X<stat_health>
+
+B<Health points>. Measures of how much damage you can take before
+dying. Hit points are determined from your level and are influenced by the
+value of your Con stat. Hp value may range between 1 to beyond 500, and higher
+values indicate a greater ability to withstand punishment.
+
+=head2 X<stat_mana>
+
+B<Spell points>. Measures of how much "fuel" you have for casting spells
+and incantations. Mana is calculated from your level and your Pow. Mana
+values can range between 1 to beyond 500 (glowing crystals can increase
+the current spell points beyond your normal maximum). Higher values
+indicate greater amounts of mana.
+
+=head2 X<stat_grace>
+
+B<Grace points> - how favored you are by your god. In game terms, how much
+divine magic (prayers) you can cast. Your level, Wis and Pow effect what
+the value of grace is. Praying on an altar of your god can increase this
+value to twice your normal maximum. Grace can take on large positive and
+negative values. Positive values indicate favor by the gods.
+
+=head2 X<stat_food>
+
+B<Food>. Ranges between 0 (starving) and 999 (satiated). If it reaches 0
+and your character cannot find some food to eat (e.g. in your inventory),
+it begins to die (health points decrease). Some magic can speed up or slow
+down the character digestion. Healing wounds will speed up digestion too.
+
+=head2 X<stat_exp>
+
+B<Experience points and overall level> - experience is increased as a
+reward for appropriate action (such as killing monsters) and may decrease
+as a result of a magical attack or dying. Level is directly derived
+from the experience value. As the level of the character increases, the
+character becomes able to succeed at more difficult tasks. A character's
+level starts at a value of 1 and may range up beyond 100.
+
+=head2 X<stat_ranged>
+
+B<Attack Slots> - how you attack when you fire (shift-direction, spell,
+skill etc.) - your range slot, or you walk/run into something - your
+combat slot. You can apply both a ranged attack weapon (such as a spell,
+horn, rod, bow etc.) and a combat attack weapon (such as a sword, knife
+etc.) at the same time, but only one of them - marked with a C<*> - will
+be wielded at any one time. You can quickly toggle between the two slots
+by using C<KP-Plus>, but usually the server will automatically switch
+between the two slots as needed.
+
+=head2 X<stat_Str>
+
+B<Physical Strength>, determines damage dealt with weapons, how much you
+can carry, and how often you can attack.
+
+=head2 X<stat_Dex>
+
+B<Dexterity>, your physical agility. Determines chance of being hit and
+affects armor class and speed.
+
+=head2 X<stat_Con>
+
+B<Constitution>, physical health and toughness. Determines how many
+healthpoints you can have.
+
+=head2 X<stat_Int>
+
+B<Intelligence>, your ability to learn and use skills and incantations
+(both prayers and magic) and determines how much spell points you can have.
+
+=head2 X<stat_Wis>
+
+B<Wisdom>, the ability to learn and use divine magic (prayers). Determines
+how many grace points you can have.
+
+=head2 X<stat_Pow>
+
+B<Power>, your magical potential. Influences the strength of spell
+effects, and also how much your spell and grace points increase when
+leveling up.
+
+=head2 X<stat_Cha>
+
+B<Charisma>, how well you are received by NPCs. Affects buying and
+selling prices in shops, the L<oratory|skill_description/oratory> and
+L<singing|skill_description/singing> skills and a few other things.
+
+=head2 X<stat_Wc>
+
+B<Weapon Class>, effectiveness of melee/missile attacks. Lower is more
+potent. Current weapon, level and Str are some things which effect the
+value of Wc. The value of Wc may range between 25 and -72.
+
+=head2 X<stat_Ac>
+
+B<Armour Class>, how protected you are from being hit by any attack. Lower
+values are better. Ac is based on your race and is modified by the Dex and
+current armour worn. For characters that cannot wear armour, Ac improves
+as their level increases.
+
+=head2 X<stat_Dam>
+
+B<Damage>, how much damage your melee/missile attack inflicts. Higher
+values indicate a greater amount of damage will be inflicted with each
+attack.
+
+=head2 X<stat_Arm>
+
+B<Armour>, how much damage (from physical attacks) will be subtracted from
+successful hits made upon you. This value ranges between 0 to 99%. Current
+armour worn primarily determines Arm value. This is the same as the
+physical resistance.
+
+=head2 X<stat_Spd>
+
+B<Speed>, how fast you can move. The value roughly means how many
+movements per second you can make. It may range between nearly 0 ("very
+slow") to higher than 40 ("lightning fast"). Base speed is determined from
+the Dex stat and modified downward proportionally by the amount of weight
+carried which exceeds the Max Carry limit. The armour worn also sets the
+upper limit on speed.
+
+=head2 X<stat_WSp>
+
+B<Weapon Speed>, how many attacks you may make per second when combatting.
+Higher values indicate faster attack speed. Current weapon and Dex effect
+the value of weapon speed.
+
+=head2 X<npc_message_entry>
+
+Enter a message here that you want to tell the NPC and press B<return>.
+
+Sometimes you have to tell an NPC something you cannot find out during a
+normal conversation (such as a password). In those cases you have to use
+this text entry. You can also enter responses manually instead of using
+the response buttons below.
+
+=head2 X<completer_help>The Command Completer
+
+This is your central interface to send text commands to the server.  To
+enter a verbatim command to send to the server, just type the command,
+followed by a space, and press return.
+
+Typing the initial letters of words (or just any letters) displays guesses
+for commands you might want to use.
+
+You can use the cursor-up and cursor-down keys to select between those
+guesses.
+
+B<Right-Click> opens a menu where you can select further options, sich
+as redefining key bindings.
+
+=head2 X<charcreation_focus>
+
+Press a key (click on the entry to make sure it has keyboard focus)
+
+
+=head1 X<ui>User Interface Text Fragments
+
+This section just contains some longer text fragment used by the
+Deliantra client.
+
+=head2 X<chargen_stats>Character Creation: Stats
+
+B<Stats> are a very important aspect of your character. You can use the
+tooltips to learn what each Stat governs.
+
+The stats generated by the server are always sorted from Str (highest) to
+Cha (lowest).  They will be modified later by both the race and the class
+you choose.
+
+You can create another set of stats, swap two stat values with each other
+or accept the stats as shown below and continue.
+
+=head2 X<chargen_race>Character Creation: Race
+
+You can look at another race, or accept this race (you will cycle back
+to this race eventually, so you can take your time making this important
+choice.
+
