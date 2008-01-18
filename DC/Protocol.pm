@@ -1322,7 +1322,7 @@ sub update_server_info {
     . "editing support $yesno[!!$self->{editor_support}]\n"
     . "map attributes $yesno[$self->{setup}{extmap} > 0]\n"
     . "big image protocol support $yesno[$self->{setup}{fxix} > 0]\n"
-    . "cfplus support $yesno[$self->{cfplus_ext} > 0]"
+    . "client support $yesno[$self->{cfplus_ext} > 0]"
       . ($self->{cfplus_ext} > 0 ? ", version $self->{cfplus_ext}" : "") ."\n"
     . "map size $self->{mapw}×$self->{maph}\n"
    );

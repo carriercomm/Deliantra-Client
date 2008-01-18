@@ -1,5 +1,13 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9964 Fri Jan 18 06:30:13 CET 2008
+        - fixed a bug where the message fontsize wasn't set correctly
+        - do not call glTexSubimage2D on 0x0 bitmaps, as this
+          crashes newer nvidia drivers.
+        - fix chatbox label padding.
+	- further rename database directory.
+	- further "branding" of cfplus => deliantra.
+
 0.9963 Sun Jan  6 18:27:02 CET 2008
 	- rework of the messsage window to support 'undocked' windows.
 	- ignore keyboard modifiers we are never interested in.

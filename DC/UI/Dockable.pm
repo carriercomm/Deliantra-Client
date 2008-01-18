@@ -36,7 +36,7 @@ sub init {
    $vb->add (
       my $b =
          $self->{tab_label} =
-            DC::UI::Label->new (expand => 1, valign => 0, align => 0)
+            DC::UI::Label->new (expand => 1, valign => 0.5, align => 0, padding_x => 8, padding_y => 4)
    );
 
    if ($self->{can_close}) {

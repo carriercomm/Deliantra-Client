@@ -17,7 +17,7 @@ package DC;
 use Carp ();
 
 BEGIN {
-   $VERSION = '0.9963';
+   $VERSION = '0.9964';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
@@ -200,7 +200,7 @@ sub lwp_useragent {
    DC::set_proxy;
 
    my $ua = LWP::UserAgent->new (
-      agent      => "cfplus $VERSION",
+      agent      => "deliantra $VERSION",
       keep_alive => 1,
       env_proxy  => 1,
       timeout    => 30,

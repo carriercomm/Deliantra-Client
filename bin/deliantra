@@ -722,7 +722,7 @@ sub start_game {
          mapw => $mapsize,
          maph => $mapsize,
 
-         client => "cfplus $DC::VERSION $] $^O",
+         client => "$DC::VERSION $] $^O",
 
          map_widget => $MAPWIDGET,
          statusbox  => $STATUSBOX,

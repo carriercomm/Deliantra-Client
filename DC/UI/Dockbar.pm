@@ -1,4 +1,5 @@
 package DC::UI::Dockbar;
+
 use DC::UI::Dockable;
 
 use strict;
@@ -10,8 +11,6 @@ sub new {
    my $class = shift;
 
    my $self = $class->SUPER::new (
-      name      => "message_window2",
-      title     => "Messages XXX",
       border_bg => [1, 1, 1, 1],
       x         => "max",
       y         => 0,
@@ -176,7 +175,7 @@ sub is_docked {
    return not exists $self->{dock_windows}->{"$dockable"};
 }
 
-# switiching to a page
+# switching to a page
 sub user_switch_to_page {
    my ($self, $page) = @_;
    $page = $page eq '0' ? 10 : $page;

@@ -78,24 +78,27 @@ rc_t2f_v3f (rc_array_t *arr, float u, float v, float x, float y, float z)
 static void
 rc_glyph (rc_array_t *arr, int u, int v, int w, int h, int x, int y)
 {
-  U8 *c;
-  STRLEN len = SvCUR (arr);
-  SvGROW (arr, len + 2 * 2 + 1 * 4);
-  c = (U8 *)SvEND (arr);
+  if (w && h)
+    {
+      U8 *c;
+      STRLEN len = SvCUR (arr);
+      SvGROW (arr, len + 2 * 2 + 1 * 4);
+      c = (U8 *)SvEND (arr);
 
-  x += w;
-  y += h;
+      x += w;
+      y += h;
 
-  *c++ = u;
-  *c++ = v;
-  *c++ = w;
-  *c++ = h;
+      *c++ = u;
+      *c++ = v;
+      *c++ = w;
+      *c++ = h;
 
-  // use ber-encoding for up to 14 bits (16k)
-  *c = 0x80 | (x >> 7); c += (x >> 7) ? 1 : 0; *c++ = x & 0x7f;
-  *c = 0x80 | (y >> 7); c += (y >> 7) ? 1 : 0; *c++ = y & 0x7f;
+      // use ber-encoding for up to 14 bits (16k)
+      *c = 0x80 | (x >> 7); c += (x >> 7) ? 1 : 0; *c++ = x & 0x7f;
+      *c = 0x80 | (y >> 7); c += (y >> 7) ? 1 : 0; *c++ = y & 0x7f;
 
-  SvCUR_set (arr, c - (U8 *)SvPVX (arr));
+      SvCUR_set (arr, c - (U8 *)SvPVX (arr));
+    }
 }
 
 static void

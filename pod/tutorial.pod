@@ -499,6 +499,6 @@ Parts of this document were originally compiled, edited, and written by
 Brian Thomas, Klaus Elsbernd, and John W. Klar. Additional information
 compiled by Maciej Kalisiak, Gorlin, Anton Oussik and Gene Alexander.
 
-Adapted for use by I<cfplus>, enhanced and corrected by Pippijn van
+Adapted for use by I<deliantra>, enhanced and corrected by Pippijn van
 Steenhoven, Marc A. Lehmann and Robin Redeker.
 

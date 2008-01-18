@@ -191,17 +191,21 @@ draw_glyph (PangoRenderer *renderer_, PangoFont *font, PangoGlyph glyph, double 
         }
 
       g->generation = tc_generation;
-      tc_get (&g->tex, bm.width, bm.height);
 
       g->left = bm.left;
       g->top  = bm.top;
 
-      glBindTexture (GL_TEXTURE_2D, g->tex.name);
-      glPixelStorei (GL_UNPACK_ROW_LENGTH, bm.stride);
-      glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-      glTexSubImage2D (GL_TEXTURE_2D, 0, g->tex.x, g->tex.y, bm.width, bm.height, GL_ALPHA, GL_UNSIGNED_BYTE, bm.bitmap);
-      glPixelStorei (GL_UNPACK_ROW_LENGTH, 0);
-      glPixelStorei (GL_UNPACK_ALIGNMENT, 4);
+      tc_get (&g->tex, bm.width, bm.height);
+
+      if (bm.width && bm.height)
+        {
+          glBindTexture (GL_TEXTURE_2D, g->tex.name);
+          glPixelStorei (GL_UNPACK_ROW_LENGTH, bm.stride);
+          glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+          glTexSubImage2D (GL_TEXTURE_2D, 0, g->tex.x, g->tex.y, bm.width, bm.height, GL_ALPHA, GL_UNSIGNED_BYTE, bm.bitmap);
+          glPixelStorei (GL_UNPACK_ROW_LENGTH, 0);
+          glPixelStorei (GL_UNPACK_ALIGNMENT, 4);
+        }
     }
 
   x += g->left;
@@ -277,7 +281,7 @@ pango_opengl_render_layout (PangoLayout *layout,
                             int flags)
 {
   pango_opengl_render_layout_subpixel (
-     layout, rc, x * PANGO_SCALE, y * PANGO_SCALE, r, g, b, a, flags
+    layout, rc, x * PANGO_SCALE, y * PANGO_SCALE, r, g, b, a, flags
   );
 }
 

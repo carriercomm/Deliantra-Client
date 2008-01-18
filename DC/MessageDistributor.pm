@@ -44,8 +44,13 @@ sub add_channel {
 sub set_max_para {
 }
 
-# set fontsize
+# set fontsize for all chatviews
 sub set_fontsize {
+   my ($self, $s) = @_;
+
+   for ($self->{log}, values %{$self->{chatview}}) {
+      $_->set_fontsize ($s);
+   }
 }
 
 # push message in

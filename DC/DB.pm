@@ -1,6 +1,6 @@
 =head1 NAME
 
-DC::DB - async. database and filesystem access for cfplus
+DC::DB - async. database and filesystem access for deliantra
 
 =head1 SYNOPSIS
 
@@ -24,12 +24,18 @@ use BDB;
 
 use DC;
 
-our $DBDIR   = "cfplus-" . BDB::VERSION . "-$Config{archname}";
+our $ODBDIR  = "cfplus-" . BDB::VERSION . "-$Config{archname}";
+our $DBDIR   = "client-" . BDB::VERSION . "-$Config{archname}";
 our $DB_HOME = "$Deliantra::VARDIR/$DBDIR";
 
-if (!-e $DB_HOME and -e "$Deliantra::OLDDIR/$DBDIR") {
+if (!-e $DB_HOME and -e "$Deliantra::VARDIR/$ODBDIR") {
+   rename "$Deliantra::VARDIR/$ODBDIR", $DB_HOME;
+   print STDERR "INFO: moved old database from $Deliantra::VARDIR/$ODBDIR to $DB_HOME\n";
+}
+
+if (!-e $DB_HOME and -e "$Deliantra::OLDDIR/$ODBDIR") {
    rename "$Deliantra::OLDDIR/$DBDIR", $DB_HOME;
-   print STDERR "INFO: moved old database from $Deliantra::OLDDIR/$DBDIR to $DB_HOME\n";
+   print STDERR "INFO: moved old database from $Deliantra::OLDDIR/$ODBDIR to $DB_HOME\n";
 }
 
 BDB::max_poll_time 0.03;

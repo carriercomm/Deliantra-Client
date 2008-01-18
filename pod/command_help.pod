@@ -809,13 +809,6 @@ ones just get inserted last.
 If you have a lot of stuff that is not in alphabetical order but you would
 like it to be, the best method is to drop all of it and then pick it up.
 
-=head2 sound
-
-Toggles between sound enabled and disabled. This has no relevance to the
-sound settings of the client, it only governs wether the server will send
-sound effect command to the client and is enabled if the client supports
-sound (i.e. always for cfplus).
-
 =head2 sourcecode
 
 This command displays the means to download the sourcecode (server code,
