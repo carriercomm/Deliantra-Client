@@ -39,6 +39,7 @@ if (!-e $DB_HOME and -e "$Deliantra::OLDDIR/$ODBDIR") {
 }
 
 BDB::max_poll_time 0.03;
+BDB::max_parallel 1;
 
 our $DB_ENV;
 our $DB_STATE;

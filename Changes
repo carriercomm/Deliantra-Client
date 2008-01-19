@@ -1,5 +1,9 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9965 Sat Jan 19 05:51:39 CET 2008
+	- work around a database race condition by using single-threaded
+          database access.
+
 0.9964 Fri Jan 18 06:30:13 CET 2008
         - fixed a bug where the message fontsize wasn't set correctly
         - do not call glTexSubimage2D on 0x0 bitmaps, as this
