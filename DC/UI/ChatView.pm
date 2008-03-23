@@ -1,7 +1,9 @@
 package DC::UI::ChatView;
-use Deliantra::Protocol::Constants;
+
 use strict;
 use utf8;
+
+use Deliantra::Protocol::Constants;
 
 our @ISA = DC::UI::Dockable::;
 
@@ -39,6 +41,7 @@ sub new {
       on_focus_in => sub {
          my ($input, $prev_focus) = @_;
 
+         $::MESSAGE_WINDOW->set_visibility (1);
          delete $input->{refocus_map};
 
          if ($prev_focus == $::MAPWIDGET && $input->{auto_activated}) {
@@ -129,7 +132,7 @@ sub message {
 
    if ($self->is_docked && !$self->is_docked_active) {
       if (($para->{color_flags} & NDI_COLOR_MASK) == NDI_RED) {
-         $self->set_inactive_fg ([0, 0, 1]);
+         $self->set_inactive_fg ([1, 0, 0]);
       } else {
          $self->set_inactive_fg ([0.6, 0.6, 1]);
       }
@@ -173,7 +176,7 @@ sub set_fontsize {
 }
 
 # sets the maximum of paragraphs shown
-sub set_max_para {
+sub set_max_par {
    my ($self, $max_par) = @_;
    $self->{txt}{max_par} = $max_par;
 }

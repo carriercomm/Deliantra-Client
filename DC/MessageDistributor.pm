@@ -30,6 +30,7 @@ sub new {
 
 # called by MAPWIDGET activate console event
 sub activate_console {
+   # nop
 }
 
 # adding channel
@@ -41,7 +42,11 @@ sub add_channel {
 }
 
 # set max paragraphs
-sub set_max_para {
+sub set_max_par {
+   my ($self, $par) = @_;
+   for ($self->{log}, values %{$self->{chatview}}) {
+      $_->set_max_par ($par);
+   }
 }
 
 # set fontsize for all chatviews

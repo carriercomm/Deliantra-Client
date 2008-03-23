@@ -1,5 +1,16 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9966 Sat Mar 22 14:26:05 CET 2008
+	- when the message window is hidden and the input is activated, it will
+          become visible again.
+	- the max number of paragraphs in the chattabs were not limited,
+          leading to a naughty memory leak
+	- the highlighting of the chattabs were deep blue where they should have been
+          deep red :-)
+	- fixed a small inconvenience in the history handling of chat tab entries
+          (hitting cursor-up or cursor-down won't erase what you typed by accident
+          anymore).
+
 0.9965 Sat Jan 19 05:51:39 CET 2008
 	- work around a database race condition by using single-threaded
           database access.

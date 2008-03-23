@@ -2293,6 +2293,16 @@ our @ISA = DC::UI::EntryBase::;
 
 use DC::OpenGL;
 
+sub new {
+   my $class = shift;
+
+   $class->SUPER::new (
+      history_pointer => -1,
+      @_
+   )
+}
+
+
 sub invoke_key_down {
    my ($self, $ev) = @_;
 
@@ -2326,7 +2336,10 @@ sub invoke_key_down {
       if ($self->{history_pointer} >= 0) {
          $self->set_text ($self->{history}->[$self->{history_pointer}]);
       } else {
-         $self->set_text ($self->{history_saveback});
+         if (defined $self->{history_saveback}) {
+            $self->set_text ($self->{history_saveback});
+            $self->{history_saveback} = undef;
+         }
       }
 
    } else {
@@ -4570,7 +4583,7 @@ sub draw {
 
 package DC::UI;
 
-$ROOT = new DC::UI::Root;
+$ROOT    = new DC::UI::Root;
 $TOOLTIP = new DC::UI::Tooltip z => 900;
 
 1

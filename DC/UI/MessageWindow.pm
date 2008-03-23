@@ -15,7 +15,7 @@ our %channel_info;
 
 sub clr_def($)  { "<span foreground=\"#ffffff\">$_[0]</span>" }
 sub clr_act($)  { "<span foreground=\"#ffffff\">$_[0]</span>" }
-sub clr_hlt($)  { "<span foreground=\"#aaaaff\">$_[0]</span>" }
+sub clr_hlt($)  { "<span foreground=\"#ffaaaa\">$_[0]</span>" }
 sub clr_hlt2($) { "<span foreground=\"#ff0000\">$_[0]</span>" }
 
 sub new {
@@ -275,11 +275,11 @@ sub set_fontsize {
    }
 }
 
-sub set_max_para {
+sub set_max_par {
    my ($self, $max_par) = @_;
 
    for (values %{$self->{chatviews}}, $self->{main_log}) {
-      $_->set_max_para ($max_par);
+      $_->set_max_par ($max_par);
    }
 }
 
