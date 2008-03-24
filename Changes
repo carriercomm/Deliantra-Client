@@ -1,5 +1,10 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9967 Mon Mar 24 01:24:07 CET 2008
+	- implement keyboard modifier display (mostly because of the numlock
+          problems under windows).
+        - work around a bug on windows where the layout font is being ignored.
+
 0.9966 Sat Mar 22 14:26:05 CET 2008
 	- when the message window is hidden and the input is activated, it will
           become visible again.

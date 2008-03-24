@@ -46,6 +46,47 @@ risk of taking an item you should not pick up.
 
 This section contains some of the tooltips of the Deliantra client.
 
+=head2 X<modifier_box>The Modifier Box
+
+This box shows which keyboard modifiers (Shift, Ctrl etc.) are currently
+active.
+
+=head3 B<once/REPEAT>
+
+C<Ctrl> determines wether an action invoked via the keyboard (moving,
+firing) is executed once per keypress or repeatedly as fast as
+possible.
+
+In I<once> mode, each time you press a key, your character will try to
+execute the action once. If you try to execute actions faster than your
+character is able to, the actions will be queued.
+
+In I<REPEAT> mode, your character keep executing the action as long as you
+keep the keys pressed, as fast as it is able to do. This allows you to run
+faster with a fast character, but msot importantly enables you to stop
+immediately, as no matter how fast your character is, stopping to press
+the keys will stop your character.
+
+=head3 B<move/FIRE>
+
+C<Shift> determines wether you move or fire when pressing an arrow key.
+For example, when you have applied a bow, then pressing C<Shift>-Arrow
+will firean arrow instead of moving your character. Less obviously, this
+also works for anything else in your range slot, such as spells or skills.
+
+=head3 B<alt>
+
+Shows wether the alt key is pressed or not. The alt key is not used for
+controlling your character.
+
+=head3 B<num>
+
+C<NumLock> isn't used by Deliantra, but on some operating systems, having
+it on makes it impossible to use the B<numeric keypad> for moving or
+firing, so best leave it off when playing Deliantra.
+
+=back
+
 =head2 X<stat_health>
 
 B<Health points>. Measures of how much damage you can take before

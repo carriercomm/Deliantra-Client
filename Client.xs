@@ -675,6 +675,7 @@ pango_init ()
         opengl_fontmap = pango_opengl_font_map_new ();
         pango_opengl_font_map_set_default_substitute ((PangoOpenGLFontMap *)opengl_fontmap, substitute_func, 0, 0);
         opengl_context = pango_opengl_font_map_create_context ((PangoOpenGLFontMap *)opengl_fontmap);
+        /*pango_context_set_font_description (opengl_context, default_font);*/
 #if PANGO_VERSION_CHECK (1, 15, 2)
         pango_context_set_language (opengl_context, pango_language_from_string ("en"));
         /*pango_context_set_base_dir (opengl_context, PANGO_DIRECTION_WEAK_LTR);*/
@@ -771,6 +772,9 @@ SDL_GetKeyName (int sym)
 
 int
 SDL_GetAppState ()
+
+int
+SDL_GetModState ()
 
 void
 poll_events ()
@@ -914,10 +918,12 @@ win32_proxy_info ()
 #endif
 }
 
-void
+int
 add_font (char *file)
 	CODE:
-        FcConfigAppFontAddFile (0, (const FcChar8 *)file);
+        RETVAL = FcConfigAppFontAddFile (0, (const FcChar8 *)file);
+	OUTPUT:
+        RETVAL
 
 void
 load_image_inline (SV *image_)

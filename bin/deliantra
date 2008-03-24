@@ -192,6 +192,7 @@ our %SDL_CB;
 
 our $ALT_ENTER_MESSAGE;
 our $STATUSBOX;
+our $MODBOX;
 our $DEBUG_STATUS;
 
 our $INV;
@@ -210,6 +211,32 @@ sub debug {
 
 sub message {
    $MESSAGE_DIST->message (@_);
+}
+
+sub update_modbox {
+   my $mod = DC::SDL_GetModState;
+
+   my $markup;
+
+   $markup .= $mod & DC::KMOD_CTRL
+              ? ($MAPWIDGET->{ctrl} ? "[REPEAT]" : "[<span foreground='#888'>REPEAT</span>]")
+              : "[<span foreground='#888'> once </span>]";
+
+   $markup .= $mod & DC::KMOD_SHIFT
+              ? ($MAPWIDGET->{shft} ? "[FIRE]" : "[<span foreground='#888'>FIRE</span>]")
+              : "[<span foreground='#888'>move</span>]";
+
+   $markup .= $mod & (DC::KMOD_ALT | DC::KMOD_META)
+              ? "[ALT]"
+              : "[<span foreground='#888'>alt</span>]";
+
+   $markup .= $mod & DC::KMOD_NUM
+              ? "[NUM]"
+              : "[<span foreground='#888'>num</span>]";
+
+   # <tt> around next statement works around some bug that keeps the
+   # "font =>" from being used on windows
+   $MODBOX->set_markup ("<tt>$markup</tt>");
 }
 
 #############################################################################
@@ -2148,14 +2175,34 @@ sub video_init {
       $DEBUG_STATUS->show;
 
       $STATUSBOX = new DC::UI::Statusbox;
-      $STATUSBOX->add ("Use <b>Alt-Enter</b> to toggle fullscreen mode", timeout => 864000, pri => -100, color => [1, 1, 1, 0.8]);
+
+      $MODBOX = new DC::UI::Label
+         can_events => 1,
+         can_hover  => 1,
+         markup     => "",
+         align      => 0,
+         font       => $FONT_FIXED,
+         tooltip    => "#modifier_box",
+         tooltip_width => 0.67,
+      ;
+
+      update_modbox;
 
       (new DC::UI::Frame
          bg      => [0, 0, 0, 0.4],
          force_x => 0,
          force_y => "max",
-         child   => $STATUSBOX,
+         child   => (my $LR = new DC::UI::VBox),
       )->show;
+
+      $LR->add ($STATUSBOX);
+      $LR->add ($MODBOX);
+      $LR->add (new DC::UI::Label
+         align    => 0,
+         markup   => "Use <b>Alt-Enter</b> to toggle fullscreen mode",
+         fontsize => 0.5,
+         fg       => [1, 1, 0, 0.7],
+      );
 
       DC::UI::Toplevel->new (
          title     => "Minimap",
@@ -2347,10 +2394,14 @@ sub animation_stop {
          video_shutdown;
          video_init;
       } else {
-         DC::UI::feed_sdl_key_down_event ($_[0]);
+         &DC::UI::feed_sdl_key_down_event;
       }
+      update_modbox;
    },
-   DC::SDL_KEYUP           => \&DC::UI::feed_sdl_key_up_event,
+   DC::SDL_KEYUP           => sub {
+      &DC::UI::feed_sdl_key_up_event;
+      update_modbox;
+   },
    DC::SDL_MOUSEMOTION     => \&DC::UI::feed_sdl_motion_event,
    DC::SDL_MOUSEBUTTONDOWN => \&DC::UI::feed_sdl_button_down_event,
    DC::SDL_MOUSEBUTTONUP   => \&DC::UI::feed_sdl_button_up_event,
@@ -2459,12 +2510,12 @@ $SIG{INT} = $SIG{TERM} = sub {
 
       DC::add_font $_ for @fonts;
       
-      DC::pango_init;
-
       $FONT_PROP  = new_from_file DC::Font $fonts[0];
       $FONT_FIXED = new_from_file DC::Font $fonts[1];
 
       $FONT_PROP->make_default;
+
+      DC::pango_init;
    }
 
 #   compare mono (ft) vs. rgba (cairo)
