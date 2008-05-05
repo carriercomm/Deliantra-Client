@@ -14,7 +14,24 @@ my $MA_BEG = "\x{fcd0}";
 my $MA_SEP = "\x{fcd1}";
 my $MA_END = "\x{fcd2}";
 
-*wiki = Storable::retrieve DC::find_rcfile "docwiki.pst";
+# nodes (order must stay as it is)
+sub N_PARENT (){ 0 }
+sub N_PAR    (){ 1 }
+sub N_LEVEL  (){ 2 }
+sub N_KW     (){ 3 }
+sub N_DOC    (){ 4 }
+
+# paragraphs (order must stay as it is)
+sub P_INDENT (){ 0 }
+sub P_LEVEL  (){ 1 }
+sub P_MARKUP (){ 2 }
+sub P_INDEX  (){ 3 }
+
+our %wiki;
+
+sub load_docwiki {
+   *wiki = Storable::retrieve $_[0];
+}
 
 sub goto_document($) {
    $goto_document->(split /\//, $_[0]);
@@ -25,12 +42,12 @@ sub is_prefix_of($@) {
 
    return 1 unless @path;
 
-   my $kw = lc pop @path;
+   my $kw = pop @path;
 
-   $node = $node->{parent}
+   $node = $node->[N_PARENT]
       or return 0;
 
-   return ! ! grep $_ eq $kw, @{ $node->{kw} };
+   return scalar grep $_ eq $kw, @{ $node->[N_KW] };
 }
 
 sub find(@) {
@@ -38,14 +55,15 @@ sub find(@) {
 
    return unless @path;
 
-   my $kw = lc pop @path;
+   my $kw = pop @path;
 
-   # TODO: make sure results are unique
+   my %res = map +($_, $_),
+                grep { is_prefix_of $_, @path }
+                   map @$_,
+                      $kw eq "*" ? values %wiki
+                                 : $wiki{$kw} || ();
 
-   grep { is_prefix_of $_, @path }
-      map @$_,
-         $kw eq "*" ? @wiki{sort keys %wiki}
-                    : $wiki{$kw} || ()
+   values %res
 }
 
 sub full_path_of($) {
@@ -53,38 +71,37 @@ sub full_path_of($) {
 
    my @path;
 
-   # skip toplevel hierarchy pod/, because its not a document
-   while ($node->{parent}) {
+   while ($node) {
       unshift @path, $node;
-      $node = $node->{parent};
+      $node = $node->[N_PARENT];
    }
 
    @path
 }
 
 sub full_path($) {
-   join "/", map $_->{kw}[0], &full_path_of
+   join "/", map $_->[N_KW][0], &full_path_of
 }
 
 sub section_of($) {
    my ($node) = @_;
 
-   my $doc = $node->{doc};
-   my $par = $node->{par};
-   my $lvl = $node->{level};
+   my $doc = $node->[N_DOC];
+   my $par = $node->[N_PAR];
+   my $lvl = $node->[N_LEVEL];
 
    my @res;
 
    do {
       my $p = $doc->[$par];
 
-      if (length $p->{markup}) {
+      if (length $p->[P_MARKUP]) {
          push @res, {
-            markup => $p->{markup},
-            indent => $p->{indent},
+            markup => $p->[P_MARKUP],
+            indent => $p->[P_INDENT],
          };
       }
-   } while $doc->[++$par]{level} > $lvl;
+   } while $doc->[++$par][P_LEVEL] > $lvl;
 
    @res
 }
@@ -107,7 +124,20 @@ sub thaw_section(\@\%) {
    }
 }
 
+my %as_common = (
+   h1 => sub {
+      "\n\n<span foreground='#ffff00' size='x-large'>$_[1]</span>\n"
+   },
+   h2 => sub {
+      "\n\n<span foreground='#ccccff' size='large'>$_[1]</span>\n"
+   },
+   h3 => sub {
+      "\n\n<span size='large'>$_[1]</span>\n"
+   },
+);
+
 my %as_label = (
+   %as_common,
    image => sub {
       my ($par, $path) = @_;
 
@@ -135,6 +165,7 @@ sub as_label(@) {
 }
 
 my %as_paragraphs = (
+   %as_common,
    image => sub {
       my ($par, $path, $flags) = @_;
 

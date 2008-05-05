@@ -41,15 +41,21 @@ button menu of the playing area.
 It's customary to disable autopickup in civilised areas, to reduce the
 risk of taking an item you should not pick up.
 
+=head2 Moving the Map
+
+You can move the map (I<not> the minimap) around by dragging it with the
+middle mouse button. This is useful when you rearrange your windows and
+want to move the center of the map.
+
 
 =head1 X<tooltip>Tooltips
 
 This section contains some of the tooltips of the Deliantra client.
 
-=head2 X<modifier_box>The Modifier Box
+=head2 X<modifier_box>Keyboard Modifiers
 
 This box shows which keyboard modifiers (Shift, Ctrl etc.) are currently
-active.
+active ("pressed").
 
 =head3 B<once/REPEAT>
 
@@ -84,8 +90,6 @@ controlling your character.
 C<NumLock> isn't used by Deliantra, but on some operating systems, having
 it on makes it impossible to use the B<numeric keypad> for moving or
 firing, so best leave it off when playing Deliantra.
-
-=back
 
 =head2 X<stat_health>
 

@@ -124,11 +124,11 @@ resources/pod/sc_newbiew_npc_dialog.jpg
 resources/pod/sc_skill_list.jpg
 resources/pod/sc_spellbook.jpg
 resources/pod/sc_statistics.jpg
-resources/arch/cauldron.base.111.png
-resources/arch/flint_and_steel.base.111.png
-resources/arch/scrollr.base.111.png
-resources/arch/stylus.base.111.png
-resources/arch/workbench.base.111.png
+resources/arch/cauldron.x11.png
+resources/arch/flint_and_steel.x11.png
+resources/arch/scrollr.x11.png
+resources/arch/stylus.x11.png
+resources/arch/workbench.x11.png
 pod/about.pod
 pod/command_help.pod
 pod/dmcommand_help.pod

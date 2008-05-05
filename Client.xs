@@ -187,7 +187,7 @@ static void
 layout_update_font (DC__Layout self)
 {
   /* use a random scale factor to account for unknown descenders, 0.8 works
-   * reasonably well with bitstream vera
+   * reasonably well with dejavu/bistream fonts
    */
   PangoFontDescription *font = self->font ? self->font : default_font;
 

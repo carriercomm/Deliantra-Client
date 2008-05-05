@@ -17,6 +17,7 @@ package DC::DB;
 use strict;
 use utf8;
 
+use File::Path ();
 use Carp ();
 use Storable ();
 use Config;
@@ -28,14 +29,17 @@ our $ODBDIR  = "cfplus-" . BDB::VERSION . "-$Config{archname}";
 our $DBDIR   = "client-" . BDB::VERSION . "-$Config{archname}";
 our $DB_HOME = "$Deliantra::VARDIR/$DBDIR";
 
-if (!-e $DB_HOME and -e "$Deliantra::VARDIR/$ODBDIR") {
-   rename "$Deliantra::VARDIR/$ODBDIR", $DB_HOME;
-   print STDERR "INFO: moved old database from $Deliantra::VARDIR/$ODBDIR to $DB_HOME\n";
-}
-
-if (!-e $DB_HOME and -e "$Deliantra::OLDDIR/$ODBDIR") {
-   rename "$Deliantra::OLDDIR/$DBDIR", $DB_HOME;
-   print STDERR "INFO: moved old database from $Deliantra::OLDDIR/$ODBDIR to $DB_HOME\n";
+unless (-d $DB_HOME) {
+   if (-d "$Deliantra::VARDIR/$ODBDIR") {
+      rename "$Deliantra::VARDIR/$ODBDIR", $DB_HOME;
+      print STDERR "INFO: moved old database from $Deliantra::VARDIR/$ODBDIR to $DB_HOME\n";
+   } elsif (-d "$Deliantra::OLDDIR/$ODBDIR") {
+      rename "$Deliantra::OLDDIR/$DBDIR", $DB_HOME;
+      print STDERR "INFO: moved old database from $Deliantra::OLDDIR/$ODBDIR to $DB_HOME\n";
+   } else {
+      File::Path::mkpath [$DB_HOME]
+         or die "unable to create database directory $DB_HOME: $!";
+   }
 }
 
 BDB::max_poll_time 0.03;
@@ -44,24 +48,27 @@ BDB::max_parallel 1;
 our $DB_ENV;
 our $DB_STATE;
 our %DB_TABLE;
+our $TILE_SEQ;
 
-sub open_db {
-   mkdir $DB_HOME, 0777;
+sub try_open_db {
+   File::Path::mkpath [$DB_HOME];
 
-   $DB_ENV = db_env_create;
+   my $env = db_env_create;
 
-   $DB_ENV->set_errfile (\*STDERR);
-   $DB_ENV->set_msgfile (\*STDERR);
-   $DB_ENV->set_verbose (-1, 1);
+   $env->set_errfile (\*STDERR);
+   $env->set_msgfile (\*STDERR);
+   $env->set_verbose (-1, 1);
 
-   $DB_ENV->set_flags (BDB::AUTO_COMMIT | BDB::LOG_AUTOREMOVE | BDB::TXN_WRITE_NOSYNC);
-   $DB_ENV->set_cachesize (0, 2048 * 1024, 0);
+   $env->set_flags (BDB::AUTO_COMMIT | BDB::LOG_AUTOREMOVE | BDB::TXN_WRITE_NOSYNC);
+   $env->set_cachesize (0, 2048 * 1024, 0);
 
-   db_env_open $DB_ENV, $DB_HOME,
+   db_env_open $env, $DB_HOME,
                BDB::CREATE | BDB::REGISTER | BDB::RECOVER | BDB::INIT_MPOOL | BDB::INIT_LOCK | BDB::INIT_TXN,
                0666;
 
    $! and die "cannot open database environment $DB_HOME: " . BDB::strerror;
+
+   $DB_ENV = $env;
 
    1
 }
@@ -86,20 +93,9 @@ sub table($) {
 
 #############################################################################
 
-unless (eval { open_db }) {
-   warn "$@";#d#
-   eval { File::Path::rmtree $DB_HOME };
-   open_db;
-}
-
-our $WATCHER = EV::io BDB::poll_fileno, EV::READ, \&BDB::poll_cb;
-
-our $SYNC = EV::timer_ns 0, 60, sub {
-   $_[0]->stop;
-   db_env_txn_checkpoint $DB_ENV, 0, 0, 0, sub { };
-};
-
-our $tilemap;
+our $WATCHER;
+our $SYNC;
+our $facemap;
 
 sub exists($$$) {
    my ($db, $key, $cb) = @_;
@@ -151,34 +147,30 @@ sub do_get_tile_id {
    my $table = table "facemap";
    my $id;
 
-   db_get $table, undef, $name, $id, 0;
-   return $cb->($id) unless $!;
+   db_get $table, undef, $name => $id, 0;
+   $! or return $cb->($id);
 
-   for (1..100) {
-      my $txn = $DB_ENV->txn_begin;
-      db_get $table, $txn, id => $id, 0;
-
-      $id = 64 if $id < 64;
-
-      ++$id;
-
-      db_put $table, $txn, id => $id, 0;
-      db_txn_finish $txn;
-
-      $SYNC->again unless $SYNC->is_active;
-
-      return $cb->($id) unless $!;
-
-      select undef, undef, undef, 0.01 * rand;
+   unless ($TILE_SEQ) {
+      $TILE_SEQ = $table->sequence;
+      $TILE_SEQ->initial_value (64);
+      $TILE_SEQ->set_cachesize (0);
+      db_sequence_open $TILE_SEQ, undef, "id", BDB::CREATE;
    }
 
-   die "maximum number of transaction retries reached - database problems?";
+   db_sequence_get $TILE_SEQ, undef, 1, my $id;
+
+   die "unable to allocate tile id: $!"
+      if $!;
+   
+   db_put $table, undef, $name => $id, 0;
+   $cb->($id);
+
 }
 
 sub get_tile_id_sync($) {
    my ($name) = @_;
 
-   $tilemap->{$name} ||= do {
+   $facemap->{$name} ||= do {
       my $id;
       do_get_tile_id $name, sub {
          $id = $_[0];
@@ -222,19 +214,6 @@ sub logprint($$$) {
 }
 
 #############################################################################
-
-# fetch the full face table first
-unless ($tilemap) {
-   do_table facemap => sub {
-      $tilemap = $_[0];
-      delete $tilemap->{id};
-      my %maptile = reverse %$tilemap;#d#
-      if ((scalar keys %$tilemap) != (scalar keys %maptile)) {#d#
-         $tilemap = { };#d#
-         DC::error "FATAL: facemap is not a 1:1 mapping, please report this and delete your $DB_HOME directory!\n";#d#
-      }#d#
-   };
-}
 
 package DC::DB::Server;
 
@@ -422,6 +401,46 @@ sub run {
 
 sub stop {
    close $FH;
+}
+
+package DC::DB;
+
+sub nuke_db {
+   File::Path::mkpath [$DB_HOME];
+   eval { File::Path::rmtree $DB_HOME };
+}
+
+sub open_db {
+   unless (eval { try_open_db }) {
+      warn "$@";#d#
+      eval { nuke_db };
+      try_open_db;
+   }
+
+   # fetch the full face table first
+   unless ($facemap) {
+      do_table facemap => sub {
+         $facemap = $_[0];
+         delete $facemap->{id};
+         my %maptile = reverse %$facemap;#d#
+         if ((scalar keys %$facemap) != (scalar keys %maptile)) {#d#
+            $facemap = { };#d#
+            DC::error "FATAL: facemap is not a 1:1 mapping, please report this and delete your $DB_HOME directory!\n";#d#
+         }#d#
+      };
+   }
+
+   $WATCHER = EV::io BDB::poll_fileno, EV::READ, \&BDB::poll_cb;
+   $SYNC = EV::timer_ns 0, 60, sub {
+      $_[0]->stop;
+      db_env_txn_checkpoint $DB_ENV, 0, 0, 0, sub { };
+   };
+}
+
+END {
+   undef $TILE_SEQ;
+   %DB_TABLE = ();
+   undef $DB_ENV;
 }
 
 1;

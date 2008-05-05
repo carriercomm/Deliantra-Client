@@ -3,45 +3,9 @@
 =head1 Description
 
 Instead of gaining experience for basically just killing monsters (and
-disarming traps) you can also gain a variety of experience through the
-use of skills. 
-
-=head1 Skill Overview
-
-   Skill           Experience   Associated Stats
-                                Stat 1 Stat 2 Stat 3
-   Achemy          Mental       Int    Dex    Wis
-   Bargaining      NONE         n/a    n/a    n/a
-   Bowyer          Mental       Int    Dex    Wis
-   Clawing         Physique     Str    Dex    n/a
-   Disarm Traps    Agility      Dex    Int    Str
-   Find Traps      Mental       Int    Dex    n/a
-   Flame Touch     Physique     Str    Dex    Int
-   Hiding          Agility      Dex    Int    n/a
-   Inscription     Mental       Int    Dex    n/a
-   Jeweler         Mental       Int    Wis    Dex
-   Jumping         Physique     Str    Dex    n/a
-   Karate          Physique     Str    Dex    n/a
-   Literacy        Mental       Int    Wis    n/a
-   Lockpicking     Agility      Dex    Int    n/a
-   Meditation      NONE         Int    Wis    Pow
-   Melee Weapons   Physique     Str    Dex    n/a
-   Missile Weapons Physique     Str    Dex    n/a
-   Mountaineer     NONE         n/a    n/a    n/a
-   Oratory         Personality  Cha    Int    n/a
-   Praying         Wisdom       Wis    Pow    n/a
-   Punching        Physique     Str    Dex    n/a
-   Sense Curse     Wisdom       Pow    Wis    n/a
-   Sense Magic     Magic        Pow    Int    n/a
-   Set Traps       Mental       Int    Dex    Str
-   Singing         Personality  Cha    Int    n/a
-   Smithery        Mental       Int    Str    Dex
-   Stealing        Agility      Dex    Int    n/a
-   Thaumaturgy     Mental       Int    Wis    n/a
-   Throwing        Physique     Str    Dex    n/a
-   Use Magic Item  NONE         Pow    Int    n/a
-   Wizardry        Magic        Pow    Int    n/a
-   Woodsman        Mental       Int    Dex    Wis
+disarming traps) you can also gain experience in a variety of other
+skills, which can either be learned or used through a skill tool or
+talisman.
 
 =head1 X<skill_description>Skill Descriptions
 
@@ -52,7 +16,7 @@ Below is a more detailed description of each skills and how they are used.
 You can identify potions, containers, and different kinds of ore and
 mineral, mix potions and create other stuff (such as gold, weapons, deadly
 monsters killing him/her etc.) from other ingredients using a cauldron
-L<$ARCH/misc/Container/cauldron.base.111.png>.
+L<$ARCH/cauldron.x11>.
 
 To identify alchemy stuff you have to stand over it or have it in your inventory and
 issue the command C<use_skill alchemy>. The alchemy items will be identified. Some might
@@ -93,7 +57,7 @@ whether the shopkeeper likes you. Elf shopkeepers will like elf players.
 You can identify missile weapons and missiles such as arrows, bolts and
 bows.  One can also create special bows and arrows from other ingredients
 using the bowyer skill like the L<alchemy skill|skill_description/alchemy>
-skill and a B<workbench> L<$ARCH/misc/Container/workbench.base.111.png>
+skill and a B<workbench> L<$ARCH/workbench.x11>
 (you just have to find out a recipe).
 
 =head2 clawing
@@ -205,7 +169,7 @@ B<lockpicks> to use this skill.
 =head2 meditation
 
 Player can regain mana/hp at an accelerated rate by C<use_skill meditation>,
-the L<praying skill|skill_description/praying>. Player must first strip
+the L<skill_description/praying> skill. Player must first strip
 off encumbering armour however. This skill is only available to the "monk"
 character class.
 
@@ -248,12 +212,13 @@ the wizards house in scorn) are good initial targets for this skill.
 
 =head2 praying
 
-You are allowed to cast "cleric" spells. In addition, this skill may be
-used to accelerate the accumulation of grace by C<use_skill praying>.
-This skill may be either learned (e.g. using a L<skill scroll>) or
-acquired through the use of a B<holy symbol>.
+The praying skill allows you to cast "cleric" spells. In addition, this
+skill may be used to accelerate the accumulation of grace points by
+praying (see L<How do I pray?|how_tp_pray>. This skill may be either
+learned (e.g. using a L<skill scroll>) or acquired through the use of a
+B<holy symbol>.
 
-One of the best spells to start is the 'holy word' spell and later,
+One of the best spells to start with is the 'holy word' spell and later,
 if you find it, the 'banishment' spell, which is much stronger.
 
 =head2 punching

@@ -1,26 +1,23 @@
-=head1 Game FAQ/Tips and Tricks
+=head1 FAQ, Tips and Tricks
 
 Here are some questions you might asked yourself over time.
 Also some nice Tips and Tricks are listed here, which you may find informative.
 
-=head2 X<faq_igniteandthaw>How do I thaw icecubes? Or: How do I ignite a torch?
+=head2 Meta - About the Game and the Client
 
-There are a few options:
-The right-click context menu in the L<Inventory|playerbook_inventory> reveals
-B<ignite/thaw>, which will ignite something or thaw icecubes.
-You will need a B<flint & steel> L<$ARCH/light/flint_and_steel.base.111.png> for this
-to work!
+=head3 What is the relation between Deliantra and Crossfire?
 
-An alternative would be to use the L<mark|command/mark> and L<apply|command/apply>
-commands like this:
+Deliantra was originally a Crossfire server, but by now most of the code
+has been rewritten. Still most maps are very similar or identical to
+Crossfire maps, so the games share a lot.
 
-   mark icecube
-   apply flint and steel
+The major differences are a better client, better graphics, a stable
+server (i.e. no crashes every few hours with players and maps getting
+reset) and the ability to let more players play, by using less resources
+and having a fully asynchronous design, and full support for sound effects
+and background music.
 
-If you need to something do this often, I recommend using the L<Bind
-Recorder|binding_recorder>.
-
-=head2 The client is very sluggish and slow, what can I do about this?
+=head3 The client is very sluggish and slow, what can I do about this?
 
 Most likely, you don't have accelerated OpenGL support. Try to find a
 newer driver, or a driver from your hardware vendor, that features OpenGL
@@ -36,9 +33,423 @@ still be slow, though):
 
 =item * Enable B<Fast & Ugly> mode
 
-=item * Disable B<Fog of War>
+=item * Disable B<Fog of War> and C<Map Smoothing>
 
 =item * Increase B<Map Scale>
 
 =back
+
+=head3 The client doesn't correctly react to keypresses or mouseclicks.
+
+=over 4
+
+=item Make sure Numlock is off.
+
+Some Microsoft Windows versions/keyboard layouts do not report modifiers for the
+numerical keypad keys while Numlock is active.
+
+=item Make sure no other Modifier is "pressed".
+
+Mircosoft Windows versions have some accessability features that could
+interfere with games like Deliantra. You might want to switch these off in
+the keyboard settings. Sometimes modifiers can be "unstuck" by pressing
+them down once.
+
+=item Fullscreen switches confuse the keyboard modifiers.
+
+Fullscreen switches on Microsoft Windows sometimes confuse which keys are
+pressed and which aren't. Doing another switch to/from fullscreen might
+help.
+
+=back
+
+=head3 My client doesn't start anymore/graphics are corrupted!
+
+Sometimes you hit a bug in the client. To reset the state of your client
+you can delete your client database directory (your client will have to
+re-download music and images and you will lose your minimap contents).
+
+=over 4
+
+To do that, on Unix:
+
+   rm -rf ~/.deliantra/client-*
+
+On windows:
+
+Do C<< Start => Run >>, enter F<%APPDATA%>, press return, and in the
+window that will open, first open F<deliantra>, then delete the directory
+starting with F<client->.
+
+=back
+
+Alternatively you can delete the F<.deliantra> or F<deliantra> directory
+itself, but this will also delete your settings and keybindings.
+
+
+=head2 Game Mechanics
+
+=head3 I lose health but can't see why!
+
+Here are the typical reasons why you lose health:
+
+=over 4
+
+=item * You are being attacked.
+
+Sounds obvious, but sometiems you can't see the monster attacking
+you. Check the C<Log> tab, as you usually get a message when this happens.
+
+=item * You are out of food.
+
+When your food reaches C<0> you will start to lose health. Eating (good)
+food will replenish your food level.
+
+=item * You are poisoned.
+
+Poison will reduce your health. When your body heals fast enough it will
+eventually get over the poison, otherwise you should seek professional
+help such as the House of Healing in Scorn, or a player with the C<cure
+poison> spell.  It is rumored that neko san might sometimes cure poison.
+
+=item * You have a disease.
+
+Some diseases have such drastic effects on your organism that you can lose
+health. Get help in the House of Healing in Scorn, or ask a player who can
+cast C<cure disease> on you.
+
+=item * Your stats change.
+
+Switching items can affect your stats, which in turn can affect your
+healthpoints. While this is not a regular effect (it only happens when you
+change items), it can sometimes look as if you are losing health.
+
+=back
+
+=head3 I lost an item, how?
+
+Well, we don't know. If you don't know, either, here is a partial list of ways people
+typically lose stuff:
+
+=over 4
+
+=item You accidentally dropped it in a shop (or elswehere).
+
+If in a shop, if it was money, you can just go there and pick it up again:
+shops do not "buy" money. For other items you will have to buy it back.
+
+=item Thieves or monsters stole your items.
+
+Yes, thieves and many other monsters (such as demons) can actually steal
+stuff. They can steal about anything that you don't currently wield, and
+if they are good, you don't even notice it. Your only chance of getting
+the item back is to kill the thief.
+
+Many adventurers find that the old road to Navar harbours a lot of thieves
+and is best avoided by the beginning adventurers.
+
+=back
+
+=head3 How can I Prepare/Improve/Enchant Weapons?
+
+This is done in two steps: first you have to I<prepare> your weapon
+for the desired number of enchantments, then you apply the enchanments
+(weapons remember how many times they can be enchanted further).
+
+To prepare a weapon, wield it and L<mark> (e.g. using the popup menu in
+the inventory) some diamonds, as a sacrifice, then read the I<Prepare
+Weapon> scroll. The square root of the total number of diamonds sacrificed
+this way determines the number of enchantments the weapon accepts: one
+diamond for one enchanment, nine diamonds for three enchantments, 100
+diamonds for ten enchantments and so on.
+
+After that, you can apply improvement and enchantnment scrolls:
+
+=over 4
+
+=item Improve Damage
+
+Each scroll read will increase the damage by five points, and likewise the
+weight by five kilograms.
+
+=item Lower Weight
+
+This "improves" the weight of your weapon: each scroll reduces the weight
+by one fifth (20%). It will not, however, create weightless weapons.
+
+=item Enchant Weapon
+
+Each scroll read increases the magic by one point.
+
+=item Improve Stat
+
+This scroll improves one of the basic stat improvements (Strength,
+Dexterity and so on). For this it needs a further sacrifice in form of
+stat potions. The stat potions must be of the same type and will determine
+which stat gets improved.
+
+The number of stat potions you need to improve it is twice the number of
+stat points the weapon currently gives, plus one (the minimum is two stat
+potions, however). That is, a weapon which gives no stat bonus needs two
+(C<0 × 2 + 1 = 1> which is less than two, so two) stat potion, one that
+already gives I<Str +2> and I<Int +1> will need seven (C<3 × 2 + 1>) stat
+potions. Negative stats are summed normally, so I<Str +4> and I<Int -2>
+will result in needing five stat potions only (C<2 × 2 + 1>).
+
+=back
+
+Keep in mind, however, that your character can only handle a limited
+number of weapon improvements, see the L<skills> command. Item power will
+also increase.
+
+=head3 How can I enchant Armour?
+
+Enchanting armour is easy: each time you read an I<Enchant Armour> scroll,
+the magic value will be increased by one, the speed, armour (physical
+resistance) and weight are increased by some amount, as well as the item
+power.
+
+=head3 What is this item power business?
+
+In general, the more interesting/powerful items have higher item power
+values. Your character can handle only handle only a limited amount of power - for each overall level
+you can handle C<1.25> item power points, so if you are level 16 you can handle a total of 20 item power points
+(see the L<skills> command for your current limit and remaining item power points).
+
+All the equipment you wear adds to this limit, so if you wield a weapon of
+item power 30 plus two rings of item power 14 each you will need 58 item
+power (and a level of 47).
+
+
+=head2 Generic how do I...
+
+=head3 How do I use range weapons such as bows?
+
+First, you have to L<apply> the bow, then it will show up in the lower
+right corner in the C<Range:> slot. If it is already shown as C<(applied)>
+but not in the C<Range:> slot you have to unapply and reaply it.
+
+When you have a bow (or similar weapons like guns or crossbows) applied,
+you just shoot as with spells or other range attacks - C<Shift>+direction
+key.
+
+You need to have arrows (shells, bolts etc.) in your inventory or an
+active container for this to work.
+
+You can influence how you shoot via the L<Bow Mode|bowmode> in the C<<
+Playerbook => Settings >> tab.
+
+=head3 X<faq_igniteandthaw>How do I thaw icecubes? Or: How do I ignite a torch?
+
+The right-click context menu in the playerbook inventory has an entry
+B<ignite/thaw>, which will ignite something or thaw icecubes.  You will
+need a B<flint & steel> L<$ARCH/flint_and_steel.x11> for
+this to work!
+
+An alternative would be to use the L<mark|command/mark> and
+L<apply|command/apply> commands like this:
+
+   mark icecube
+   apply flint and steel
+
+You can bind these commands to a key and invoke them repeatedly.
+
+=head3 How do I cast a cone spell all around me (burning hands, holy word etc.)?
+
+Use the C<5>-key on your keypad. This will cats spells "onto yourself"
+which has the desired effect with cone spells.
+
+
+=head2 Playing Together
+
+=head3 How can I communicate with other players?
+
+There are five commands you can use to talk to others. All of them can
+be entered by just typing them in, followed by the message, followed by
+C<Return>, e.g. C<chat hey guys, what's up?>. If you have a I<tab> open
+in your message window you can also just type a text in there followed
+by C<Return> (this is especially handy as C<Return> also activates the
+current chat tab as well).
+
+=over 4
+
+=item chat <message> (short: C<c>)
+
+The most-used communications command. Whatever you I<chat> will end up
+in the I<Chat> tab of everybody else who is currently logged in.
+
+Example:
+
+   c uh, that anchovis almost killed me
+
+=item shout <message>
+
+This is like C<chat>, but "louder". Everybody will get your message in red
+in their C<Chat> tabs.  You should not use C<shout> unless you are in an
+emergency or there is something really important to be said, otherwise you
+risk being ignored by people.
+
+Example:
+
+   sh I am stuck! can anybody let me out?
+
+=item say <message> (short: C<s>)
+
+This command can be used to talk to NPCs (without going through the NPC
+dialogue window), but all players anywhere on the same map can hear you as
+well.
+
+Example:
+
+   s good that schmorp cnanot hera us here!
+
+=item tell <playername> <message> (short: C<te>)
+
+This is your prototypical two-way, private, chat channel. You can talk to
+any other player that is currently logged in, and only he can hear you.
+
+=item gsay <message> (short: C<gs>)
+
+The group say command sends a message to every member of the party/group
+you are in. This is useful when playing in a team, to avoid cluttering the
+chat channel.
+
+=back
+
+In addition to these, there are a large number of emotes you can use, use
+the L<help> command to get a list.
+
+=head3 Can I form parties? Which benefits does party-play have?
+
+You can form I<new> parties using the C<< party form <name> >> name
+command, and you can join I<existing> parties using the C<< party join
+<name> >> command. There are other party commands, use C<help party> to
+find out more.
+
+The main benefit of party-play is sharing experience: All experience you
+gain is distributed to all party members accoridng to their level (people
+with twice the level as you gain twice as much experience).
+
+This is great for training skills you are bad in, but somebody else is
+good in, and of course vice versa!
+
+
+=head2 Magic
+
+=head3 How can I summon a specific monster with C<summon pet monster>?
+
+Higher levels of L<skill_description/summoning> give you access to higher
+level monsters, but not all monsters have equal abilities. Instead of
+summoning the highest level monster allowed by your level you can also
+summon any other monster you had before by adding its I<archetype name>
+after the command, i.e. to summon bees you would use the C<cast summon pet
+monster bee> (short: C<cspm bee>) command.
+
+   Level  Monster
+       1  bat
+       3  bird
+       4  spider
+       6  killer_bee
+       7  pixie
+       8  skeleton
+       9  stalker
+      11  devil
+      13  beholder
+      15  dark_elf
+      17  skull
+      20  angel
+      25  vampire
+      30  spectre
+      35  lich
+      40  demilich
+      50  hellhound
+      60  unusual_kobold
+      70  chicken
+      80  gr_hellhound
+      90  dave
+     100  laoch
+     105  snitchangel
+
+=head2 Praying, Gods and Cults
+
+=head3 X<how_tp_pray>How do I pray?
+
+First enter the "praying mode" by readying your L<skill_description/praying> skill
+(by default bound to C<Alt-P>, or by typing C<rspraying>), then hold and keep holding
+C<Shift> and a direction key (e.g. C<Shift-Up>).
+
+You will now pray as long as you keep pressing the keys.
+
+=head3 How can I summon a specific monster with C<summon cult monster>?
+
+You can't, your god selects the monsters for you.
+
+=head3 How do I join a cult/become a follower of a god?
+
+That is simple, just find an altar of a god of your choice and start
+L<skill_description/praying>. Eventually, the god will recognize
+you.
+
+=head3 How do I change gods?
+
+That is far more difficult: gods really hate it when you defect
+them. Expect to lose a lot of L<skill_description/praying> experience in
+the process.
+
+First you should pray long enough to your god, until you gain 95%
+resistance to god power. Then quickly go to the altar of your newly-chosen
+god and pray on her/his altar. Your old god won't make it easy, but if you
+are persistent your old god will let you go at one point.
+
+
+=head2 Exploring / Quests
+
+=head3 What areas are there to explore?
+
+First, you should explore Scorn and find the port pass (and maybe also the
+gate pass). Make sure you don't miss out the old city of scorn, many
+a dangers, but also many treasures, can be found there.
+
+When you finished most of the quests in Scorn you should investigate how
+the pirates escape from the prison. This will lead to a number of nice
+quests in and around Port Joseph.
+
+Another nice series of quests, from low to medium level, can be found in
+the King's Palace in Scorn. Who wouldn't want to meet the princess in
+person?
+
+The areas you can reach through the various transportation modes in Scorn
+are Pupland (which has a lot of puzzles and quests from very low to very
+high level), Stoneville and Santo Dominion (low and medium level quests,
+also nice shops), and the Aldwulf Archipelago (which is more dangerous).
+
+Through the gate you can reach Euthville and Santo Dominion to the north,
+Brest (medium level) and Lake Country (medium to high level) to the south,
+and Navar (medium level quests) in the east (a long travel).
+
+From Navar you can travel to Darcap in the far north (medium level
+quests), near the mystical country of Azumauindo, to Wolfsburg somewhere
+on the ocean, a rather dangerous area with many thieves and pirates
+(medium level quests) and Valleynoy to the south, with medium and high
+level quests (did you find the southpole yet?).
+
+Also, it is said that Navar somehow has access to the mystical City
+de Clouds, the biggest city ever seen (high level and very high level
+quests). There are rumors about lands beyond (St. Bartholemew and other
+cities) and other even more mystical places, but little is known about
+that.
+
+=head2 Where is that damn Goblin Chief?
+
+In his cave to the north-east of the Scorn Gate. It is the one that starts
+with a random maze (yes, there are multiple caves). Keep in mind that the
+Goblin Chief's Head is fastened to his body, so you have to find and kill
+him first.
+
+=head2 Where can I find the I<comet> spell?
+
+In the tower of stars, which is almost directly south of Scorn (but not
+too near to it). You have to talk to people to solve this quest, and it
+does not involve a random maze.
+
 

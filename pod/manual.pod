@@ -303,14 +303,14 @@ something with a flint and steel|faq_igniteandthaw>.
 =item ignite/thaw
 
 This will ignite for example a torch or thaw an icecube with a B<flint &
-steel> L<$ARCH/light/flint_and_steel.base.111.png>, which is B<required to
-be in your inventory> for this to work.
+steel> L<$ARCH/flint_and_steel.x11>, which is B<required to be in your
+inventory> for this to work.
 
 =item inscribe
 
 This will let you write on something (eg. scrolls) with a B<pen>
-L<$ARCH/skills/Skill_Tools/stylus.base.111.png>, which is I<required to
-be in your inventory> for this to work.
+L<$ARCH/stylus.x11>, which is I<required to be in your inventory> for this
+to work.
 
 When you click on this context menu entry a small popup window will open
 where you can type in what you want to inscribe.

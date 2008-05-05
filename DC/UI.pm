@@ -3860,7 +3860,7 @@ sub new {
                can_events => 1,
                tooltip    => $tooltip,
                children   => [
-                  (new DC::UI::Label markup => $left, expand => 1),
+                  (new DC::UI::Label markup => $left , align => 0, expand => 1),
                   (new DC::UI::Label markup => $right, align => 1),
                ],
             ;

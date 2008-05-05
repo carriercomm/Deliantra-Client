@@ -29,8 +29,8 @@ sub new {
    $self->{map_widget}->clr_commands;
 
    my @cmd_help = map {
-      $_->{kw}[0] =~ /^(\S+) (?:\s+ \( ([^\)]*) \) )?/x
-         or die "unparseable command help: $_->{kw}[0]";
+      $_->[DC::Pod::N_KW][0] =~ /^(\S+) (?:\s+ \( ([^\)]*) \) )?/x
+         or die "unparseable command help: $_->[DC::Pod::N_KW][0]";
 
       my $cmd = $1;
       my @args = split /\|/, $2;
@@ -45,7 +45,7 @@ sub new {
       map ["$cmd$_", $text],
          sort { (length $a) <=> (length $b) }
             @args
-   } sort { $a->{par} <=> $b->{par} }
+   } sort { $a->[DC::Pod::N_PAR] <=> $b->[DC::Pod::N_PAR] }
           DC::Pod::find command => "*";
 
    $self->{json_coder}
@@ -1142,7 +1142,7 @@ sub addme_success {
 
    for my $node (DC::Pod::find skill_description => "*") {
       my (undef, @par) = DC::Pod::section_of $node;
-      $skill_help{$node->{kw}[0]} = DC::Pod::as_label @par;
+      $skill_help{$node->[DC::Pod::N_KW][0]} = DC::Pod::as_label @par;
    };
  
    for my $skill (values %{$self->{skill_info}}) {
@@ -1172,7 +1172,8 @@ sub update_floorbox {
       my @add;
 
       my $row;
-      for (sort { $a->{count} <=> $b->{count} } values %{ $::CONN->{container}{$::CONN->{open_container} || 0} }) {
+      for (sort { $b->{count} <=> $a->{count} } values %{ $::CONN->{container}{$::CONN->{open_container} || 0} }) {
+         next if $_->{tag} & 0x80000000;
          if ($row < 6) {
             local $_->{face_widget}; # hack to force recreation of widget
             local $_->{desc_widget}; # hack to force recreation of widget
@@ -1275,10 +1276,10 @@ sub item_delete {
 sub item_update {
    my ($self, $item) = @_;
 
-   #d# print "item_update: $item->{tag} in $item->{container} ($self->{player}{tag}) ($::CONN->{open_container})\n";
+   #print "item_update: $item->{tag} in $item->{container} pt($self->{player}{tag}) oc($::CONN->{open_container}) f($item->{flags})\n";
 
    DC::Item::update_widgets $item;
-
+   
    if ($item->{tag} == $::CONN->{open_container} && not ($item->{flags} & F_OPEN)) {
       set_opencont ($::CONN, 0, "Floor");
 

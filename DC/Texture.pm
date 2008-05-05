@@ -133,7 +133,7 @@ sub upload {
       } elsif (defined $self->{image}) {
          ($self->{w}, $self->{h}, $data, my $internalformat, $self->{format}, $self->{type})
             = DC::load_image_inline $self->{image};
-
+        
          $self->{internalformat} ||= $internalformat;
          ($dw, $dh) = @$self{qw(w h)};
          

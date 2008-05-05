@@ -71,7 +71,7 @@ Enter the desired I<Username> and I<Password> and click on I<Login> now.
 
 =head2 Character Creation
 
-=for item sc_char_create.png
+=for image sc_char_create.png
 
 Your next step will be to generate random (primary) stats for your
 character (to see the stats, you might have to open the B<Stats Window>
@@ -171,7 +171,7 @@ click on the links in the text to ask the NPC about that.
 
 Another note about entering commands:
 
-In crossfire most things are command driven. You can enter commands in two ways:
+In Deliantra most things are command driven. You can enter commands in two ways:
 
 =over 4
 

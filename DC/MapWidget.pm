@@ -208,7 +208,7 @@ sub invoke_button_down {
             ["Spells…\tF4",       sub { ::toggle_player_page ($::SPELL_PAGE) }],
             ["Inventory…\tF5",    sub { ::toggle_player_page ($::INVENTORY_PAGE) }],
             ["Setup… \tF9",       sub { $::SETUP_DIALOG->toggle_visibility }],
-            ["Server Messages…",  sub { $::MESSAGE_WINDOW->toggle_visibility }],
+#            ["Server Messages…",  sub { $::MESSAGE_WINDOW->toggle_visibility }],
             [
                $::PICKUP_ENABLE->{state}
                   ? "Disable automatic pickup"
@@ -218,10 +218,10 @@ sub invoke_button_down {
       );
 
       if ($::CONN && $::CONN->{editor_support}) {
-         push @items, [
-            "Edit this map <span size='xx-small'>(" . (DC::asxml $::CONN->{map_info}[0]) . ")</span>",
-            \&editor_invoke,
-         ];
+#         push @items, [
+#            "Edit this map <span size='xx-small'>(" . (DC::asxml $::CONN->{map_info}[0]) . ")</span>",
+#            \&editor_invoke,
+#         ];
 
          for my $type (qw(test name)) {
             $::CONN->{editor_support}{type} ne $type

@@ -17,7 +17,7 @@ package DC;
 use Carp ();
 
 BEGIN {
-   $VERSION = '0.9967';
+   $VERSION = '0.9971';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
@@ -166,7 +166,7 @@ sub read_cfg {
 }
 
 sub write_cfg {
-   my ($file) = @_;
+   my $file = "$Deliantra::VARDIR/client.cf";
 
    $::CFG->{VERSION} = $::VERSION;
 

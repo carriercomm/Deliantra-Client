@@ -14,9 +14,6 @@ sub new {
       border_bg => [1, 1, 1, 1],
       x         => "max",
       y         => 0,
-      force_w   => $::WIDTH  * 0.4,
-      force_h   => $::HEIGHT * 0.5,
-      has_close_button => 1,
       child     => (my $nb = DC::UI::Notebook->new (expand => 1)),
       @_,
    );

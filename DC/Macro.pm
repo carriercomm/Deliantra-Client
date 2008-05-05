@@ -13,8 +13,8 @@ our %DEFAULT_KEYMAP = (
    "(\")"      => "!completer say ",
    "(')"       => "!completer",
 
-   "LShift-tab" => "!toggle-messagewindow",
-   "RShift-tab" => "!toggle-messagewindow",
+#   "LShift-tab" => "!toggle-messagewindow",
+#   "RShift-tab" => "!toggle-messagewindow",
    "tab"        => "!toggle-playerbook",
    "f1"         => "!toggle-help",
    "f2"         => "!toggle-stats",

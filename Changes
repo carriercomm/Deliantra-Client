@@ -1,5 +1,30 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9971 Mon May  5 21:37:33 CEST 2008
+	- reverse order of items in floorbox.
+	- sort right side of inventory by floor order.
+        - make messages window always visible.
+	- fix stat tooltips by not lowercasing keywords in pod2wiki.
+	- fix longstanding bug where the stats tab would be removed during chargen.
+        - fix menu alignment.
+	- change podwiki format to be slightly more generic.
+	- ignore pseudo-items in floorbox, only show in inventory.
+
+0.9970 Sun Mar 30 13:30:47 CEST 2008
+	- fix a bug in tile id allocation, the effect of this bug
+          was effectively disabling the tile cache, upgrade is highly
+          recommended.
+        - fix npc dialog.
+	- upgrade the database schema (i.e. nuke it...).
+	- only open the database before forking the bg server.
+        - PRECOMPILED BINARY: use packaged libdb4.6 instead of libdb4.4.
+        - use newer BDB module (might fix the filename encoding issue under win32).
+        - use a real bdb sequence for the faceid, for better performance.
+
+0.9968 Tue Mar 25 20:28:16 CET 2008
+	- reduce documentation memory usage.
+        - fix the stat gauge tooltips that have gone missing since 0.9966.
+
 0.9967 Mon Mar 24 01:24:07 CET 2008
 	- implement keyboard modifier display (mostly because of the numlock
           problems under windows).

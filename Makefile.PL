@@ -52,7 +52,7 @@ WriteMakefile(
     EXE_FILES => [qw(bin/deliantra)],
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
-       BDB           => 1.4,
+       BDB           => 1.45,
        Deliantra     => 1.13,
        Time::HiRes   => 0,
        EV            => 1.72,

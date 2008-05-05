@@ -101,7 +101,7 @@ use Deliantra::Protocol::Constants;
 
 use Compress::LZF;
 
-use DC;
+use DC; BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$@" unless $^S } }
 use DC::OpenGL ();
 use DC::Protocol;
 use DC::DB;
@@ -666,7 +666,6 @@ sub server_query {
             text => "Accept",
             on_activate => sub {
                $conn->send ("reply n");
-               $STATS_PAGE->hide;
                destroy_query_dialog $conn;
                0
             },
@@ -767,6 +766,7 @@ sub start_game {
 
       status "login successful";
    } else {
+      warn $@;
       status "unable to connect";
       stop_game();
    }
@@ -1622,10 +1622,10 @@ sub client_setup {
       }
    );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Messages Window Size");
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Message Window Size");
    $table->add_at (1, $row++, my $saycmd = new DC::UI::Entry
       text    => $CFG->{logview_max_par},
-      tooltip => "This is maximum number of messages remembered in the <b>Messages</b> window. If the server "
+      tooltip => "This is maximum number of messages remembered in the <b>Message</b> window. If the server "
                . "sends more messages than this number, older messages get removed to save memory and "
                . "computing time. A value of <b>0</b> disables this feature, but that is not recommended.",
       on_changed => sub {
@@ -1744,7 +1744,9 @@ sub autopickup_setup {
 }
 
 my %SORT_ORDER = (
-   type   => undef,
+   type   => sub {
+      sort { $a->{type} <=> $b->{type} or $a->{name} cmp $b->{name} } @_
+   },
    mtime  => sub {
                 my $NOW = time;
                 sort {
@@ -1976,7 +1978,7 @@ sub help_window {
 
       for my $node (@path) {
          $buttons->add (new DC::UI::Button
-            text        => $node->{kw}[0],
+            text        => $node->[DC::Pod::N_KW][0],
             tooltip     => "go to <i>" . (DC::asxml DC::Pod::full_path $node) . "</i>",
             on_activate => sub {
                push @history, [$curnode, $viewer->current_paragraph] if $curnode; @future = ();
@@ -1986,7 +1988,7 @@ sub help_window {
          $buttons->add (new DC::UI::Label text => "/");
       }
 
-      $buttons->add (new DC::UI::Label text => $node->{kw}[0], padding_x => 4, padding_y => 4);
+      $buttons->add (new DC::UI::Label text => $node->[DC::Pod::N_KW][0], padding_x => 4, padding_y => 4);
 
       $curnode = $node;
 
@@ -2243,10 +2245,17 @@ sub video_init {
       ;
 
       $METASERVER = metaserver_dialog;
-      $MESSAGE_WINDOW = new DC::UI::Dockbar (name => 'message_window', title => 'Messages');
+      # the name is changed to not conflict with the older name as users could have hidden it
+      $MESSAGE_WINDOW = new DC::UI::Dockbar 
+         name    => "message_window2",
+         title   => 'Messages',
+         force_w => $::WIDTH  * 0.6,
+         force_h => $::HEIGHT * 0.25,
+      ;
+
       $MESSAGE_DIST   = new DC::MessageDistributor dockbar => $MESSAGE_WINDOW;
 
-      $SETUP_DIALOG->add ($SETUP_NOTEBOOK = new DC::UI::Notebook expand => 1, debug => 1,
+      $SETUP_DIALOG->add ($SETUP_NOTEBOOK = new DC::UI::Notebook expand => 1,
          filter => new DC::UI::ScrolledWindow expand => 1, scroll_y => 1);
 
       $SETUP_NOTEBOOK->add_tab (Login    => $SETUP_LOGIN = login_setup,
@@ -2274,8 +2283,8 @@ sub video_init {
       $BUTTONBAR->add (new DC::UI::Flopper text => "Setup", other => $SETUP_DIALOG,
          tooltip => "Toggles a dialog where you can configure all aspects of this client.");
 
-      $BUTTONBAR->add (new DC::UI::Flopper text => "Message Window", other => $MESSAGE_WINDOW,
-         tooltip => "Toggles the server message log, where the client collects <i>all</i> messages from the server.");
+#      $BUTTONBAR->add (new DC::UI::Flopper text => "Message Window", other => $MESSAGE_WINDOW,
+#         tooltip => "Toggles the server message log, where the client collects <i>all</i> messages from the server.");
 
       make_gauge_window->show; # XXX: this has to be set before make_stats_window as make_stats_window calls update_stats_window which updated the gauges also X-D
 
@@ -2287,7 +2296,7 @@ sub video_init {
          tooltip          => "Saves the options chosen in the client setting, server settings and the window layout to be restored on later runs.",
          on_activate => sub {
             $::CFG->{layout} = DC::UI::get_layout;
-            DC::write_cfg "$Deliantra::VARDIR/client.cf";
+            DC::write_cfg;
             status "Configuration Saved";
             0
          },
@@ -2295,7 +2304,6 @@ sub video_init {
 
       $BUTTONBAR->add (new DC::UI::Flopper text => "Help!", other => $HELP_WINDOW = help_window,
          tooltip => "View Documentation");
-
 
       $BUTTONBAR->add (new DC::UI::Button
          text        => "Quit",
@@ -2422,6 +2430,8 @@ $SIG{INT} = $SIG{TERM} = sub {
 };
 
 {
+   DC::Pod::load_docwiki DC::find_rcfile "docwiki.pst";
+
    if (-e "$Deliantra::VARDIR/client.cf") {
       DC::read_cfg "$Deliantra::VARDIR/client.cf";
    } else {
@@ -2431,6 +2441,15 @@ $SIG{INT} = $SIG{TERM} = sub {
    }
 
    DC::DB::Server::run;
+
+   if ($CFG->{db_schema} < 1) {
+      warn "INFO: upgrading database schema from 0 to 1, mapcache and tilecache will be lost\n";
+      DC::DB::nuke_db;
+      $CFG->{db_schema} = 1;
+      DC::write_cfg;
+   }
+
+   DC::DB::open_db;
 
    DC::UI::set_layout ($::CFG->{layout});
 
@@ -2542,6 +2561,7 @@ our $STARTUP_CANCEL = EV::idle sub {
    $startup_done->();
 };
 
+delete $SIG{__DIE__};
 EV::loop;
 
 #video_shutdown;

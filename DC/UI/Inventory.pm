@@ -49,8 +49,7 @@ sub set_sort_order {
 
    $self->{sort} = $order ||= sub {
       sort {
-         $a->{type} <=> $b->{type}
-            or $a->{name} cmp $b->{name}
+         $b->{count} <=> $a->{count}
       } @_
    };
 
