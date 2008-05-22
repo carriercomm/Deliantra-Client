@@ -1,5 +1,21 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9972 Thu May 22 22:45:01 CEST 2008
+	- save all map changes in map cache, not just the current map (this fixes
+          the problem of map border "black out" in the minimap).
+        - use an even more compact format for minimap data.
+        - use an uncompressed cache for minimap data, increases memory requirements
+          (~1mb) but saves compression.
+	- close container, clear inventory, floorbox etc. to avoid a crash when
+          clicking on them after logging out.
+	- support xml formatting in ex replies (item tooltips, requires server
+          2.54+).
+	- try to ignore repeated keypress-events for movement, as
+          these are usually keyrepeats.
+	- added default (0) for the shift_fire_stop setting
+	- write client.cf in pretty-printed-json.
+        - avoid crashes if map cache is corrupted.
+
 0.9971 Mon May  5 21:37:33 CEST 2008
 	- reverse order of items in floorbox.
 	- sort right side of inventory by floor order.

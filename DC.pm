@@ -17,7 +17,7 @@ package DC;
 use Carp ();
 
 BEGIN {
-   $VERSION = '0.9971';
+   $VERSION = '0.9972';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
@@ -172,7 +172,7 @@ sub write_cfg {
 
    open my $fh, ">:utf8", $file
       or return;
-   print $fh encode_json $::CFG;
+   print $fh JSON::XS->new->utf8->pretty->encode ($::CFG);
 }
 
 sub http_proxy {
@@ -225,7 +225,6 @@ sub fh_nonblocking($$) {
    } else {
       fcntl $fh, &Fcntl::F_SETFL, $nb ? &Fcntl::O_NONBLOCK : 0;
    }
-
 }
 
 package DC::Layout;

@@ -322,6 +322,11 @@ sub invoke_key_down {
 
    $mod &= DC::KMOD_CTRL | DC::KMOD_ALT | DC::KMOD_SHIFT;
 
+   # ignore repeated keypresses
+   return if $self->{last_mod} == $mod && $self->{last_sym} == $sym;
+   $self->{last_mod} = $mod;
+   $self->{last_sym} = $sym;
+
    if ($::CONN && (my $dir = $DIR{(!!($mod & DC::KMOD_ALT)) . ",$sym"})) {
       if ($mod & DC::KMOD_SHIFT) {
          $self->{shft}++;
@@ -348,6 +353,9 @@ sub invoke_key_up {
    my $res = 0;
    my $mod = $ev->{mod};
    my $sym = $ev->{sym};
+
+   delete $self->{last_mod};
+   delete $self->{last_sym};
 
    if ($::CFG->{shift_fire_stop}) {
       if (!($mod & DC::KMOD_SHIFT) && delete $self->{shft}) {

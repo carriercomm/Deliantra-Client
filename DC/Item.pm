@@ -203,7 +203,7 @@ sub update_widgets {
          $::CONN && $::CONN->ex ($self->{tag}, sub {
             my ($long_desc) = @_;
 
-            $long_desc =~ s/\s+$//;
+            $long_desc = DC::Protocol::sanitise_xml ($long_desc);
 
             $self->{long_desc} = $long_desc;
             $widget->set_tooltip ("<b>$long_desc</b>\n\n$tooltip_std");

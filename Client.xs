@@ -2294,20 +2294,35 @@ get_rect (DC::Map self, int x0, int y0, int w, int h)
               }
           }
 
-        SvPOK_only (data_sv);
-        SvCUR_set (data_sv, data - (uint8_t *)SvPVX (data_sv));
-      	RETVAL = data_sv;
+        /* if size is w*h + 5 then no data has been found */       
+        if (data - (uint8_t *)SvPVX (data_sv) != w * h + 5)
+          {
+            SvPOK_only (data_sv);
+            SvCUR_set (data_sv, data - (uint8_t *)SvPVX (data_sv));
+          }
+
+ 	RETVAL = data_sv;
 }
 	OUTPUT:
         RETVAL
 
 void
-set_rect (DC::Map self, int x0, int y0, uint8_t *data)
+set_rect (DC::Map self, int x0, int y0, SV *data_sv)
 	PPCODE:
 {
 	int x, y, z;
         int w, h;
         int x1, y1;
+        STRLEN len;
+        uint8_t *data, *end;
+
+        len = SvLEN (data_sv);
+        SvGROW (data_sv, len + 8); // reserve at least 7+ bytes more
+        data = SvPVbyte_nolen (data_sv);
+        end = data + len + 8;
+
+        if (len < 5)
+          XSRETURN_EMPTY;
 
         if (*data++ != 0)
           XSRETURN_EMPTY; /* version mismatch */
@@ -2332,7 +2347,12 @@ set_rect (DC::Map self, int x0, int y0, uint8_t *data)
 
             for (x = x0; x < x1; x++)
               {
-                uint8_t flags = *data++;
+                uint8_t flags;
+
+                if (data + 7 >= end)
+                  XSRETURN_EMPTY;
+
+                flags = *data++;
 
                 if (flags)
                   {
@@ -2345,7 +2365,8 @@ set_rect (DC::Map self, int x0, int y0, uint8_t *data)
 
                     if (cell->darkness == 0)
                       {
-                        cell->darkness = 0;
+                        /*cell->darkness = 0;*/
+                        EXTEND (SP, 3);
 
                         for (z = 0; z <= 2; z++)
                           {
@@ -2353,7 +2374,7 @@ set_rect (DC::Map self, int x0, int y0, uint8_t *data)
 
                             if (t >= self->texs || (t && !self->tex [t].name))
                               {
-                                XPUSHs (sv_2mortal (newSViv (t)));
+                                PUSHs (sv_2mortal (newSViv (t)));
                                 need_texid (self, t);
                               }
 

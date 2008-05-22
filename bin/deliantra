@@ -740,6 +740,8 @@ sub start_game {
    $MAP = new DC::Map;
    
    $CONN = eval {
+      local $SIG{__DIE__};
+
       new DC::Protocol
          host => $host,
          port => $port || 13327,
@@ -2484,6 +2486,7 @@ $SIG{INT} = $SIG{TERM} = sub {
       default             => "profile", # default profile
       show_tips           => 1,
       logview_max_par     => 1000,
+      shift_fire_stop     => 0,
    );
    
    while (my ($k, $v) = each %DEF_CFG) {

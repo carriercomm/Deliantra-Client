@@ -66,6 +66,11 @@ sub new {
          $_->destroy
             for values %{delete $ws->{w} || {}};
       }
+
+      delete $self->{items};
+      $::INV->clear;
+      $::INVR_HB->clear;
+      $::FLOORBOX->clear;
    });
 
    $self->{map_widget}->add_command (@$_)
@@ -681,20 +686,26 @@ sub magicmap {
 sub flush_map {
    my ($self) = @_;
 
-   my $map_info = delete $self->{map_info}
-      or return;
+   return unless $self->{map_info};
 
-   my ($hash, $x, $y, $w, $h) = @$map_info;
+   for my $map_info (values %{ $self->{map_cache} || {} }) {
+      my ($hash, $rdata, $x, $y, $w, $h) = @$map_info;
 
-   my $data = Compress::LZF::compress $self->{map}->get_rect ($x, $y, $w, $h);
-   $self->{map_cache_new}{$hash} = \$data;
-   DC::DB::put $self->{mapcache} => $hash => $data, sub { };
+      my $data = $self->{map}->get_rect ($x, $y, $w, $h);
+
+      if ($data ne $$rdata) {
+         $map_info->[1] = \$data;
+         my $cdata = Compress::LZF::compress $data;
+         DC::DB::put $self->{mapcache} => $hash => $cdata, sub { };
+      }
+   }
 }
 
 sub map_clear {
    my ($self) = @_;
 
    $self->flush_map;
+   delete $self->{map_info};
    delete $self->{neigh_map};
 
    $self->{map}->clear;
@@ -725,36 +736,34 @@ sub bg_fetch {
    };
 }
 
-sub load_map($$$) {
-   my ($self, $hash, $x, $y) = @_;
+sub load_map($$$$$$) {
+   my ($self, $hash, $x, $y, $w, $h) = @_;
 
-   my $gen = $self->{map_change_gen};
+   my $map_info = $self->{map_cache}{$hash} = [$hash, \"", $x, $y, $w, $h];
 
    my $cb = sub {
-      return unless $gen == $self->{map_change_gen};
+      $map_info->[1] = \$_[0];
 
-      my ($data) = @_;
-
-      if (defined $data) {
-         $self->{map_cache_new}{$hash} = \$data;
-
-         my $data = Compress::LZF::decompress $data;
-
-         my $inprogress = @{ $self->{bg_fetch} || [] };
-         unshift @{ $self->{bg_fetch} }, $self->{map}->set_rect ($x, $y, $data);
-         $self->bg_fetch unless $inprogress;
-      }
+      my $inprogress = @{ $self->{bg_fetch} || [] };
+      unshift @{ $self->{bg_fetch} }, $self->{map}->set_rect ($x, $y, $_[0]);
+      $self->bg_fetch unless $inprogress;
    };
 
-   if (my $rdata = $self->{map_cache_old}{$hash}) {
-      $cb->($$rdata);
+   if (my $map_info = $self->{map_cache_old}{$hash}) {
+      $cb->(${ $map_info->[1] });
    } else {
-      DC::DB::get $self->{mapcache} => $hash, $cb;
+      my $gen = $self->{map_change_gen};
+
+      DC::DB::get $self->{mapcache} => $hash, sub {
+         return unless $gen == $self->{map_change_gen};
+         return unless defined $_[0];
+         $cb->(Compress::LZF::decompress $_[0]);
+      };
    }
 }
 
 # hardcode /world/world_xxx_xxx map names, the savings are enourmous,
-# (server resource,s latency, bandwidth), so this hack is warranted.
+# (server resources, latency, bandwidth), so this hack is warranted.
 # the right fix is to make real tiled maps with an overview file
 sub send_mapinfo {
    my ($self, $data, $cb) = @_;
@@ -789,7 +798,7 @@ sub send_mapinfo {
 # this method does a "flood fill" into every tile direction
 # it assumes that tiles are arranged in a rectangular grid,
 # i.e. a map is the same as the left of the right map etc.
-# failure to comply are harmless and result in display errors
+# failure to comply is harmless and results in display errors
 # at worst.
 sub flood_fill {
    my ($self, $block, $gx, $gy, $path, $hash, $flags) = @_;
@@ -835,7 +844,7 @@ sub flood_fill {
             $x += $self->{map}->ox;
             $y += $self->{map}->oy;
 
-            $self->load_map ($hash, $x, $y)
+            $self->load_map ($hash, $x, $y, $w, $h)
                unless $self->{neigh_map}{$hash}[5]++;#d#
 
             $neigh->[$tile] = [$flags, $x, $y, $w, $h, $hash];
@@ -853,7 +862,7 @@ sub map_change {
    $self->flush_map;
 
    ++$self->{map_change_gen};
-   $self->{map_cache_old} = delete $self->{map_cache_new};
+   $self->{map_cache_old} = delete $self->{map_cache};
 
    my ($ox, $oy) = ($::MAP->ox, $::MAP->oy);
 
@@ -875,7 +884,7 @@ sub map_change {
    (my $map = $hash) =~ s/^.*?\/([^\/]+)$/\1/;
    $::STATWIDS->{map}->set_text ("Map: " . $map);
 
-   $self->load_map ($hash, $x, $y);
+   $self->load_map ($hash, $x, $y, $w, $h);
    $self->flood_fill (0, 0, 0, "", $hash, $flags);
 }
 
@@ -1027,6 +1036,8 @@ sub sanitise_xml($) {
    # handle some elements
    s/<fg name='([^']*)'>(.*?)<\/fg>/<span foreground='$1'>$2<\/span>/gs;
    s/<fg name="([^"]*)">(.*?)<\/fg>/<span foreground="$1">$2<\/span>/gs;
+
+   s/\s+$//;
 
    $_
 }
@@ -1210,7 +1221,7 @@ sub set_opencont {
    $conn->{open_container} = $tag;
    update_floorbox;
 
-   $::INVR_HB->clear ();
+   $::INVR_HB->clear;
    $::INVR_HB->add (new DC::UI::Label expand => 1, text => $name);
 
    if ($tag != 0) { # Floor isn't closable, is it?

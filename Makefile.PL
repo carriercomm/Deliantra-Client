@@ -55,7 +55,7 @@ WriteMakefile(
        BDB           => 1.45,
        Deliantra     => 1.13,
        Time::HiRes   => 0,
-       EV            => 1.72,
+       EV            => 3.41,
        AnyEvent      => 2.6,
        Compress::LZF => 1.6,
        Pod::POM      => 0.15,
