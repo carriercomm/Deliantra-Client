@@ -1,5 +1,10 @@
 #!/opt/bin/perl
 
+{
+package Deliantra::Client; # work around CPAN breakage
+package App::Deliantra; # try to reserve namespace
+}
+
 if ($ENV{DELIANTRA_CORO_DEBUG}) {
    eval '
       use Coro;
@@ -99,9 +104,12 @@ use List::Util qw(max min);
 use Deliantra;
 use Deliantra::Protocol::Constants;
 
+use AnyEvent::DNS;
+
 use Compress::LZF;
 
-use DC; BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$@" unless $^S } }
+use DC;
+BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$@" unless $^S } }
 use DC::OpenGL ();
 use DC::Protocol;
 use DC::DB;
@@ -727,21 +735,12 @@ sub server_query {
    $dialog->show;
 }
 
-sub start_game {
-   status "logging in...";
-
-   $LOGIN_BUTTON->set_text ("Logout");
-   $SETUP_DIALOG->hide;
+sub dc_connect {
+   my ($host, $port) = @_;
 
    my $mapsize = List::Util::min 32, List::Util::max 11, int $WIDTH * $CFG->{mapsize} * 0.01 / 32;
 
-   my ($host, $port) = split /:/, $PROFILE->{host};
-
-   $MAP = new DC::Map;
-   
-   $CONN = eval {
-      local $SIG{__DIE__};
-
+   $CONN = 
       new DC::Protocol
          host => $host,
          port => $port || 13327,
@@ -761,16 +760,44 @@ sub start_game {
          setup_req  => {
             smoothing => $CFG->{map_smoothing}*1,
          },
-   };
 
-   if ($CONN) {
-      DC::lowdelay fileno $CONN->{fh};
+         on_connect => sub {
+            if ($_[0]) {
+               DC::lowdelay fileno $CONN->{fh};
 
-      status "login successful";
+               status "login successful";
+            } else {
+               undef $CONN;
+               status "unable to connect: $!";
+               stop_game();
+            }
+         },
+   ;
+}
+
+sub start_game {
+   status "logging in...";
+
+   $LOGIN_BUTTON->set_text ("Logout");
+   $SETUP_DIALOG->hide;
+
+   my ($host, $port) = split /:/, $PROFILE->{host};
+
+   $MAP = new DC::Map;
+
+   # hack to make SURE we find the IP address all right
+   # can be removed once AnyEvent::DNS is proven stable.
+   if ($host eq "gameserver.deliantra.net") {
+      AnyEvent::DNS::a "dnstest.deliantra.net", sub {
+         if ($_[0] ne "80.101.114.108") { # Perl
+            status "dns failure, using hardcoded address";
+            $host = "129.13.162.95";
+         }
+
+         dc_connect $host, $port;
+      };
    } else {
-      warn $@;
-      status "unable to connect";
-      stop_game();
+      dc_connect $host, $port;
    }
 }
 

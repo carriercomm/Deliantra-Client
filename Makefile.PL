@@ -53,10 +53,10 @@ WriteMakefile(
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
        BDB           => 1.45,
-       Deliantra     => 1.13,
+       Deliantra     => 1.2,
        Time::HiRes   => 0,
-       EV            => 3.41,
-       AnyEvent      => 2.6,
+       EV            => 3.42,
+       AnyEvent      => 4.161,
        Compress::LZF => 1.6,
        Pod::POM      => 0.15,
        LWP           => 0,

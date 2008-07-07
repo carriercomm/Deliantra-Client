@@ -17,7 +17,7 @@ package DC;
 use Carp ();
 
 BEGIN {
-   $VERSION = '0.9972';
+   $VERSION = '0.9973';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;

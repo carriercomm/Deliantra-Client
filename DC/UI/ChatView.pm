@@ -114,6 +114,25 @@ sub update_info {
    }
 }
 
+sub update_tooltip {
+   my ($self) = @_;
+   my $t = $self->{text_tooltip}
+           . (defined $self->{dockbar_pos}
+                 ? "\n\n<small>Alt+"
+                   . ($self->{dockbar_pos} == 10 ? '0' : $self->{dockbar_pos})
+                   . " - activates this tab.\n"
+                   . "Return - toggles activity of the entry."
+                   . "</small>"
+                 : "");
+   $self->{c_tab}->set_tooltip ($t);
+}
+
+sub set_dockbar_pos {
+   my ($self, @a) = @_;
+   $self->SUPER::set_dockbar_pos (@a);
+   $self->update_tooltip;
+}
+
 # (private) This method overloads the set_dockbar_tab_active method of
 # the Dockbar to capture the activation event of the tab. Mainly used
 # to remove highlightin.

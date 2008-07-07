@@ -1,5 +1,14 @@
 Revision history for Perl extension Deliantra::Client
 
+TODO: add help to completer, add close tab to completer, do stuff to complete
+
+0.9973 Mon Jul  7 09:27:59 CEST 2008
+	- added a dummy "package Deliantra::Client" to bin/deliantra, as
+          cpan stupidly cannot install distributions by name.
+	- convert to new non-blocking API.
+        - support IPv6 server connections.
+        - the chat tabs now have tooltips again.
+
 0.9972 Thu May 22 22:45:01 CEST 2008
 	- save all map changes in map cache, not just the current map (this fixes
           the problem of map border "black out" in the minimap).
