@@ -639,7 +639,7 @@ sub record {
 sub map_scroll {
    my ($self, $dx, $dy) = @_;
 
-   $self->{map}->scroll ($dx, $dy);
+   $self->{map_widget}->scroll ($dx, $dy);
 }
 
 sub feed_map1a {

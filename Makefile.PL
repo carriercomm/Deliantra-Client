@@ -13,7 +13,7 @@ print <<EOF;
 
 *** other dependencies:
 *** pango-1.12.3, glib-2.10
-*** libsdl, libSDL_mixer, libSDL_image
+*** libsdl-1.2.10, libSDL_mixer, libSDL_image
 
 *** Pod::POM, Compress::LZF, BDB, Deliantra, EV, AnyEvent perl modules
 
@@ -52,11 +52,11 @@ WriteMakefile(
     EXE_FILES => [qw(bin/deliantra)],
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
-       BDB           => 1.45,
-       Deliantra     => 1.2,
+       BDB           => 1.7,
+       Deliantra     => 1.21,
        Time::HiRes   => 0,
        EV            => 3.42,
-       AnyEvent      => 4.161,
+       AnyEvent      => 4.22,
        Compress::LZF => 1.6,
        Pod::POM      => 0.15,
        LWP           => 0,

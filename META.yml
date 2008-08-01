@@ -1,16 +1,16 @@
 --- #YAML:1.0
 name:                Deliantra-Client
-version:             0.9973
+version:             0.9974
 abstract:            ~
 license:             ~
 author:              ~
 generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
-    AnyEvent:                      4.161
-    BDB:                           1.45
+    AnyEvent:                      4.22
+    BDB:                           1.7
     Compress::LZF:                 1.6
-    Deliantra:                     1.2
+    Deliantra:                     1.21
     EV:                            3.42
     JSON::XS:                      2.01
     LWP:                           0

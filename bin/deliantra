@@ -1,10 +1,5 @@
 #!/opt/bin/perl
 
-{
-package Deliantra::Client; # work around CPAN breakage
-package App::Deliantra; # try to reserve namespace
-}
-
 if ($ENV{DELIANTRA_CORO_DEBUG}) {
    eval '
       use Coro;
@@ -105,11 +100,12 @@ use Deliantra;
 use Deliantra::Protocol::Constants;
 
 use AnyEvent::DNS;
+use AnyEvent::Socket ();
 
 use Compress::LZF;
 
 use DC;
-BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$@" unless $^S } }
+BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$_[0]" unless $^S } }
 use DC::OpenGL ();
 use DC::Protocol;
 use DC::DB;
@@ -147,7 +143,11 @@ our $FAST; # fast, low-quality mode, possibly useful for software-rendering
 
 our $WANT_REFRESH;
 
+our $MODE_SLIDER;
+our $CAVEAT_LABEL;
+
 our @SDL_MODES;
+our $SDL_REINIT = 1;
 our $WIDTH;
 our $HEIGHT;
 our $FULLSCREEN;
@@ -743,7 +743,7 @@ sub dc_connect {
    $CONN = 
       new DC::Protocol
          host => $host,
-         port => $port || 13327,
+         port => $port,
          user => $PROFILE->{user},
          pass => $PROFILE->{password},
          mapw => $mapsize,
@@ -781,7 +781,7 @@ sub start_game {
    $LOGIN_BUTTON->set_text ("Logout");
    $SETUP_DIALOG->hide;
 
-   my ($host, $port) = split /:/, $PROFILE->{host};
+   my ($host, $port) = AnyEvent::Socket::parse_hostport $PROFILE->{host}, "deliantra=13327";
 
    $MAP = new DC::Map;
 
@@ -834,6 +834,14 @@ sub graphics_setup {
                                                  can_events => 1,
                                                  tooltip => "<tt><span size='8192'>" . (DC::OpenGL::gl_extensions) . "</span></tt>");
 
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Caveats");
+   $table->add_at (1, $row++, $CAVEAT_LABEL = new DC::UI::Label fontsize => 0.8,
+      can_events => 1,
+      tooltip => "This field shows any known issues with your config or driver, such as "
+               . "a non-accelerated display format. You can try to work around these issues "
+               . "by selecting a different video mode, changing the settings below or "
+               . "by installing the right driver for your graphics card.");
+
    my $vidmode_tooltip =
       "<b>Video Mode.</b> The video mode to use for fullscreen (and the window size for windowed operation). "
     . "The format is <i>width</i> x <i>height</i> \@ <i>depth-per-channel</i> + <i>alpha-channel</i>.";
@@ -841,20 +849,21 @@ sub graphics_setup {
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Video Mode");
    $table->add_at (1, $row++, my $hbox = new DC::UI::HBox);
 
-   $hbox->add (my $mode_slider = new DC::UI::Slider
-      force_w => $WIDTH * 0.1, expand => 1, range => [$CFG->{sdl_mode}, 0, $#SDL_MODES, 0, 1],
+   $hbox->add ($MODE_SLIDER = new DC::UI::Slider
+      force_w => $WIDTH * 0.1, expand => 1,
+      range => [ ($CFG->{sdl_mode}) x 3 ],
       tooltip => $vidmode_tooltip);
    $hbox->add (my $mode_label = new DC::UI::Label
       height => 0.8, template => "9999x9999@9+9",
       can_events => 1, tooltip => $vidmode_tooltip);
 
-   $mode_slider->connect (changed => sub {
+   $MODE_SLIDER->connect (changed => sub {
       my ($self, $value) = @_;
 
       $CFG->{sdl_mode} = $self->{range}[0] = $value = int $value;
       $mode_label->set_text (sprintf '%dx%d@%d+%d', @{$SDL_MODES[$value]});
    });
-   $mode_slider->emit (changed => $mode_slider->{range}[0]);
+   $MODE_SLIDER->emit (changed => $MODE_SLIDER->{range}[0]);
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fullscreen");
    $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::CheckBox
@@ -870,9 +879,26 @@ sub graphics_setup {
                . "higher memory usage and slower performance. It will, however, help tremendously on "
                . "cards that claim to support a feature but fall back to software rendering. "
                . "Nvidia Geforce FX cards are known to claim features the hardware doesn't support, "
-               . "but cards and drivers from other vendors (ATI) are often just as bad. <b>If you "
-               . "experience extremely low framerates and your card should do better, try this option.</b>",
+               . "but cards and drivers from other vendors (ATI) are often just as bad. "
+               . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
       on_changed => sub { my ($self, $value) = @_; $CFG->{force_opengl11} = $value; 0 }
+   );
+
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Forbid Alpha");
+   $table->add_at (1, $row++, new DC::UI::CheckBox
+      state => $CFG->{disable_alpha},
+      tooltip => "Forbid off the use of the alpha channel. This makes Deliantra look a lot worse "
+               . "by disabling a number of textures and transparency effects. Normally, these "
+               . "effects do not cost a lot of resources, but some graphics cards might fall "
+               . "back to etxremely slow rendering if this is enabled. If disabling this option "
+               . "noticably improves the framerate of the client please report this! "
+               . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
+      on_changed => sub {
+         my ($self, $value) = @_;
+         $CFG->{disable_alpha} = $value;
+         $SDL_REINIT = 1; # SDL_SetVideoMode ignores GL attr changes
+         0
+      }
    );
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Compress Textures");
@@ -907,6 +933,15 @@ sub graphics_setup {
          video_init ();
          0
       }
+   );
+
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Smooth Movement");
+   $table->add_at (1, $row++, new DC::UI::CheckBox
+      state => $CFG->{smooth_movement},
+      tooltip => "<b>Smooth Movement</b> tries to make movement, well, smoother, but also increases the framerate. "
+               . "If you have a very slow system, non-accelerated drivers or plain dislike smooth scrolling, "
+               . "then disable this option. Changes take effect immdiately.",
+      on_changed => sub { my ($self, $value) = @_; $CFG->{smooth_movement} = $value; 0 }
    );
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Scale");
@@ -2153,12 +2188,27 @@ sub show_tip_of_the_day {
 }
 
 sub sdl_init {
-   DC::SDL_Init
+   DC::SDL_Init DC::SDL_INIT_AUDIO #| DC::SDL_NOPARACHUTE
       and die "SDL::Init failed!\n";
 }
 
 sub video_init {
-   $CFG->{sdl_mode} = 0 if $CFG->{sdl_mode} >= @SDL_MODES;
+   DC::SDL_InitSubSystem DC::SDL_INIT_VIDEO if $SDL_REINIT;
+   $SDL_REINIT = 0;
+
+   @SDL_MODES = DC::SDL_ListModes 8, $CFG->{disable_alpha} ? 0 : 8;
+   @SDL_MODES = DC::SDL_ListModes 8, 8 unless @SDL_MODES;
+   @SDL_MODES = DC::SDL_ListModes 5, 0 unless @SDL_MODES;
+   @SDL_MODES or DC::fatal "Unable to find a usable video mode\n(hardware accelerated opengl fullscreen)";
+
+   @SDL_MODES = sort { $a->[0] * $a->[1] <=> $b->[0] * $b->[1] } @SDL_MODES;
+
+   if (!exists $CFG->{sdl_mode} or $CFG->{sdl_mode} > $#SDL_MODES) {
+      $CFG->{sdl_mode} = 0;
+      for (reverse 0 .. $#SDL_MODES) {
+         $CFG->{sdl_mode} = $_ if $SDL_MODES[$_][0] * $SDL_MODES[$_][1] >= 800 * 600;
+      }
+   }
 
    my ($old_w, $old_h) = ($WIDTH, $HEIGHT);
 
@@ -2352,11 +2402,19 @@ sub video_init {
       $MESSAGE_WINDOW->show;
    }
 
+   $MODE_SLIDER->set_range ([$CFG->{sdl_mode}, 0, $#SDL_MODES, 1, 1]);
+   $MODE_SLIDER->emit (changed => $CFG->{sdl_mode});
+
+   $CAVEAT_LABEL->set_text ("None :)");
+   $CAVEAT_LABEL->set_text ("Software Rendering (very slow)")
+      unless DC::SDL_GL_GetAttribute DC::SDL_GL_ACCELERATED_VISUAL;
+
    $STATUSBOX->add ("Set video mode $WIDTH×$HEIGHT", timeout => 10, fg => [1, 1, 1, 0.5]);
 }
 
 sub video_shutdown {
    DC::OpenGL::shutdown;
+   DC::SDL_QuitSubSystem DC::SDL_INIT_VIDEO if $SDL_REINIT;
    
    undef $SDL_ACTIVE;
 }
@@ -2427,8 +2485,8 @@ sub animation_stop {
    DC::SDL_KEYDOWN => sub {
       if ($_[0]{mod} & DC::KMOD_ALT && $_[0]{sym} == 13) {
          # alt-enter
-         $FULLSCREEN_ENABLE->toggle;
          video_shutdown;
+         $FULLSCREEN_ENABLE->toggle;
          video_init;
       } else {
          &DC::UI::feed_sdl_key_down_event;
@@ -2487,6 +2545,8 @@ $SIG{INT} = $SIG{TERM} = sub {
       fullscreen          => 1,
       fast                => 0,
       force_opengl11      => undef,
+      disable_alpha       => 0,
+      smooth_movement     => 1,
       texture_compression => 1,
       map_scale           => 1,
       fow_enable          => 1,
@@ -2536,14 +2596,6 @@ $SIG{INT} = $SIG{TERM} = sub {
    }
 
    sdl_init;
-
-   @SDL_MODES = DC::SDL_ListModes 8, 8;
-   @SDL_MODES = DC::SDL_ListModes 5, 0 unless @SDL_MODES;
-   @SDL_MODES or DC::fatal "Unable to find a usable video mode\n(hardware accelerated opengl fullscreen)";
-
-   @SDL_MODES = sort { $a->[0] * $a->[1] <=> $b->[0] * $b->[1] } @SDL_MODES;
-
-   $CFG->{sdl_mode} = 0 if $CFG->{sdl_mode} > @SDL_MODES;
 
    {
       my @fonts = map DC::find_rcfile "fonts/$_", qw(
@@ -2625,7 +2677,7 @@ CFPLUS_DEBUG - environment variable
 
 =head1 AUTHOR
 
-Marc Lehmann <crossfire@schmorp.de>, Robin Redeker <elmex@ta-sa.org>
+Marc Lehmann <deliantra@schmorp.de>, Robin Redeker <elmex@ta-sa.org>
 
 
 

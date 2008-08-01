@@ -3072,12 +3072,10 @@ sub set_value {
 
    my ($old_value, $lo, $hi, $page, $unit) = @{$self->{range}};
 
-   $hi = $lo + 1 if $hi <= $lo;
+   $hi = $lo if $hi < $lo;
 
-   $page = $hi - $lo if $page > $hi - $lo;
-
-   $value = $lo         if $value < $lo;
    $value = $hi - $page if $value > $hi - $page;
+   $value = $lo         if $value < $lo;
 
    $value = $lo + $unit * int +($value - $lo + $unit * 0.5) / $unit
       if $unit;
@@ -3151,10 +3149,10 @@ sub _draw {
    unless ($self->{knob_w}) {
       $self->set_value ($self->{range}[0]);
 
-      my ($value, $lo, $hi, $page) = @{$self->{range}};
-      my $range = ($hi - $page - $lo) || 1e-100;
+      my ($value, $lo, $hi, $page, $unit) = @{$self->{range}};
+      my $range = ($hi - $page - $lo) || 1e-10;
 
-      my $knob_w = List::Util::min 1, $page / ($hi - $lo) || 0.1;
+      my $knob_w = List::Util::min 1, $page / (($hi - $lo) || 1e-10) || 24 / $self->{w};
 
       $self->{offset} = List::Util::max $self->{inner_pad}, $knob_w * 0.5;
       $self->{scale} = 1 - 2 * $self->{offset} || 1e-100;

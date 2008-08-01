@@ -29,12 +29,6 @@ sub new {
    $self
 }
 
-sub set_tilesize {
-   my ($self, $tilesize) = @_;
-
-   $self->{tilesize} = $tilesize;
-}
-
 sub add_command {
    my ($self, $command, $tooltip, $widget, $cb) = @_;
 
@@ -392,6 +386,23 @@ sub invoke_visibility_change {
    0
 }
 
+sub set_tilesize {
+   my ($self, $tilesize) = @_;
+
+   $self->{tilesize} = $tilesize;
+}
+
+sub scroll {
+   my ($self, $dx, $dy) = @_;
+
+   $::MAP->scroll ($dx, $dy);
+
+   $self->movement_update;
+
+   $self->{sdx} += $dx * $self->{tilesize}; # smooth displacement
+   $self->{sdy} += $dy * $self->{tilesize};
+}
+
 sub set_magicmap {
    my ($self, $w, $h, $x, $y, $data) = @_;
 
@@ -403,19 +414,64 @@ sub set_magicmap {
    $self->update;
 }
 
+sub movement_update {
+   my ($self) = @_;
+
+   if ($::CFG->{smooth_movement}) {
+      if ($self->{sdx} || $self->{sdy}) {
+         my $diff = EV::time - ($self->{last_update} || $::LAST_REFRESH);
+         my $spd  = $::CONN->{stat}{DC::Protocol::CS_STAT_SPEED};
+
+         # the minimum time for a single tile movement
+         my $mintime = DC::Protocol::TICK * DC::ceil 1 / ($spd * DC::Protocol::TICK);
+
+         # jump if "impossibly high" speed
+         if (
+            (max abs $self->{sdx}, abs $self->{sdy})
+            > $spd * $self->{tilesize} * $mintime * 1.1
+         ) {
+            #warn "jump ", (max abs $self->{sdx}, abs $self->{sdy}), " ", $spd * $mintime * 1.0;#d#
+            $self->{sdx} = $self->{sdy} = 0;
+         } else {
+            $spd *= $self->{tilesize} * $diff * 1.0001; # 1.0001 so that we don't accumulate rounding errors the wrong direction
+
+            my $dx = $self->{sdx} < 0 ? -$spd : $spd;
+            my $dy = $self->{sdy} < 0 ? -$spd : $spd;
+
+            if ($self->{sdx} * ($self->{sdx} - $dx) <= 0) { $self->{sdx} = 0 } else { $self->{sdx} -= $dx }
+            if ($self->{sdy} * ($self->{sdy} - $dy) <= 0) { $self->{sdy} = 0 } else { $self->{sdy} -= $dy }
+
+            $self->update;
+         }
+      }
+   } else {
+      $self->{sdx} = $self->{sdy} = 0;
+   }
+
+   $self->{last_update} = EV::time;
+}
+
 sub refresh_hook {
    my ($self) = @_;
 
    if ($::MAP && $::CONN) {
       if (delete $self->{need_update}) {
+         $self->movement_update;
+
          my $tilesize = $self->{ctilesize} = (int $self->{tilesize} * $::CFG->{map_scale}) || 1;
 
-         my $sw = $self->{sw} = 1 + DC::ceil $self->{w} / $tilesize;
-         my $sh = $self->{sh} = 1 + DC::ceil $self->{h} / $tilesize;
+         my $sdx_t = DC::ceil $self->{sdx} / $tilesize;
+         my $sdy_t = DC::ceil $self->{sdy} / $tilesize;
 
-         my $sx = DC::ceil $::CFG->{map_shift_x} / $tilesize;
-         my $sy = DC::ceil $::CFG->{map_shift_y} / $tilesize;
+         # width/height of map, in tiles
+         my $sw = $self->{sw} = 2 + DC::ceil $self->{w} / $tilesize;
+         my $sh = $self->{sh} = 2 + DC::ceil $self->{h} / $tilesize;
 
+         # the map displacement, in tiles
+         my $sx = DC::ceil $::CFG->{map_shift_x} / $tilesize + $sdx_t;
+         my $sy = DC::ceil $::CFG->{map_shift_y} / $tilesize + $sdy_t;
+
+         # the upper left "visible" corner, in pixels
          my $sx0 = $self->{sx0} = $::CFG->{map_shift_x} - $sx * $tilesize;
          my $sy0 = $self->{sy0} = $::CFG->{map_shift_y} - $sy * $tilesize;
 
@@ -423,7 +479,13 @@ sub refresh_hook {
          my $dy = $self->{dy} = DC::ceil 0.5 * ($::MAP->h - $sh) - $sy;
 
          if ($::CFG->{fow_enable}) {
-            my ($w, $h, $data) = $::MAP->fow_texture ($dx, $dy, $sw, $sh);
+            $sdx_t = $sdy_t = 0;#d#
+            my ($w, $h, $data) = $::MAP->fow_texture (
+               $dx + (min 0, $sdx_t),
+               $dy + (min 0, $sdy_t),
+               $sw + abs $sdx_t,
+               $sh + abs $sdy_t
+            );
 
             $self->{fow_texture} = new DC::Texture
                w              => $w,
@@ -440,13 +502,19 @@ sub refresh_hook {
          glPushMatrix;
          glTranslate $sx0, $sy0;
          glScale $::CFG->{map_scale}, $::CFG->{map_scale};
+         glTranslate $self->{sdx}, $self->{sdy};
 
-         $::MAP->draw ($dx, $dy, $sw, $sh, $self->{tilesize});
+         $::MAP->draw ($dx, $dy, $sw, $sh,
+                       $self->{tilesize},
+                       $::CONN->{player}{tag},
+                       -$self->{sdx}, -$self->{sdy});
 
+         #glTranslate -$self->{sdx}, -$self->{sdy}; # anchro fow at player
          glScale $self->{tilesize}, $self->{tilesize};
 
          if (my $tex = $self->{fow_texture}) {
             glPushMatrix;
+            glTranslate +(min 0, $sdx_t), (min 0, $sdy_t);
             glScale 1/3, 1/3;
             glEnable GL_TEXTURE_2D;
             glTexEnv GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE;

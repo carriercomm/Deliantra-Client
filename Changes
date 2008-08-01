@@ -1,6 +1,18 @@
 Revision history for Perl extension Deliantra::Client
 
-TODO: add help to completer, add close tab to completer, do stuff to complete
+0.9974 Fri Aug  1 15:45:59 CEST 2008
+	- implement smooth scrolling for the player.
+	- try a different workaround to maybe register Deliantra::Client.
+        - support switching off of alpha framebuffers, to work around
+          possible fallback-to-software-renderer problems.
+        - allow video modes <800x600 to be selectable.
+        - decode player from map1ax.
+	- made libsdl1.2.10+ a requirement.
+        - improve the slider widget.
+	- use AnyEvent::Socket::parse_hostport.
+        - upgrade to BDB 1.7.
+        - properly clear mapcells in all cases, also try a heuristic to avoid
+          player ghost images.
 
 0.9973 Mon Jul  7 09:27:59 CEST 2008
 	- added a dummy "package Deliantra::Client" to bin/deliantra, as

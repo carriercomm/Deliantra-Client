@@ -25,8 +25,8 @@ use BDB;
 
 use DC;
 
-our $ODBDIR  = "cfplus-" . BDB::VERSION . "-$Config{archname}";
-our $DBDIR   = "client-" . BDB::VERSION . "-$Config{archname}";
+our $ODBDIR  = "cfplus-" . BDB::VERSION_MAJOR . "." . BDB::VERSION_MINOR . "-$Config{archname}";
+our $DBDIR   = "client-" . BDB::VERSION_MAJOR . "." . BDB::VERSION_MINOR . "-$Config{archname}";
 our $DB_HOME = "$Deliantra::VARDIR/$DBDIR";
 
 unless (-d $DB_HOME) {
@@ -438,6 +438,9 @@ sub open_db {
 }
 
 END {
+   db_env_txn_checkpoint $DB_ENV, 0, 0, 0
+      if $DB_ENV;
+
    undef $TILE_SEQ;
    %DB_TABLE = ();
    undef $DB_ENV;

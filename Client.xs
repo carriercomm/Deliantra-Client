@@ -67,6 +67,15 @@
 # include <inttypes.h>
 #endif
 
+#if __GNUC__ >= 4
+# define expect(expr,value)         __builtin_expect ((expr),(value))
+#else
+# define expect(expr,value)         (expr)
+#endif
+
+#define expect_false(expr) expect ((expr) != 0, 0)
+#define expect_true(expr)  expect ((expr) != 0, 1)
+
 #define OBJ_STR "\xef\xbf\xbc" /* U+FFFC, object replacement character */
 
 #define FOW_DARKNESS 32
@@ -78,12 +87,6 @@
 
 /* mask out modifiers we are not interested in */
 #define MOD_MASK (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_META)
-
-#if 0
-# define PARACHUTE SDL_INIT_NOPARACHUTE
-#else
-# define PARACHUTE 0
-#endif
 
 static AV *texture_av;
 
@@ -366,6 +369,16 @@ map_clear (DC__Map self)
   self->rows = 0;
 }
 
+#define CELL_CLEAR(cell)	\
+  do {				\
+    if ((cell)->player)		\
+      (cell)->tile [2] = 0;	\
+    (cell)->darkness = 0;	\
+    (cell)->stat_hp  = 0;	\
+    (cell)->flags    = 0;	\
+    (cell)->player   = 0;	\
+  } while (0)
+
 static void
 map_blank (DC__Map self, int x0, int y0, int w, int h)
 {
@@ -389,10 +402,7 @@ map_blank (DC__Map self, int x0, int y0, int w, int h)
 
               cell = row->col + x - row->c0;
               
-              cell->darkness = 0;
-              cell->stat_hp  = 0;
-              cell->flags    = 0;
-              cell->player   = 0;
+              CELL_CLEAR (cell);
             }
       }
 }
@@ -637,6 +647,35 @@ BOOT:
 	const_iv (KMOD_MODE),
 
         const_iv (MIX_DEFAULT_FORMAT),
+
+	const_iv (SDL_INIT_TIMER),
+	const_iv (SDL_INIT_AUDIO),
+	const_iv (SDL_INIT_VIDEO),
+	const_iv (SDL_INIT_CDROM),
+	const_iv (SDL_INIT_JOYSTICK),
+	const_iv (SDL_INIT_EVERYTHING),
+	const_iv (SDL_INIT_NOPARACHUTE),
+	const_iv (SDL_INIT_EVENTTHREAD),
+
+	const_iv (SDL_GL_RED_SIZE),
+	const_iv (SDL_GL_GREEN_SIZE),
+	const_iv (SDL_GL_BLUE_SIZE),
+	const_iv (SDL_GL_ALPHA_SIZE),
+	const_iv (SDL_GL_DOUBLEBUFFER),
+	const_iv (SDL_GL_BUFFER_SIZE),
+	const_iv (SDL_GL_DEPTH_SIZE),
+	const_iv (SDL_GL_STENCIL_SIZE),
+	const_iv (SDL_GL_ACCUM_RED_SIZE),
+	const_iv (SDL_GL_ACCUM_GREEN_SIZE),
+	const_iv (SDL_GL_ACCUM_BLUE_SIZE),
+	const_iv (SDL_GL_ACCUM_ALPHA_SIZE),
+        const_iv (SDL_GL_STEREO),
+        const_iv (SDL_GL_MULTISAMPLEBUFFERS),
+        const_iv (SDL_GL_MULTISAMPLESAMPLES),
+        const_iv (SDL_GL_ACCELERATED_VISUAL),
+        const_iv (SDL_GL_SWAP_CONTROL),
+
+        const_iv (FOW_DARKNESS)
 #	undef const_iv
   };
     
@@ -682,14 +721,24 @@ pango_init ()
 #endif
 }
 
-char *
-SDL_GetError ()
+char *SDL_GetError ()
 
-int
-SDL_Init (U32 flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | PARACHUTE)
+int SDL_Init (U32 flags)
 
-void
-SDL_Quit ()
+int SDL_InitSubSystem (U32 flags)
+
+void SDL_QuitSubSystem (U32 flags)
+
+void SDL_Quit ()
+
+int SDL_GL_SetAttribute (int attr, int value)
+
+int SDL_GL_GetAttribute (int attr)
+	CODE:
+        if (SDL_GL_GetAttribute (attr, &RETVAL))
+          XSRETURN_UNDEF;
+        OUTPUT:
+        RETVAL
 
 void
 SDL_ListModes (int rgb, int alpha)
@@ -711,17 +760,14 @@ SDL_ListModes (int rgb, int alpha)
         SDL_GL_SetAttribute (SDL_GL_ACCUM_ALPHA_SIZE, 0);
 
         SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
-#if SDL_VERSION_ATLEAST(1,2,10)
-        SDL_GL_SetAttribute (SDL_GL_ACCELERATED_VISUAL, 1);
         SDL_GL_SetAttribute (SDL_GL_SWAP_CONTROL, 1);
-#endif
 
 	m = SDL_ListModes (0, SDL_FULLSCREEN | SDL_OPENGL);
 
         if (m && m != (SDL_Rect **)-1)
           while (*m)
             {
-              if ((*m)->w >= 800 && (*m)->h >= 480)
+              if ((*m)->w >= 400 && (*m)->h >= 300)
                 {
                   AV *av = newAV ();
                   av_push (av, newSViv ((*m)->w));
@@ -1689,7 +1735,7 @@ map1a_update (DC::Map self, SV *data_, int extmap)
                         do
                           {
                             ext = *data++;
-                            cmd = ext & 0x3f;
+                            cmd = ext & 0x7f;
 
                             if (cmd < 4)
                               cell->darkness = 255 - ext * 64 + 1;
@@ -1702,8 +1748,10 @@ map1a_update (DC::Map self, SV *data_, int extmap)
                               cell->stat_width = *data++ + 1;
                             else if (cmd == 0x47)
                               {
-                                if (*data == 4)
-                                  ; // decode player count
+                                if      (*data == 1) cell->player = data [1];
+                                else if (*data == 2) cell->player = data [2] + (data [1] << 8);
+                                else if (*data == 3) cell->player = data [3] + (data [2] << 8) + (data [1] << 16);
+                                else if (*data == 4) cell->player = data [4] + (data [3] << 8) + (data [2] << 16) + (data [1] << 24);
 
                                 data += *data + 1;
                               }
@@ -1743,7 +1791,7 @@ map1a_update (DC::Map self, SV *data_, int extmap)
                     }
               }
             else
-              cell->darkness = 0;
+              CELL_CLEAR (cell);
           }
 }
 	OUTPUT:
@@ -1805,7 +1853,7 @@ mapmap (DC::Map self, int x0, int y0, int w, int h)
         RETVAL
 
 void
-draw (DC::Map self, int mx, int my, int sw, int sh, int T)
+draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffffff, int sdx = 0, int sdy = 0)
 	CODE:
 {
         int x, y, z;
@@ -1814,10 +1862,13 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T)
         uint32_t smooth_level[256 / 32]; // one bit for every possible smooth level
         static uint8_t smooth_max[256][256]; // egad, fast and wasteful on memory (64k)
         smooth_key skey;
-
+        int pl_x, pl_y;
+        maptex pl_tex;
         rc_t *rc = rc_alloc ();
         rc_key_t key;
         rc_array_t *arr;
+
+        pl_tex.name = 0;
 
         // thats current max. sorry.
         if (sw > 255) sw = 255;
@@ -1882,7 +1933,8 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T)
                         if (tile)
                           {
                             maptex tex = self->tex [tile];
-                            int px, py;
+                            int px = (x + 1) * T - tex.w;
+                            int py = (y + 1) * T - tex.h;
 
                             if (key.texname != tex.name)
                               {
@@ -1893,15 +1945,20 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T)
                                 arr = rc_array (rc, &key);
                               }
 
-                            px = (x + 1) * T - tex.w;
-                            py = (y + 1) * T - tex.h;
+                            if (expect_false (cell->player == player) && expect_false (z == 2))
+                              {
+                                pl_x   = px;
+                                pl_y   = py;
+                                pl_tex = tex;
+                                continue;
+                              }
 
                             rc_t2f_v3f (arr, 0    , 0    , px        , py        , 0);
                             rc_t2f_v3f (arr, 0    , tex.t, px        , py + tex.h, 0);
                             rc_t2f_v3f (arr, tex.s, tex.t, px + tex.w, py + tex.h, 0);
                             rc_t2f_v3f (arr, tex.s, 0    , px + tex.w, py        , 0);
 
-                            if (cell->flags && z == 2)
+                            if (expect_false (cell->flags) && expect_false (z == 2))
                               {
                                 // overlays such as the speech bubble, probably more to come
                                 if (cell->flags & 1)
@@ -2050,6 +2107,23 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T)
             hv_clear (smooth);
           }
 
+        if (pl_tex.name)
+          {
+            maptex tex = pl_tex;
+            int px = pl_x + sdx;
+            int py = pl_y + sdy;
+
+            key.texname = tex.name;
+            arr = rc_array (rc, &key);
+
+            rc_t2f_v3f (arr, 0    , 0    , px        , py        , 0);
+            rc_t2f_v3f (arr, 0    , tex.t, px        , py + tex.h, 0);
+            rc_t2f_v3f (arr, tex.s, tex.t, px + tex.w, py + tex.h, 0);
+            rc_t2f_v3f (arr, tex.s, 0    , px + tex.w, py        , 0);
+
+            rc_draw (rc);
+          }
+
         glDisable (GL_BLEND);
         rc_free (rc);
 
@@ -2164,7 +2238,7 @@ fow_texture (DC::Map self, int mx, int my, int sw, int sh)
         mx += self->x - 1;
         my += self->y - 1;
 
-        memset (darkness1, 255, sw1 * sh1);
+        memset (darkness1, 255 - FOW_DARKNESS, sw1 * sh1);
 
         for (y = 0; y < sh1; y++)
           if (0 <= y + my && y + my < self->rows)
