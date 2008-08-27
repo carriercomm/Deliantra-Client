@@ -1,4 +1,7 @@
+use Config;
 use ExtUtils::MakeMaker;
+
+my $lddlflags = $Config{lddlflags};
 
 sub manifest_resources {
    open my $manifest, "MANIFEST" or die "Couldn't open MANIFEST: $!";
@@ -34,10 +37,17 @@ EOF
    $INC  = "-I/gtk/include -I/gtk/include/pango-1.0 -I/gtk/include/glib-2.0 -I/gtk/lib/glib-2.0/include/ -I/gtk/include/freetype2";
    $LIBS = "-L/gtk/lib -lSDL -lSDL_image -lSDL_mixer -lpango-1.0 -lpangoft2-1.0 -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 -lfreetype -lfontconfig -lopengl32 -lwininet",
 } else {
-   $INC  = join " ", qx<sdl-config --cflags>, qx<pkg-config pangoft2 --cflags>;
-   $LIBS = join " ", qx<sdl-config --libs>, "-lSDL_image -lSDL_mixer", qx<pkg-config pangoft2 --libs>, "-lGL";
+   $INC       = join " ", qx<sdl-config --cflags>, qx<pkg-config pangoft2 --cflags>;
+   $LIBS      = join "", map " $_ ",
+                   qx<sdl-config --libs>,
+                   "-lSDL_image -lSDL_mixer",
+                   qx<pkg-config pangoft2 --libs>,
+                   "-L/usr/X11/lib -lGL";
 
-   $INC =~ s/\n/ /g for $INC, $LIBS;
+   $_ =~ s/\n/ /g for $INC, $LIBS;
+
+   # for extra horrid macosx joys
+   $lddlflags .= " $1" while $LIBS =~ s/ (-Wl,\S+) / /;
 }
 
 WriteMakefile(
@@ -49,6 +59,7 @@ WriteMakefile(
     NAME => "Deliantra::Client",
     INC => $INC,
     LIBS => [$LIBS],
+    LDDLFLAGS => $lddlflags,
     EXE_FILES => [qw(bin/deliantra)],
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {

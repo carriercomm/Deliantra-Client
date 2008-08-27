@@ -1,14 +1,14 @@
 =head1 FAQ, Tips and Tricks
 
 Here are some questions you might asked yourself over time.
-Also some nice Tips and Tricks are listed here, which you may find informative.
+Also some nice tips and tricks are listed here, which you may find informative.
 
 =head2 Meta - About the Game and the Client
 
 =head3 What is the relation between Deliantra and Crossfire?
 
 Deliantra was originally a Crossfire server, but by now most of the code
-has been rewritten. Still most maps are very similar or identical to
+has been rewritten. Still, most maps are very similar or identical to
 Crossfire maps, so the games share a lot.
 
 The major differences are a better client, better graphics, a stable
@@ -89,7 +89,7 @@ itself, but this will also delete your settings and keybindings.
 
 =head2 Game Mechanics
 
-=head3 I lose health but can't see why!
+=head3 I lose health, but I can't see why!
 
 Here are the typical reasons why you lose health:
 
@@ -97,7 +97,7 @@ Here are the typical reasons why you lose health:
 
 =item * You are being attacked.
 
-Sounds obvious, but sometiems you can't see the monster attacking
+Sounds obvious, but sometimes you can't see the monster attacking
 you. Check the C<Log> tab, as you usually get a message when this happens.
 
 =item * You are out of food.
@@ -120,13 +120,11 @@ cast C<cure disease> on you.
 
 =item * Your stats change.
 
-Switching items can affect your stats, which in turn can affect your
-healthpoints. While this is not a regular effect (it only happens when you
-change items), it can sometimes look as if you are losing health.
+Switching items or being restored from depletion can affect your stats, which in turn can affect your healthpoints. While this is not a regular effect (it only happens when you change items or are restored from depletion), it can sometimes look as if you are losing health.
 
 =back
 
-=head3 I lost an item, how?
+=head3 I lost an item! How?
 
 Well, we don't know. If you don't know, either, here is a partial list of ways people
 typically lose stuff:
@@ -143,10 +141,18 @@ shops do not "buy" money. For other items you will have to buy it back.
 Yes, thieves and many other monsters (such as demons) can actually steal
 stuff. They can steal about anything that you don't currently wield, and
 if they are good, you don't even notice it. Your only chance of getting
-the item back is to kill the thief.
+the item back is to kill the thief or steal the item back with the steal skill before the map he is in resets.
 
 Many adventurers find that the old road to Navar harbours a lot of thieves
 and is best avoided by the beginning adventurers.
+
+=back
+
+=head3 How do I uncurse/undamn items?
+
+You need a spell to uncurse or undamn items, but luckily, magic shops commonly have scrolls of remove curse or remove damnation. In addition, all of the gods except the Devourers can remove curses, and Gnarg, Lythander, Mostrai, Gaea, and Valriel can remove damnation. Gaea also grants the remove damnation spell at 300 grace.
+
+To actually remove the curse or damnation with a scroll, you need to L<mark> the item, and then L<apply> the scroll.
 
 =back
 
@@ -161,7 +167,9 @@ the inventory) some diamonds, as a sacrifice, then read the I<Prepare
 Weapon> scroll. The square root of the total number of diamonds sacrificed
 this way determines the number of enchantments the weapon accepts: one
 diamond for one enchanment, nine diamonds for three enchantments, 100
-diamonds for ten enchantments and so on.
+diamonds for ten enchantments and so on. 
+
+Remember, once you prepare the weapon, it can only be wielded by you.
 
 After that, you can apply improvement and enchantnment scrolls:
 

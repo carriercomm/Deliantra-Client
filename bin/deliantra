@@ -51,7 +51,7 @@ BEGIN {
 
       if ($^O eq "MSWin32") {
          # pango is relocatable on win32
-      } else {
+      } elsif (-e "$root/pangoversion") {
          open my $fh, "<:perlio", "$root/pangoversion"
             or die "pangoversion: $!";
          my $PANGO = <$fh>;
@@ -71,6 +71,13 @@ BEGIN {
          open my $fh, ">:perlio", $ENV{PANGO_RC_FILE}
             or die "$ENV{PANGO_RC_FILE}: $!";
          print $fh "[Pango]\nModuleFiles = $root/pango-modules\n";
+      } else {
+         # OS X
+         $ENV{FC_CONFIG_FILE} = "$root/fonts.conf"; # no effect??!?!
+         $ENV{FC_CONFIG_DIR} = $root; # no effect??!?!
+         $ENV{PANGO_RC_FILE} = "$root/pango.rc";
+         $ENV{DYLD_LIBRARY_PATH} = $root;
+         chdir $root; # for pango modules, maybe other things
       }
 
       unshift @INC, $root;
@@ -1591,11 +1598,13 @@ sub login_setup {
    );
 
    $vbox->add (new DC::UI::FancyFrame
-      label => "Registering",
+      label => "How to Play",
       min_h => 200,
       child => (new DC::UI::Label valign => 0, ellipsise => 0,
                     markup =>
-                       "To register a new account, choose a username that hasn't been taken yet and "
+                       "First select a suitable video resolution in the <b>Graphics</b> tab, above.\n\n"
+                     . "Then register a new account (or use an existing one if you have one). "
+                     . "To register an account, choose a username that hasn't been taken yet (just guess) and "
                      . "try to log-in. Follow the instructions in the Log tab in the message window.",
                ),
    );
@@ -1751,7 +1760,7 @@ sub autopickup_setup {
             ["Jewelery"                => PICKUP_JEWELS],
             ["Flesh"                   => PICKUP_FLESH],
          ],
-         ["Weight/Value ratio", 2, 17]
+         ["Value/Weight ratio", 2, 17]
        )
    {
       my ($title, $x, $y, @bits) = @$_;
@@ -1786,6 +1795,7 @@ sub autopickup_setup {
    $table->add_at (2, 18, new DC::UI::ValSlider
       range => [$::CFG->{pickup} & 0xF, 0, 16, 1, 1],
       template => ">= 99",
+      tooltip => "Pick up items whose value/weight (silver/kg) ratio is equal or higher than this setting (which is specified in gold coins).",
       to_value => sub { ">= " . 5 * $_[0] },
       on_changed => sub {
          my ($slider, $value) = @_;
@@ -1851,7 +1861,7 @@ sub inventory_widget {
       },
    );
    $hb1->add (new DC::UI::Label text => "Weight: ", align => 1, expand => 1);
-   #TODO# update to weigh/maxweight
+   #TODO# update to weight/maxweight
    $hb1->add ($STATWIDS->{i_weight} = new DC::UI::Label align => 0);
 
    $vb1->add (my $sw1 = new DC::UI::ScrolledWindow expand => 1, scroll_y => 1);
@@ -2203,10 +2213,14 @@ sub video_init {
 
    @SDL_MODES = sort { $a->[0] * $a->[1] <=> $b->[0] * $b->[1] } @SDL_MODES;
 
-   if (!exists $CFG->{sdl_mode} or $CFG->{sdl_mode} > $#SDL_MODES) {
-      $CFG->{sdl_mode} = 0;
-      for (reverse 0 .. $#SDL_MODES) {
-         $CFG->{sdl_mode} = $_ if $SDL_MODES[$_][0] * $SDL_MODES[$_][1] >= 800 * 600;
+   if (!defined $CFG->{sdl_mode} or $CFG->{sdl_mode} > $#SDL_MODES) {
+      $CFG->{sdl_mode} = 0; # lowest resolution by default
+
+      # now choose biggets mode <= 1024x768
+      for (0 .. $#SDL_MODES) {
+         if ($SDL_MODES[$_][0] * $SDL_MODES[$_][1] <= 1024 * 768) {
+            $CFG->{sdl_mode} = $_;
+         }
       }
    }
 
@@ -2216,7 +2230,9 @@ sub video_init {
    $FULLSCREEN = $CFG->{fullscreen};
    $FAST       = $CFG->{fast};
 
+   # due to mac os x braindamage, we simply retry with !fullscreen in case of an error
    DC::SDL_SetVideoMode $WIDTH, $HEIGHT, $rgb, $alpha, $FULLSCREEN
+      or DC::SDL_SetVideoMode $WIDTH, $HEIGHT, $rgb, $alpha, !$FULLSCREEN
       or die "SDL_SetVideoMode failed: " . (DC::SDL_GetError) . "\n";
 
    $SDL_ACTIVE = 1;
@@ -2516,108 +2532,110 @@ $SIG{INT} = $SIG{TERM} = sub {
    #d# TODO calling exit here hangs the process in some futex
 };
 
-{
-   DC::Pod::load_docwiki DC::find_rcfile "docwiki.pst";
+# due to mac os x + sdl combined briandamage, we need this contortion
+sub main {
+   {
+      DC::Pod::load_docwiki DC::find_rcfile "docwiki.pst";
 
-   if (-e "$Deliantra::VARDIR/client.cf") {
-      DC::read_cfg "$Deliantra::VARDIR/client.cf";
-   } else {
-      #TODO: compatibility cruft
-      DC::read_cfg "$Deliantra::OLDDIR/cfplusrc";
-      print STDERR "INFO: used old configuration file\n";
-   }
+      if (-e "$Deliantra::VARDIR/client.cf") {
+         DC::read_cfg "$Deliantra::VARDIR/client.cf";
+      } else {
+         #TODO: compatibility cruft
+         DC::read_cfg "$Deliantra::OLDDIR/cfplusrc";
+         print STDERR "INFO: used old configuration file\n";
+      }
 
-   DC::DB::Server::run;
+      DC::DB::Server::run;
 
-   if ($CFG->{db_schema} < 1) {
-      warn "INFO: upgrading database schema from 0 to 1, mapcache and tilecache will be lost\n";
-      DC::DB::nuke_db;
-      $CFG->{db_schema} = 1;
-      DC::write_cfg;
-   }
+      if ($CFG->{db_schema} < 1) {
+         warn "INFO: upgrading database schema from 0 to 1, mapcache and tilecache will be lost\n";
+         DC::DB::nuke_db;
+         $CFG->{db_schema} = 1;
+         DC::write_cfg;
+      }
 
-   DC::DB::open_db;
+      DC::DB::open_db;
 
-   DC::UI::set_layout ($::CFG->{layout});
+      DC::UI::set_layout ($::CFG->{layout});
 
-   my %DEF_CFG = (
-      sdl_mode            => 0,
-      fullscreen          => 1,
-      fast                => 0,
-      force_opengl11      => undef,
-      disable_alpha       => 0,
-      smooth_movement     => 1,
-      texture_compression => 1,
-      map_scale           => 1,
-      fow_enable          => 1,
-      fow_intensity       => 0,
-      map_smoothing       => 1,
-      gui_fontsize        => 1,
-      log_fontsize        => 0.7,
-      gauge_fontsize      => 1,
-      gauge_size          => 0.35,
-      stat_fontsize       => 0.7,
-      mapsize             => 100,
-      audio_enable        => 1,
-      audio_hw_channels   => 0,
-      audio_hw_frequency  => 0,
-      audio_hw_chunksize  => 0,
-      audio_mix_channels  => 8,
-      effects_enable      => 1,
-      effects_volume      => 1,
-      bgm_enable          => 1,
-      bgm_volume          => 0.5,
-      output_rate         => "",
-      pickup              => 0,
-      inv_sort            => "mtime",
-      default             => "profile", # default profile
-      show_tips           => 1,
-      logview_max_par     => 1000,
-      shift_fire_stop     => 0,
-   );
-   
-   while (my ($k, $v) = each %DEF_CFG) {
-      $CFG->{$k} = $v unless exists $CFG->{$k};
-   }
+      my %DEF_CFG = (
+         sdl_mode            => undef,
+         fullscreen          => 1,
+         fast                => 0,
+         force_opengl11      => undef,
+         disable_alpha       => 0,
+         smooth_movement     => 1,
+         texture_compression => 1,
+         map_scale           => 1,
+         fow_enable          => 1,
+         fow_intensity       => 0,
+         map_smoothing       => 1,
+         gui_fontsize        => 1,
+         log_fontsize        => 0.7,
+         gauge_fontsize      => 1,
+         gauge_size          => 0.35,
+         stat_fontsize       => 0.7,
+         mapsize             => 100,
+         audio_enable        => 1,
+         audio_hw_channels   => 0,
+         audio_hw_frequency  => 0,
+         audio_hw_chunksize  => 0,
+         audio_mix_channels  => 8,
+         effects_enable      => 1,
+         effects_volume      => 1,
+         bgm_enable          => 1,
+         bgm_volume          => 0.5,
+         output_rate         => "",
+         pickup              => 0,
+         inv_sort            => "mtime",
+         default             => "profile", # default profile
+         show_tips           => 1,
+         logview_max_par     => 1000,
+         shift_fire_stop     => 0,
+      );
+      
+      while (my ($k, $v) = each %DEF_CFG) {
+         $CFG->{$k} = $v unless exists $CFG->{$k};
+      }
 
-   $CFG->{profile}{default}{host} ||= "gameserver.deliantra.net";
-   $PROFILE = $CFG->{profile}{default};
+      $CFG->{profile}{default}{host} ||= "gameserver.deliantra.net";
+      $PROFILE = $CFG->{profile}{default};
 
-   # convert old bindings (only default profile matters)
-   if (my $bindings = delete $PROFILE->{bindings}) {
-      while (my ($mod, $syms) = each %$bindings) {
-         while (my ($sym, $cmds) = each %$syms) {
-            push @{ $PROFILE->{macro} }, {
-               accelkey => [$mod*1, $sym*1],
-               action   => $cmds,
-            };
+      # convert old bindings (only default profile matters)
+      if (my $bindings = delete $PROFILE->{bindings}) {
+         while (my ($mod, $syms) = each %$bindings) {
+            while (my ($sym, $cmds) = each %$syms) {
+               push @{ $PROFILE->{macro} }, {
+                  accelkey => [$mod*1, $sym*1],
+                  action   => $cmds,
+               };
+            }
          }
       }
-   }
 
-   sdl_init;
+      sdl_init;
 
-   {
-      my @fonts = map DC::find_rcfile "fonts/$_", qw(
-         DejaVuSans.ttf
-         DejaVuSansMono.ttf
-         DejaVuSans-Bold.ttf
-         DejaVuSansMono-Bold.ttf
-         DejaVuSans-Oblique.ttf
-         DejaVuSansMono-Oblique.ttf
-         DejaVuSans-BoldOblique.ttf
-         DejaVuSansMono-BoldOblique.ttf
-      );
+      {
+         my @fonts = map DC::find_rcfile "fonts/$_", qw(
+            DejaVuSans.ttf
+            DejaVuSansMono.ttf
+            DejaVuSans-Bold.ttf
+            DejaVuSansMono-Bold.ttf
+            DejaVuSans-Oblique.ttf
+            DejaVuSansMono-Oblique.ttf
+            DejaVuSans-BoldOblique.ttf
+            DejaVuSansMono-BoldOblique.ttf
+         );
 
-      DC::add_font $_ for @fonts;
-      
-      $FONT_PROP  = new_from_file DC::Font $fonts[0];
-      $FONT_FIXED = new_from_file DC::Font $fonts[1];
+         DC::add_font $_ for @fonts;
+         
+         $FONT_PROP  = new_from_file DC::Font $fonts[0];
+         $FONT_FIXED = new_from_file DC::Font $fonts[1];
 
-      $FONT_PROP->make_default;
+         $FONT_PROP->make_default;
 
-      DC::pango_init;
-   }
+         DC::pango_init;
+      }
 
 #   compare mono (ft) vs. rgba (cairo)
 #   ft - 1.8s, cairo 3s, even in alpha-only mode
@@ -2632,25 +2650,28 @@ $SIG{INT} = $SIG{TERM} = sub {
 #      warn $t2-$t1;
 #   }
 
-   video_init;
-   audio_init;
-}
+      video_init;
+      audio_init;
+   }
 
-show_tip_of_the_day if $CFG->{show_tips};
+   show_tip_of_the_day if $CFG->{show_tips};
 
-our $STARTUP_CANCEL = EV::idle sub {
-   undef $::STARTUP_CANCEL;
-   $startup_done->();
-};
+   our $STARTUP_CANCEL = EV::idle sub {
+      undef $::STARTUP_CANCEL;
+      $startup_done->();
+   };
 
-delete $SIG{__DIE__};
-EV::loop;
+   delete $SIG{__DIE__};
+   EV::loop;
 
 #video_shutdown;
 #audio_shutdown;
-DC::OpenGL::quit;
-DC::SDL_Quit;
-DC::DB::Server::stop;
+   DC::OpenGL::quit;
+   DC::SDL_Quit;
+   DC::DB::Server::stop;
+}
+
+DC::SDL_braino; # see sub above
 
 =head1 NAME
 

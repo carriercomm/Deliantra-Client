@@ -1,5 +1,12 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9975 Wed Aug 27 22:16:27 CEST 2008
+	- use biggest video mode <= 1024x768 by default now (previous releases had a bug
+          that caused them to select the smallest vdieo mode available).
+	- ported to the rather horridly broken apple os x platform,
+          using macports (the only non-broken part of the whole thing).
+	- clarify/fix weight/value autopickup option with a tooltip and a server change.
+
 0.9974 Fri Aug  1 15:45:59 CEST 2008
 	- implement smooth scrolling for the player.
 	- try a different workaround to maybe register Deliantra::Client.

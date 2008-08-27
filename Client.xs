@@ -41,6 +41,11 @@
 #include <SDL_mixer.h>
 #include <SDL_opengl.h>
 
+/* work around os x broken headers */
+#ifdef __MACOSX__
+typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+#endif
+
 #define PANGO_ENABLE_BACKEND
 #define G_DISABLE_CAST_CHECKS
 
@@ -524,6 +529,44 @@ within_widget (SV *widget, NV x, NV y)
   return 1;
 }
 
+static void
+deliantra_main ()
+{
+  char *argv[] = { 0 };
+  call_argv ("::main", G_DISCARD | G_VOID, argv);
+}
+
+#ifdef __MACOSX__
+  /* to due surprising braindamage on the side of SDL design, we
+   * do some mind-boggling hack here: SDL requires a custom main()
+   * on OS X, so... we provide one and call the original main(), which,
+   * due to share dlibrary magic, calls -lSDLmain's main, not perl's main,
+   * and which calls our main (== SDL_main) back.
+   */
+  extern C_LINKAGE int
+  main (int argc, char *argv[])
+  {
+    deliantra_main ();
+  }
+
+  #undef main
+
+  extern C_LINKAGE int main (int argc, char *argv[]);
+
+  static void
+  SDL_braino (void)
+  {
+    char *argv[] = { "deliantra client", 0 };
+    (main) (1, argv);
+  }
+#else
+  static void
+  SDL_braino (void)
+  {
+    deliantra_main ();
+  }
+#endif
+
 MODULE = Deliantra::Client	PACKAGE = DC
 
 PROTOTYPES: ENABLE
@@ -722,6 +765,8 @@ pango_init ()
 }
 
 char *SDL_GetError ()
+
+void SDL_braino ()
 
 int SDL_Init (U32 flags)
 

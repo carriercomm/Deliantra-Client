@@ -423,7 +423,7 @@ sub movement_update {
          my $spd  = $::CONN->{stat}{DC::Protocol::CS_STAT_SPEED};
 
          # the minimum time for a single tile movement
-         my $mintime = DC::Protocol::TICK * DC::ceil 1 / ($spd * DC::Protocol::TICK);
+         my $mintime = DC::Protocol::TICK * DC::ceil 1 / ($spd * DC::Protocol::TICK || 1);
 
          # jump if "impossibly high" speed
          if (
