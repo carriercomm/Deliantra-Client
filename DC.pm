@@ -18,14 +18,17 @@ package DC;
 
 use Carp ();
 
+our $VERSION;
+
 BEGIN {
-   $VERSION = '0.9975';
+   $VERSION = '0.9976';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
 }
 
 use utf8;
+use strict qw(vars subs);
 
 use AnyEvent ();
 use Pod::POM ();
@@ -69,7 +72,7 @@ sub asxml($) {
 }
 
 sub socketpipe() {
-   socketpair my $fh1, my $fh2, Socket::AF_UNIX, Socket::SOCK_STREAM, Socket::PF_UNSPEC
+   socketpair my $fh1, my $fh2, &Socket::AF_UNIX, &Socket::SOCK_STREAM, &Socket::PF_UNSPEC
       or die "cannot establish bidirectional pipe: $!\n";
 
    ($fh1, $fh2)
@@ -144,27 +147,63 @@ sub background_msg {
 
 package DC;
 
+our $RC_THEME;
+our %THEME;
+our @RC_PATH;
+our $RC_BASE;
+
+for (grep !ref, @INC) {
+   $RC_BASE = "$_/Deliantra/Client/private/resources";
+   last if -d $RC_BASE;
+}
+
 sub find_rcfile($) {
    my $path;
 
-   for (grep !ref, @INC) {
-      $path = "$_/Deliantra/Client/private/resources/$_[0]";
+   for (@RC_PATH, "") {
+      $path = "$RC_BASE/$_/$_[0]";
       return $path if -r $path;
    }
 
-   die "FATAL: can't find required file $_[0]\n";
+   die "FATAL: can't find required file \"$_[0]\" in \"$RC_BASE\"\n";
 }
 
-sub read_cfg {
+sub load_json($) {
    my ($file) = @_;
 
    open my $fh, $file
       or return;
 
    local $/;
-   my $CFG = <$fh>;
+   JSON::XS->new->utf8->relaxed->decode (<$fh>)
+}
 
-   $::CFG = decode_json $CFG;
+sub set_theme($) {
+   return if $RC_THEME eq $_[0];
+   $RC_THEME = $_[0];
+
+   # kind of hacky, find the main theme file, then load all theme files and merge them
+
+   %THEME = ();
+   @RC_PATH = "theme-$RC_THEME";
+
+   my $theme = load_json find_rcfile "theme.json"
+      or die "FATAL: theme resource file not found";
+
+   @RC_PATH = @{ $theme->{path} } if $theme->{path};
+
+   for (@RC_PATH, "") {
+      my $theme = load_json "$RC_BASE/$_/theme.json"
+         or next;
+
+      %THEME = ( %$theme, %THEME );
+   }
+}
+
+sub read_cfg {
+   my ($file) = @_;
+
+   $::CFG = load_json $file;
 }
 
 sub write_cfg {

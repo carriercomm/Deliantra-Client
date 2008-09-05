@@ -59,7 +59,13 @@ sub try_open_db {
    $env->set_msgfile (\*STDERR);
    $env->set_verbose (-1, 1);
 
-   $env->set_flags (BDB::AUTO_COMMIT | BDB::LOG_AUTOREMOVE | BDB::TXN_WRITE_NOSYNC);
+   $env->set_flags (BDB::AUTO_COMMIT | BDB::REGION_INIT);
+   $env->set_flags      (&BDB::LOG_AUTOREMOVE ) if BDB::VERSION v0, v4.7;
+   $env->log_set_config (&BDB::LOG_AUTO_REMOVE) if BDB::VERSION v4.7;
+
+   $env->set_timeout (3, BDB::SET_TXN_TIMEOUT);
+   $env->set_timeout (3, BDB::SET_LOCK_TIMEOUT);
+
    $env->set_cachesize (0, 2048 * 1024, 0);
 
    db_env_open $env, $DB_HOME,

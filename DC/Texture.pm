@@ -49,15 +49,10 @@ sub new_from_image {
    $class->new (image => $image, internalformat => undef, %arg)
 }
 
-
-sub new_from_file {
+sub new_from_resource {
    my ($class, $path, %arg) = @_;
 
-   open my $fh, "<:raw", $path
-      or die "$path: $!";
-
-   local $/;
-   $class->new_from_image (<$fh>, %arg)
+   $class->new (resource_path => $path, internalformat => undef, %arg)
 }
 
 #sub new_from_surface {
@@ -122,6 +117,13 @@ sub upload {
       # $dw,$dh $data
 
       my ($data, $dw, $dh);
+
+      if (exists $self->{resource_path}) {
+         open my $fh, "<:raw", DC::find_rcfile $self->{resource_path};
+         local $/;
+         $self->{image} = <$fh>;
+         $self->{delete_image} = 1;
+      }
 
       if (defined $self->{data}) {
          $data = $self->{data};

@@ -93,6 +93,8 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 /* mask out modifiers we are not interested in */
 #define MOD_MASK (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_META)
 
+#define KMOD_LRAM 0x10000 // our extension
+
 static AV *texture_av;
 
 static struct
@@ -529,6 +531,20 @@ within_widget (SV *widget, NV x, NV y)
   return 1;
 }
 
+/******************************************************************************/
+
+/* process keyboard modifiers */
+static int
+mod_munge (int mod)
+{
+  mod &= MOD_MASK;
+
+  if (mod & (KMOD_META | KMOD_ALT))
+    mod |= KMOD_LRAM;
+
+  return mod;
+}
+
 static void
 deliantra_main ()
 {
@@ -604,6 +620,56 @@ BOOT:
         const_iv (SDL_APPINPUTFOCUS),
         const_iv (SDL_APPMOUSEFOCUS),
         const_iv (SDL_APPACTIVE),
+
+
+        const_iv (SDLK_UNKNOWN),
+        const_iv (SDLK_FIRST),
+        const_iv (SDLK_BACKSPACE),
+        const_iv (SDLK_TAB),
+        const_iv (SDLK_CLEAR),
+        const_iv (SDLK_RETURN),
+        const_iv (SDLK_PAUSE),
+        const_iv (SDLK_ESCAPE),
+        const_iv (SDLK_SPACE),
+        const_iv (SDLK_EXCLAIM),
+        const_iv (SDLK_QUOTEDBL),
+        const_iv (SDLK_HASH),
+        const_iv (SDLK_DOLLAR),
+        const_iv (SDLK_AMPERSAND),
+        const_iv (SDLK_QUOTE),
+        const_iv (SDLK_LEFTPAREN),
+        const_iv (SDLK_RIGHTPAREN),
+        const_iv (SDLK_ASTERISK),
+        const_iv (SDLK_PLUS),
+        const_iv (SDLK_COMMA),
+        const_iv (SDLK_MINUS),
+        const_iv (SDLK_PERIOD),
+        const_iv (SDLK_SLASH),
+        const_iv (SDLK_0),
+        const_iv (SDLK_1),
+        const_iv (SDLK_2),
+        const_iv (SDLK_3),
+        const_iv (SDLK_4),
+        const_iv (SDLK_5),
+        const_iv (SDLK_6),
+        const_iv (SDLK_7),
+        const_iv (SDLK_8),
+        const_iv (SDLK_9),
+        const_iv (SDLK_COLON),
+        const_iv (SDLK_SEMICOLON),
+        const_iv (SDLK_LESS),
+        const_iv (SDLK_EQUALS),
+        const_iv (SDLK_GREATER),
+        const_iv (SDLK_QUESTION),
+        const_iv (SDLK_AT),
+
+        const_iv (SDLK_LEFTBRACKET),
+        const_iv (SDLK_BACKSLASH),
+        const_iv (SDLK_RIGHTBRACKET),
+        const_iv (SDLK_CARET),
+        const_iv (SDLK_UNDERSCORE),
+        const_iv (SDLK_BACKQUOTE),
+        const_iv (SDLK_DELETE),
 
 	const_iv (SDLK_FIRST),
 	const_iv (SDLK_LAST),
@@ -688,6 +754,8 @@ BOOT:
 	const_iv (KMOD_NUM),
 	const_iv (KMOD_CAPS),
 	const_iv (KMOD_MODE),
+
+        const_iv (KMOD_LRAM),
 
         const_iv (MIX_DEFAULT_FORMAT),
 
@@ -885,8 +953,8 @@ poll_events ()
                 case SDL_KEYUP:
                   hv_store (hv, "state",   5, newSViv (ev.key.state), 0);
                   hv_store (hv, "sym",     3, newSViv (ev.key.keysym.sym), 0);
-                  hv_store (hv, "mod",     3, newSViv (ev.key.keysym.mod & MOD_MASK), 0);
-                  hv_store (hv, "cmod",    4, newSViv (SDL_GetModState () & MOD_MASK), 0); /* current mode */
+                  hv_store (hv, "mod",     3, newSViv (mod_munge (ev.key.keysym.mod)), 0);
+                  hv_store (hv, "cmod",    4, newSViv (mod_munge (SDL_GetModState ())), 0); /* current mode */
                   hv_store (hv, "unicode", 7, newSViv (ev.key.keysym.unicode), 0);
                   break;
 
@@ -914,7 +982,7 @@ poll_events ()
                         SDL_PeepEvents (&ev, 1, SDL_GETEVENT, SDL_EVENTMASK (SDL_MOUSEMOTION));
                       }
 
-                    hv_store (hv, "mod",    3, newSViv (SDL_GetModState () & MOD_MASK), 0);
+                    hv_store (hv, "mod",    3, newSViv (mod_munge (SDL_GetModState ())), 0);
                     hv_store (hv, "state",  5, newSViv (state), 0);
                     hv_store (hv, "x",      1, newSViv (x), 0);
                     hv_store (hv, "y",      1, newSViv (y), 0);
@@ -2935,6 +3003,7 @@ void glRotate (float angle, float x, float y, float z)
         glRotatef (angle, x, y, z);
 
 void glColor (float r, float g, float b, float a = 1.0)
+        PROTOTYPE: @
         ALIAS:
            glColor_premultiply = 1
         CODE:

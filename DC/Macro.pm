@@ -22,9 +22,10 @@ our %DEFAULT_KEYMAP = (
    "f4"         => "!toggle-spells",
    "f5"         => "!toggle-inventory",
    "f9"         => "!toggle-setup",
-   (map +("LAlt-$_" => "!switch-tab $_"), 0..9),
-   (map +("RAlt-$_" => "!switch-tab $_"), 0..9),
-   "LAlt-x"     => "!close-current-tab",
+
+   (map +("LRAM-$_"  => "!switch-tab $_"), 0..9),
+   "LRAM-x"     => "!close-current-tab",
+
    "return"     => "!activate-chat",
    "."          => "!repeat-command",
 
@@ -33,10 +34,11 @@ our %DEFAULT_KEYMAP = (
    "enter"	=> "examine",
    "[+]"        => "rotateshoottype +",
    "[-]"        => "rotateshoottype -",
-   "LAlt-e"	=> "examine",
-   "LAlt-s"	=> "ready_skill find traps",
-   "LAlt-d"	=> "ready_skill disarm traps",
-   "LAlt-p"	=> "ready_skill praying",
+
+   "LRAM-e"	=> "examine",
+   "LRAM-s"	=> "ready_skill find traps",
+   "LRAM-d"	=> "ready_skill disarm traps",
+   "LRAM-p"	=> "ready_skill praying",
 );
 
 # allowed modifiers
@@ -109,6 +111,8 @@ our $DEFAULT_KEYMAP;
 
 sub init {
    $DEFAULT_KEYMAP ||= do {
+      local $MODIFIER{LRAM} = DC::KMOD_LRAM; # hack to enable internal LRAM modifer
+
       my %sym = map +(DC::SDL_GetKeyName $_, $_), DC::SDLK_FIRST .. DC::SDLK_LAST;
       my $map;
 

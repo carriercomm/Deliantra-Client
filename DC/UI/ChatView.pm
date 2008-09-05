@@ -73,10 +73,11 @@ sub new {
       },
       on_key_down => sub {
          my ($input, $ev) = @_;
-         my $uni = $ev->{unicode};
+
+         my $sym = $ev->{sym};
          my $mod = $ev->{mod};
 
-         if ($uni >= ord "0" && $uni <= ord "9" && $mod & DC::KMOD_ALT) {
+         if ($sym >= ord "0" && $sym <= ord "9" && $mod & DC::KMOD_ALT) {
             $::MAPWIDGET->emit (key_down => $ev);
             return 1;
          }
@@ -119,7 +120,7 @@ sub update_tooltip {
    my $t = $self->{text_tooltip}
            . (defined $self->{dockbar_pos}
                  ? "\n\n<small>Alt+"
-                   . ($self->{dockbar_pos} == 10 ? '0' : $self->{dockbar_pos})
+                   . ($self->{dockbar_pos} == 9 ? '0' : $self->{dockbar_pos} + 1)
                    . " - activates this tab.\n"
                    . "Return - toggles activity of the entry."
                    . "</small>"

@@ -23,7 +23,6 @@ DC/UI/SpellList.pm
 DC/UI/Dockable.pm
 DC/UI/Dockbar.pm
 DC/UI/Canvas.pm
-DC/UI/MessageWindow.pm
 DC/UI/ChatView.pm
 DC/Item.pm
 DC/Pod.pm
@@ -40,6 +39,7 @@ pango-render.c
 
 META.yml                                 Module meta-data (added by MakeMaker)
 
+resources/theme.json
 resources/b1_button_active.png
 resources/b1_button_inactive.png
 resources/c1_checkbox_active.png
@@ -129,6 +129,32 @@ resources/arch/flint_and_steel.x11.png
 resources/arch/scrollr.x11.png
 resources/arch/stylus.x11.png
 resources/arch/workbench.x11.png
+resources/theme-plain/b1_button_active.png
+resources/theme-plain/b1_button_inactive.png
+resources/theme-plain/d1_bg.png
+resources/theme-plain/d1_border_bottom.png
+resources/theme-plain/d1_border_left.png
+resources/theme-plain/d1_border_right.png
+resources/theme-plain/d1_border_top.png
+resources/theme-plain/s1_slider.png
+resources/theme-plain/s1_slider_bg.png
+resources/theme-blue/theme.json
+resources/theme-blue/b1_button_active.png
+resources/theme-blue/b1_button_inactive.png
+resources/theme-blue/d1_bg.png
+resources/theme-blue/d1_border_bottom.png
+resources/theme-blue/d1_border_left.png
+resources/theme-blue/d1_border_right.png
+resources/theme-blue/d1_border_top.png
+resources/theme-blue/s1_slider.png
+resources/theme-blue/s1_slider_bg.png
+resources/theme-metal/b1_button_active.png
+resources/theme-metal/b1_button_inactive.png
+resources/theme-metal/d1_bg.png
+resources/theme-metal/d1_border_bottom.png
+resources/theme-metal/d1_border_left.png
+resources/theme-metal/d1_border_right.png
+resources/theme-metal/d1_border_top.png
 pod/about.pod
 pod/command_help.pod
 pod/dmcommand_help.pod

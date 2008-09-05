@@ -1258,7 +1258,7 @@ sub new {
 
    my $self = $class->SUPER::new (
       # label     => "",
-      fg          => [0.6, 0.3, 0.1],
+      fg          => undef,
       border      => 0.8,
       style       => 'single',
       %arg,
@@ -1321,7 +1321,7 @@ sub _draw {
 
    $child->draw;
 
-   glColor @{$self->{fg}};
+   glColor @{$self->{fg} || $DC::THEME{fancyframe}};
    glBegin GL_LINE_STRIP;
    glVertex $border * 1.5      , $border * 0.5 + 0.5;
    glVertex $border * 0.5 + 0.5, $border * 0.5 + 0.5;
@@ -1346,15 +1346,15 @@ our @ISA = DC::UI::Bin::;
 use DC::OpenGL;
 
 my $bg = 
-      new_from_file DC::Texture DC::find_rcfile "d1_bg.png",
+      new_from_resource DC::Texture "d1_bg.png",
          mipmap => 1, wrap => 1;
 
 my @border = 
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw(d1_border_top.png d1_border_right.png d1_border_left.png d1_border_bottom.png);
 
 my @icon =
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw(x1_move.png x1_resize.png);
 
 sub new {
@@ -1363,7 +1363,7 @@ sub new {
    my $self = $class->SUPER::new (
       bg          => [1, 1, 1, 1],
       border_bg   => [1, 1, 1, 1],
-      border      => 0.6,
+      border      => 1,
       can_events  => 1,
       min_w       => 64,
       min_h       => 32,
@@ -2092,7 +2092,7 @@ sub new {
    $class->SUPER::new (
       fg         => [1, 1, 1],
       bg         => [0, 0, 0, 0.2],
-      outline    => [0.6, 0.3, 0.1],
+      outline    => undef,
       active_bg  => [0, 0,  1, .2],
       active_fg  => [1, 1,  1],
       active_outline => [1, 1, 0],
@@ -2160,9 +2160,9 @@ sub invoke_key_down {
 
    $self->{cursor} = List::Util::max 0, List::Util::min $self->{cursor}, length $text;
 
-   if ($uni == 8) {
+   if ($sym == DC::SDLK_BACKSPACE) {
       substr $text, --$self->{cursor}, 1, "" if $self->{cursor};
-   } elsif ($uni == 127) {
+   } elsif ($sym == DC::SDLK_DELETE) {
       substr $text, $self->{cursor}, 1, "";
    } elsif ($sym == DC::SDLK_LEFT) {
       --$self->{cursor} if $self->{cursor};
@@ -2275,7 +2275,7 @@ sub _draw {
       glLineWidth 1;
 
    } else {
-      glColor @{$self->{outline}};
+      glColor @{$self->{outline} || $DC::THEME{entry_outline}};
       glBegin GL_LINE_STRIP;
       glVertex              .5, $self->{h} *  .5;
       glVertex              .5, $self->{h} - 2.5;
@@ -2407,7 +2407,7 @@ our @ISA = DC::UI::Bin::;
 use DC::OpenGL;
 
 my @tex =
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw(b1_button_inactive.png b1_button_active.png);
 
 sub new {
@@ -2456,7 +2456,7 @@ our @ISA = DC::UI::Label::;
 use DC::OpenGL;
 
 my @tex =
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw(b1_button_inactive.png b1_button_active.png);
 
 sub new {
@@ -2509,7 +2509,7 @@ package DC::UI::CheckBox;
 our @ISA = DC::UI::DrawBG::;
 
 my @tex =
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw(c1_checkbox_bg.png c1_checkbox_active.png);
 
 use DC::OpenGL;
@@ -2600,7 +2600,7 @@ sub new {
       or Carp::croak "'path' or 'tex' attributes required";
 
    $self->{tex} ||= $texture_cache{$self->{path}} ||=
-      new_from_file DC::Texture DC::find_rcfile $self->{path}, mipmap => 1;
+      new_from_resource DC::Texture $self->{path}, mipmap => 1;
 
    DC::weaken $texture_cache{$self->{path}};
 
@@ -2706,19 +2706,19 @@ use DC::OpenGL;
 
 my %tex = (
    food => [
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw/g1_food_gauge_empty.png g1_food_gauge_full.png/
    ],
    grace => [
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw/g1_grace_gauge_empty.png g1_grace_gauge_full.png g1_grace_gauge_overflow.png/
    ],
    hp => [
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw/g1_hp_gauge_empty.png g1_hp_gauge_full.png/
    ],
    mana => [
-      map { new_from_file DC::Texture DC::find_rcfile $_, mipmap => 1 }
+      map { new_from_resource DC::Texture $_, mipmap => 1 }
          qw/g1_mana_gauge_empty.png g1_mana_gauge_full.png g1_mana_gauge_overflow.png/
    ],
 );
@@ -3025,7 +3025,7 @@ use DC::OpenGL;
 our @ISA = DC::UI::DrawBG::;
 
 my @tex =
-      map { new_from_file DC::Texture DC::find_rcfile $_ }
+      map { new_from_resource DC::Texture $_ }
          qw(s1_slider.png s1_slider_bg.png);
 
 sub new {
@@ -3622,11 +3622,12 @@ sub set_tooltip_from {
    $tip =~ s/\n+$//;
 
    $self->add (new DC::UI::Label
+      fg        => $DC::THEME{tooltip_fg},
       markup    => $tip,
       max_w     => ($widget->{tooltip_width} || 0.25) * $::WIDTH,
       align     => 0,
       fontsize  => 0.8,
-      style     => 1, # FLAG_INVERSE
+      style     => $DC::THEME{tooltip_style}, # FLAG_INVERSE
       ellipsise => 0,
       font      => ($widget->{tooltip_font} || $::FONT_PROP),
    );
@@ -3673,10 +3674,10 @@ sub _draw {
 
    my ($w, $h) = @$self{qw(w h)};
 
-   glColor 1, 0.8, 0.4;
+   glColor @{ $DC::THEME{tooltip_bg} };
    glRect 0, 0, $w, $h;
    
-   glColor 0, 0, 0;
+   glColor @{ $DC::THEME{tooltip_border} };
    glRect_lineloop .5, .5, $w + .5, $h + .5;
    
    glTranslate 2, 2;

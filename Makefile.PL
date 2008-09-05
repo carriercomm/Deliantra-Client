@@ -64,7 +64,7 @@ WriteMakefile(
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
        BDB           => 1.7,
-       Deliantra     => 1.21,
+       Deliantra     => 1.22,
        Time::HiRes   => 0,
        EV            => 3.42,
        AnyEvent      => 4.22,
@@ -92,7 +92,6 @@ WriteMakefile(
        'DC/UI/SpellList.pm'       => '$(INST_LIBDIR)/Client/private/DC/UI/SpellList.pm',
        'DC/UI/Canvas.pm'          => '$(INST_LIBDIR)/Client/private/DC/UI/Canvas.pm',
        'DC/UI/ChatView.pm'        => '$(INST_LIBDIR)/Client/private/DC/UI/ChatView.pm',
-       'DC/UI/MessageWindow.pm'   => '$(INST_LIBDIR)/Client/private/DC/UI/MessageWindow.pm',
        'DC/Item.pm'               => '$(INST_LIBDIR)/Client/private/DC/Item.pm',
        'DC/Pod.pm'                => '$(INST_LIBDIR)/Client/private/DC/Pod.pm',
        'DC/MapWidget.pm'          => '$(INST_LIBDIR)/Client/private/DC/MapWidget.pm',

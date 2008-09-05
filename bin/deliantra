@@ -99,20 +99,35 @@ BEGIN {
 unshift @INC, $ENV{PAR_TEMP}
    if %PAR::LibCache;
 
-use Time::HiRes 'time';
 use EV;
+BEGIN { *time = \&EV::time }
+
 use List::Util qw(max min);
 
 use Deliantra;
 use Deliantra::Protocol::Constants;
 
+use AnyEvent::Util ();
 use AnyEvent::DNS;
 use AnyEvent::Socket ();
 
 use Compress::LZF;
+use JSON::XS;
 
 use DC;
-BEGIN { $SIG{__DIE__} = sub { DC::fatal Carp::longmess "$_[0]" unless $^S } }
+
+sub crash($;$) {
+   # nop during compiletime
+}
+
+BEGIN {
+   $SIG{__DIE__} = sub {
+      return if $^S;
+      crash "CRASH/DIE: $_[0]" => 1;
+      DC::fatal Carp::longmess "$_[0]";
+   }
+}
+
 use DC::OpenGL ();
 use DC::Protocol;
 use DC::DB;
@@ -122,7 +137,6 @@ use DC::UI::Inventory;
 use DC::UI::SpellList;
 use DC::UI::Dockable;
 use DC::UI::Dockbar;
-use DC::UI::MessageWindow;
 use DC::UI::ChatView;
 use DC::MessageDistributor;
 use DC::Pod;
@@ -133,6 +147,7 @@ $SIG{QUIT} = sub { Carp::cluck "QUIT" };
 $SIG{PIPE} = 'IGNORE';
 
 $EV::DIED = sub {
+   crash "CRASH/EV::DIED: $@" => 1;
    DC::fatal Carp::longmess $@;
 };
 
@@ -144,7 +159,6 @@ our $LAST_REFRESH;
 our $NOW;
 
 our $CFG;
-our $CONN;
 our $PROFILE; # current profile
 our $FAST; # fast, low-quality mode, possibly useful for software-rendering
 
@@ -162,6 +176,8 @@ our $FONTSIZE;
 
 our $FONT_PROP;
 our $FONT_FIXED;
+
+our $CONN;
 
 our $MAP;
 our $MAPMAP;
@@ -213,6 +229,33 @@ our $DEBUG_STATUS;
 our $INV;
 our $INVR;
 our $INVR_HB;
+
+#############################################################################
+
+# write a crash message blockingly to the socket, if possible
+# this is a bit too complicated for my tastes, but it was easy.
+*crash = sub($;$) {
+   my ($msg, $backtrace) = @_;
+
+   return unless $CONN;
+
+   my $fh = $CONN->{fh}
+      or return;
+
+   my $buf = delete $CONN->{wbuf};
+
+   $buf .= pack "n/a*", "exti " . JSON::XS::encode_json [clientlog => undef, substr $msg, 0, 8000];
+
+   AnyEvent::Util::fh_nonblocking $fh, 0;
+   syswrite $fh, $buf;
+   AnyEvent::Util::fh_nonblocking $fh, 1;
+
+   $msg =~ s/\s+$//;
+
+   # backtrace as second step, in case it crashes, too
+   crash Carp::longmess "$msg\nbacktrace, for client version $DC::VERSION, generated"
+      if $backtrace;
+};
 
 #############################################################################
 
@@ -809,6 +852,8 @@ sub start_game {
 }
 
 sub stop_game {
+   crash "stop_game";
+
    $LOGIN_BUTTON->set_text ("Login / Register");
    $SETUP_NOTEBOOK->set_current_page ($SETUP_LOGIN);
    $SETUP_DIALOG->show;
@@ -838,8 +883,8 @@ sub graphics_setup {
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "OpenGL Info");
    $table->add_at (1, $row++, new DC::UI::Label fontsize => 0.8, text => DC::OpenGL::gl_vendor . ", " . DC::OpenGL::gl_version,
-                                                 can_events => 1,
-                                                 tooltip => "<tt><span size='8192'>" . (DC::OpenGL::gl_extensions) . "</span></tt>");
+                                                can_events => 1,
+                                                tooltip => "<tt><span size='8192'>" . (DC::OpenGL::gl_extensions) . "</span></tt>");
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Caveats");
    $table->add_at (1, $row++, $CAVEAT_LABEL = new DC::UI::Label fontsize => 0.8,
@@ -848,6 +893,19 @@ sub graphics_setup {
                . "a non-accelerated display format. You can try to work around these issues "
                . "by selecting a different video mode, changing the settings below or "
                . "by installing the right driver for your graphics card.");
+
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "UI Theme");
+   $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::Selector
+      value   => $CFG->{uitheme},
+      options => [
+         [wood   => "Wood (the default)"],
+         [plain  => "Plain (very)"],
+         [blue   => "Blue (dark)"],
+         [metal  => "Metal (light)"],
+      ],
+      tooltip => "Choose the User Interface theme that you like most :)",
+      on_changed => sub { my ($self, $value) = @_; $CFG->{uitheme} = $value; 0 }
+   );
 
    my $vidmode_tooltip =
       "<b>Video Mode.</b> The video mode to use for fullscreen (and the window size for windowed operation). "
@@ -912,9 +970,9 @@ sub graphics_setup {
    $table->add_at (1, $row++, new DC::UI::CheckBox
       state => $CFG->{texture_compression},
       tooltip => "Use texture compression. Normally this will not reduce visual quality noticable but "
-               . "will save a lot of memory and increase performance. The compression algorithm "
-               . "can differ form card to card, so your mileage may vary. This setting is ignored in "
-               . "forced OpenGL 1.1 mode.",
+               . "will save a lot of memory and increase performance (and also fall prey to the ever-buggy Mac OS X software renderer). "
+               . "The compression algorithm can differ form card to card, so your mileage may vary. This setting is ignored in "
+               . "forced OpenGL 1.1 mode and when using the Apple renderer.",
       on_changed => sub { my ($self, $value) = @_; $CFG->{texture_compression} = $value; 0 }
    );
 
@@ -1599,7 +1657,7 @@ sub login_setup {
 
    $vbox->add (new DC::UI::FancyFrame
       label => "How to Play",
-      min_h => 200,
+      min_h => 240,
       child => (new DC::UI::Label valign => 0, ellipsise => 0,
                     markup =>
                        "First select a suitable video resolution in the <b>Graphics</b> tab, above.\n\n"
@@ -2135,7 +2193,10 @@ sub open_quit_dialog {
       $hb->add (new DC::UI::Button
          text => "Quit anyway",
          expand => 1,
-         on_activate => sub { EV::unloop EV::UNLOOP_ALL },
+         on_activate => sub {
+            crash "Quit anyway";
+            EV::unloop EV::UNLOOP_ALL;
+         },
       );
    }
 
@@ -2203,6 +2264,8 @@ sub sdl_init {
 }
 
 sub video_init {
+   DC::set_theme $CFG->{uitheme};
+
    DC::SDL_InitSubSystem DC::SDL_INIT_VIDEO if $SDL_REINIT;
    $SDL_REINIT = 0;
 
@@ -2216,7 +2279,7 @@ sub video_init {
    if (!defined $CFG->{sdl_mode} or $CFG->{sdl_mode} > $#SDL_MODES) {
       $CFG->{sdl_mode} = 0; # lowest resolution by default
 
-      # now choose biggets mode <= 1024x768
+      # now choose biggest mode <= 1024x768
       for (0 .. $#SDL_MODES) {
          if ($SDL_MODES[$_][0] * $SDL_MODES[$_][1] <= 1024 * 768) {
             $CFG->{sdl_mode} = $_;
@@ -2309,7 +2372,7 @@ sub video_init {
          border_bg => [1, 1, 1, 192/255],
          bg        => [1, 1, 1, 0],
          child     => ($MAPMAP = new DC::MapWidget::MapMap
-            tooltip => "<b>Map</b>. On servers that support this feature, this will display an overview of the surrounding areas.",
+            tooltip => "<b>Minimap</b>. This will display an overview of the surrounding areas.",
          ),
       )->show;
 
@@ -2418,7 +2481,7 @@ sub video_init {
       $MESSAGE_WINDOW->show;
    }
 
-   $MODE_SLIDER->set_range ([$CFG->{sdl_mode}, 0, $#SDL_MODES, 1, 1]);
+   $MODE_SLIDER->set_range ([$CFG->{sdl_mode}, 0, scalar @SDL_MODES, 1, 1]);
    $MODE_SLIDER->emit (changed => $CFG->{sdl_mode});
 
    $CAVEAT_LABEL->set_text ("None :)");
@@ -2483,6 +2546,7 @@ sub animation_stop {
 
 %SDL_CB = (
    DC::SDL_QUIT => sub {
+      crash "SDL_QUIT";
       EV::unloop EV::UNLOOP_ALL;
    },
    DC::SDL_VIDEORESIZE => sub {
@@ -2592,6 +2656,7 @@ sub main {
          show_tips           => 1,
          logview_max_par     => 1000,
          shift_fire_stop     => 0,
+         uitheme             => "wood",
       );
       
       while (my ($k, $v) = each %DEF_CFG) {

@@ -1,5 +1,25 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9976 Fri Sep  5 17:28:30 CEST 2008
+	- use keysym not unicode symbol, maybe that helps with some of those keyboard
+          issues on OS X.
+        - treat meta like alt for built-ins, for OS X.
+        - fix tab tooltip listing key shortcut off by one.
+        - disable texture compression with apple software renderer. if you want to get
+          something that works, apple is for you. not.
+        - fix text encoding for item description tooltips.
+        - enlarge window borders considerably.
+        - support lzf-compressed packets.
+        - support fragmented packets.
+        - send crash and opengl vendor information to server for better debugging.
+        - fix crash when displaying the tutorial with the precompiled os x
+          binary: libjpeg collided with libJPEG - long live case-insensitivity :/
+        - cater for the incompatible changes in berkeley db 4.7.
+        - enable highest-resolution video mode again.
+        - add some preliminary theme support and two demo themes, "plain" and "blue".
+        - avoid a crash when the minimap is reduced to zero size.
+        - work around a bug in perl 5.8 perls (Bareword "Socket::AF_UNIX"...).
+
 0.9975 Wed Aug 27 22:16:27 CEST 2008
 	- use biggest video mode <= 1024x768 by default now (previous releases had a bug
           that caused them to select the smallest vdieo mode available).

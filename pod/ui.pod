@@ -82,14 +82,17 @@ also works for anything else in your range slot, such as spells or skills.
 
 =head3 B<alt>
 
-Shows wether the alt key is pressed or not. The alt key is not used for
-controlling your character.
+Shows wether the C<Alt> key is pressed or not. The Alt key can be used
+together with the arrow keys to achieve diagonal movement. It is also
+commonly used to define keyboard macros.
 
 =head3 B<num>
 
-C<NumLock> isn't used by Deliantra, but on some operating systems, having
-it on makes it impossible to use the B<numeric keypad> for moving or
-firing, so best leave it off when playing Deliantra.
+C<NumLock> isn't used by Deliantra, but on the Windows Operating System,
+having it on can make it impossible to use the B<numeric keypad> for
+moving or firing. Likewise having it off on Mac OS X might cause problems
+with diagonal movement, so when you encounter keyboard issues, try to
+toggle NumLock.
 
 =head2 X<stat_health>
 

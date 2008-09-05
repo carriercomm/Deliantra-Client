@@ -121,8 +121,8 @@ for killing creatures, and incure a 4 point wc (to hit) penalty.
 
    chat <message>
 
-Sends a message to all players on the server that have
-L<listen|command/listen> level B<10> or higher.
+Sends a message to all players on the server. This is the normal way to
+chat with others.
 
 =head2 cast
 
@@ -401,24 +401,6 @@ If a name is specified then only pets with that
 name will be killed, eg killpets bat will kill bats
 but not bees. If a number is specified, the pet 
 corresponding to that number is killed.
-
-=head2 listen
-
-   listen <listen-level>
-
-Listen sets the level of messages you will hear.
-Priorities are defined as follows:
-
-   0  - Nothing, not even "You punch kobold." or "You say: hi".
-   1  - Only messages that have to do with yourself.
-   2  - Emergency calls from other users
-   10 - General chatter with the 'chat' command.
-   11 - See what players kill what monster with what attack/spell. Very
-        verbose - only for the fanatics.
-
-=head2 logs
-
-TODO
 
 =head2 mapinfo
 
@@ -765,8 +747,7 @@ only).
 
    shout <message>
 
-Sends a message to all players on the server that have
-L<listen|command/listen> level B<10> or higher. It is mainly useful for
+Sends a message to all players on the server. It is mainly useful for
 emergency messages ("I am trapped on xxx, can somebody help me?") and
 should not be used for general chat. Use L<chat|command/chat> instead.
 
@@ -808,6 +789,13 @@ ones just get inserted last.
 
 If you have a lot of stuff that is not in alphabetical order but you would
 like it to be, the best method is to drop all of it and then pick it up.
+
+=head2 sound
+
+Toggles between sound enabled and disabled. This has no relevance to the
+sound settings of the client, it only governs wether the server will send
+sound effect command to the client and is enabled if the client supports
+sound (i.e. always for cfplus).
 
 =head2 sourcecode
 

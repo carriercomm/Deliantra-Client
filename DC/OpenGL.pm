@@ -55,6 +55,8 @@ sub init {
    $GL_NPOT     = $GL_EXT{GL_ARB_texture_non_power_of_two} || $GL_VERSION >= 2.0;
    $GL_COMPRESS = $GL_EXT{GL_ARB_texture_compression}      || $GL_VERSION >= 1.3;
 
+   $GL_COMPRESS = 0 if DC::OpenGL::gl_vendor eq "Apple Computer, Inc."; # there is no end to their suckage
+
    disable_GL_EXT_blend_func_separate
       unless $GL_BFSEP;
 

@@ -14,6 +14,12 @@ use DC::Item;
 
 use base 'Deliantra::Protocol::Base';
 
+our $TEX_DIALOGUE = new_from_resource DC::Texture
+         "dialogue.png", minify => 1, mipmap => 1;
+
+our $TEX_NOFACE = new_from_resource DC::Texture
+        "noface.png", minify => 1, mipmap => 1;
+
 sub new {
    my ($class, %arg) = @_;
 
@@ -77,14 +83,12 @@ sub new {
       for @cmd_help;
 
    {
-      $self->{dialogue} = my $tex = new_from_file DC::Texture
-         DC::find_rcfile "dialogue.png", minify => 1, mipmap => 1;
+      $self->{dialogue} = my $tex = $TEX_DIALOGUE;
       $self->{map}->set_texture (1, @$tex{qw(name w h s t)}, @{$tex->{minified}});
    }
 
    {
-     $self->{noface} = my $tex = new_from_file DC::Texture
-        DC::find_rcfile "noface.png", minify => 1, mipmap => 1;
+      $self->{noface} = my $tex = $TEX_NOFACE;
       $self->{map}->set_texture (2, @$tex{qw(name w h s t)}, @{$tex->{minified}});
    }
 
@@ -1366,6 +1370,9 @@ sub logged_in {
 
    $self->send_command ("output-rate $::CFG->{output_rate}") if $::CFG->{output_rate} > 0;
    $self->send_command ("pickup $::CFG->{pickup}");
+
+   $self->send_exti_msg (clientlog => sprintf "OpenGL Info: %s [%s]",
+                                              DC::OpenGL::gl_vendor, DC::OpenGL::gl_version);#d#
 }
 
 sub lookat {

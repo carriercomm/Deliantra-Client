@@ -13,7 +13,7 @@ use DC::Macro;
 our @ISA = DC::UI::Base::;
 
 my $magicmap_tex =
-      new_from_file DC::Texture DC::find_rcfile "magicmap.png",
+      new_from_resource DC::Texture "magicmap.png",
          mipmap => 1, wrap => 0, internalformat => GL_ALPHA;
 
 sub new {
@@ -287,24 +287,29 @@ sub update {
 }
 
 my %DIR = (
-   ( "," . DC::SDLK_KP5  ), [0, "stay fire"],
-   ( "," . DC::SDLK_KP8  ), [1, "north"],
-   ( "," . DC::SDLK_KP9  ), [2, "northeast"],
-   ( "," . DC::SDLK_KP6  ), [3, "east"],
-   ( "," . DC::SDLK_KP3  ), [4, "southeast"],
-   ( "," . DC::SDLK_KP2  ), [5, "south"],
-   ( "," . DC::SDLK_KP1  ), [6, "southwest"],
-   ( "," . DC::SDLK_KP4  ), [7, "west"],
-   ( "," . DC::SDLK_KP7  ), [8, "northwest"],
+   ( "," . DC::SDLK_KP5      ), [0, "stay fire"],
+   ( "," . DC::SDLK_KP8      ), [1, "north"],
+   ( "," . DC::SDLK_KP9      ), [2, "northeast"],
+   ( "," . DC::SDLK_KP6      ), [3, "east"],
+   ( "," . DC::SDLK_KP3      ), [4, "southeast"],
+   ( "," . DC::SDLK_KP2      ), [5, "south"],
+   ( "," . DC::SDLK_KP1      ), [6, "southwest"],
+   ( "," . DC::SDLK_KP4      ), [7, "west"],
+   ( "," . DC::SDLK_KP7      ), [8, "northwest"],
 
-   ( "," . DC::SDLK_UP   ), [1, "north"],
-   ("1," . DC::SDLK_UP   ), [2, "northeast"],
-   ( "," . DC::SDLK_RIGHT), [3, "east"],
-   ("1," . DC::SDLK_RIGHT), [4, "southeast"],
-   ( "," . DC::SDLK_DOWN ), [5, "south"],
-   ("1," . DC::SDLK_DOWN ), [6, "southwest"],
-   ( "," . DC::SDLK_LEFT ), [7, "west"],
-   ("1," . DC::SDLK_LEFT ), [8, "northwest"],
+   ( "," . DC::SDLK_PAGEUP   ), [2, "northeast"],
+   ( "," . DC::SDLK_PAGEDOWN ), [4, "southeast"],
+   ( "," . DC::SDLK_END      ), [6, "southwest"],
+   ( "," . DC::SDLK_HOME     ), [8, "northwest"],
+
+   ( "," . DC::SDLK_UP       ), [1, "north"],
+   ("1," . DC::SDLK_UP       ), [2, "northeast"],
+   ( "," . DC::SDLK_RIGHT    ), [3, "east"],
+   ("1," . DC::SDLK_RIGHT    ), [4, "southeast"],
+   ( "," . DC::SDLK_DOWN     ), [5, "south"],
+   ("1," . DC::SDLK_DOWN     ), [6, "southwest"],
+   ( "," . DC::SDLK_LEFT     ), [7, "west"],
+   ("1," . DC::SDLK_LEFT     ), [8, "northwest"],
 );
 
 sub invoke_key_down {
@@ -314,14 +319,16 @@ sub invoke_key_down {
    my $sym = $ev->{sym};
    my $uni = $ev->{unicode};
 
-   $mod &= DC::KMOD_CTRL | DC::KMOD_ALT | DC::KMOD_SHIFT;
+   $mod &= DC::KMOD_CTRL | DC::KMOD_ALT | DC::KMOD_META | DC::KMOD_SHIFT;
 
    # ignore repeated keypresses
    return if $self->{last_mod} == $mod && $self->{last_sym} == $sym;
    $self->{last_mod} = $mod;
    $self->{last_sym} = $sym;
 
-   if ($::CONN && (my $dir = $DIR{(!!($mod & DC::KMOD_ALT)) . ",$sym"})) {
+   my $dir = $DIR{ (!!($mod & (DC::KMOD_ALT | DC::KMOD_META))) . ",$sym" };
+
+   if ($::CONN && $dir) {
       if ($mod & DC::KMOD_SHIFT) {
          $self->{shft}++;
          if ($dir->[0] != $self->{fire_dir}) {
@@ -358,7 +365,9 @@ sub invoke_key_up {
          $res = 1;
       }
    } else {
-      if (exists $DIR{(!!($mod & DC::KMOD_ALT)) . ",$sym"} && delete $self->{shft}) {
+      my $dir = $DIR{ (!!($mod & (DC::KMOD_ALT | DC::KMOD_META))) . ",$sym" };
+
+      if ($dir && delete $self->{shft}) {
          $::CONN->user_send ("fire_stop");
          delete $self->{fire_dir};
          $res = 1;
@@ -370,7 +379,7 @@ sub invoke_key_up {
       }
    }
 
-   if (!($mod & DC::KMOD_CTRL ) && delete $self->{ctrl}) {
+   if (!($mod & DC::KMOD_CTRL) && delete $self->{ctrl}) {
       $::CONN->user_send ("run_stop");
       $res = 1;
    }
@@ -603,6 +612,8 @@ sub refresh_hook {
 
    if ($::MAP && $self->{texture_atime} < time) {
       my ($w, $h) = @$self{qw(w h)};
+
+      return unless $w && $h;
 
       my $sw = int $::WIDTH  / ($::MAPWIDGET->{tilesize} * $::CFG->{map_scale}) + 0.99;
       my $sh = int $::HEIGHT / ($::MAPWIDGET->{tilesize} * $::CFG->{map_scale}) + 0.99;
