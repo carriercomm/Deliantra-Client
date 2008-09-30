@@ -293,18 +293,20 @@ rod/wand/horn.
 =head2 woodsman
 
 While the skill is readied, the possessor will move faster through
-"wooded" terrain (B<forest>, B<grasslands>, B<brush>, B<jungle>, etc.)
+"wooded" terrain (B<forest>, B<grasslands>, B<brush>, B<jungle>, etc.).
+
+Woodsmen can also craft various items useful to their skill.
 
 =head2 inscription
 
-You can inscribe scrolls with a text. This is useful to create messages,
-especially via the Imperial Post Office (IPO).
+You can inscribe empty scrolls and books with a text. This is useful to
+create messages, especially via the Imperial Post Office (IPO).
 
-You can also rewrite spell scrolls with a previously known spell. You
-need L<mana|stat_mana>, time and an old scroll. Backfire effects are
+You can also write spell scrolls with a spell known to you. You need
+L<mana|stat_mana>, time and an old scroll for that. Backfire effects are
 possible. Only available as a 'writing pen'.
 
-How to rewrite a mail scroll/books etc.:
+How to write into a mail scroll/books etc.:
 
    mark <name of scroll> # or use the menu
    use_skill inscription <your message goes here>
@@ -315,11 +317,9 @@ How to rewrite a spell scroll:
    cast <spell>          # prepare the spell you want to write
    use_skill inscription # write the spell on the scroll
 
-The scroll on which you want to write has to be much lower than your inscription
-level, otherwise you may accidentally read the scroll and cast the spell inside it.
-If you succeed, the scroll will be a scroll of the spell you chose and your level of
-inscription as its level. Hence, you don't need to be that level in the spell skill
-to write higher level spellscrolls.
+If you succeed, the scroll will be a scroll of the spell you chose and
+your level of inscription as its level. Hence, you don't need to be that
+level in the spell skill to write higher level spellscrolls.
 
 Caution: Magic spell writing can be risky to one's health. There can be
 some negative effects if one fails to write a spell scroll. The most

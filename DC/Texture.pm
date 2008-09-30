@@ -121,6 +121,7 @@ sub upload {
       if (exists $self->{resource_path}) {
          open my $fh, "<:raw", DC::find_rcfile $self->{resource_path};
          local $/;
+         delete $self->{internalformat};
          $self->{image} = <$fh>;
          $self->{delete_image} = 1;
       }

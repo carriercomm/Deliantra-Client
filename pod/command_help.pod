@@ -28,7 +28,7 @@ These two options disable the toggling feature.
 
 =head2 X<applymode>applymode (nochoice|never|always)
 
-Applymode controls what happens when you are equipping something that would
+the C<applymode> controls what happens when you are equipping something that would
 require something else to be unequipped.
 
 The options are:
@@ -71,13 +71,13 @@ See L<apply|command/apply>.
 
 =head2 body
 
-Shows how much you are wielding on certain bodyparts. For example as
+Shows how much you are wielding on certain body parts. For example as
 fireborn, you have 4 fingers to put rings on. If you have 3 rings on it will
 say: "on your finger  3 1", meaning you have 3 fingers full and one free.
 
 =head2 X<bowmode>bowmode (normal|threewide|spreadshot|bestarrow|.*)
 
-Bowmode controls how you will fire arrows and bolts.
+The C<bowmode> controls how you will fire arrows and bolts.
 
 The options are:
 
@@ -112,10 +112,10 @@ When you enter the B<brace> command to brace your character, your
 character will no longer move. It can still attack adjoining
 spaces. Bracing can be useful to hold a location.
 
-When you are braced, you lose your dex bonus and incur a 2 point
-ac penalty beyond that (if you have a negative dex bonus, you may in
+When you are braced, you lose your Dex bonus and incur a 2 point
+ac penalty beyond that (if you have a negative Dex bonus, you may in
 fact come out ahead. You also only get 20% of the normal experience
-for killing creatures, and incure a 4 point wc (to hit) penalty. 
+for killing creatures, and incur a 4 point WC (to hit) penalty. 
 
 =head2 chat
 
@@ -126,18 +126,18 @@ chat with others.
 
 =head2 cast
 
-You use the cast command to set your range-weapon to the spell you
+You use the cast command to set your range-action-slot to the spell you
 want. Example:
 
    cast burning hands
 
-sets your I<range> weapon to B<spell: burning hands>.
+sets your I<range> slot to B<spell: burning hands>.
 
 If you don't know the spell, shows which spells you do know.
 
 It is helpful to bind string like B<cast burning hands> to keys.
 
-See B<range> for more information on range weapons.
+See C<help range> for more information on range weapons.
 
 =head2 X<drop>drop (all|unpaid|cursed|unlocked|.*)
 
@@ -151,21 +151,13 @@ There are a few special name values:
 
 =over 4
 
-=item B<all>
+=item B<all>: matches any item.
 
-matches any item.
+=item B<unpaid>: matches unpaid items.
 
-=item B<unpaid>
+=item B<cursed>: drops items known to be cursed or damned.
 
-matches unpaid items
-
-=item B<cursed>
-
-drops items known to be cursed or damned.
-
-=item B<unlocked>
-
-drops items not locked in your inventory
+=item B<unlocked>: drops items not locked in your inventory.
 
 =back
 
@@ -296,7 +288,7 @@ been available.
 
 =item hide
 
-Hide all hints: You will not be able to tell wether there is a hint
+Hide all hints: You will not be able to tell whether there is a hint
 available or not.
 
 =back
@@ -314,13 +306,13 @@ Lists all players that you currently ignore.
    ignore <player> <tell|shout|all> [timeout]
 
 This command ignores the specified messages (B<tell> ignores tells,
-B<shout> ignores chat and shout and all ignores everything from the given
+B<shout> ignores chat and shout and B<all> ignores everything from the given
 user).
 
-The optional timeout (specified in hours) specifies then the ignore entry
-expires. The default is 24 (one day). The reason why all ignores expire
-after a day by default is that most troublemakers stop soon after they are
-being ignored.
+The optional timeout (specified in hours) specifies when the ignore entry
+expires. The default is 24 (one day). The reason why all ignore entries
+expire after a day by default is that most troublemakers stop soon after
+they are being ignored.
 
 To revoke an ignore, use the B<unignore> command.
 
@@ -332,9 +324,9 @@ status. Example:
    inventory
 
    Inventory:
-   - arrow                                 0.1
-   - Knife *                                2
-   - long sword (wielded)                  15
+   - arrow                  0.1
+   - Knife *                2
+   - long sword (wielded)  15
 
 This shows that you have one arrow which weighs 0.1kg and one Knife which you
 protected from dropping by locking it as well as a long sword which you are
@@ -380,7 +372,7 @@ Examples:
    invoke create food of waybread
 
 It is very helpful to bind healing spells to keys, for example go to your
-I<playerbook>, tab I<spells>, the press the right mosue button on the
+I<playerbook>, tab I<spells>, the press the right mouse button on the
 spell I<medium healing> and choose C<bind invoke ... to a key>. It is
 recommended to bind a healing spell or potion to an easily-accessible-key,
 such as '1'.
@@ -398,7 +390,7 @@ experience for their death. However, it kills them
 instantaneously.
 
 If a name is specified then only pets with that 
-name will be killed, eg killpets bat will kill bats
+name will be killed, e.g. killpets bat will kill bats
 but not bees. If a number is specified, the pet 
 corresponding to that number is killed.
 
@@ -447,7 +439,7 @@ emergency save), at most 20 seconds of gameplay are lost.
 Most maps will not reset as long as players are on it, and usually the
 reset counter only starts going down when all players left the map. Some
 maps will never reset in the common sense, these are usually marked with a
-very high number (sucha s C<1e+99>).
+very high number (such as C<1e+99>).
 
 =item Path: the name that uniquely identifies the map, can be used for goto etc.
 
@@ -487,7 +479,7 @@ message '10 times you kill orc' would be printed out. The default value is
 buffering is disabled in this regard.
 
 output-sync controls how often information is sent to the screen. Each
-buffer has its own time value, and will be flushed independantly. The
+buffer has its own time value, and will be flushed independently. The
 default value is usually less than a second.
 
 See also L<output-sync>.
@@ -513,7 +505,7 @@ output-rate is not required.
    output-sync [seconds]
 
 output-sync controls how often information is sent to the screen. Each
-buffer has its own time value, and will be flushed independantly. The
+buffer has its own time value, and will be flushed independently. The
 default value is usually less than a second.
 
 output-count sets after how many messages of the same type, they are
@@ -681,8 +673,8 @@ If either of the names contain spaces, you have to use the C<">-form,
 otherwise you can just write the name as-is. If you omit the old name, the
 marked item will be used instead.
 
-If the new name is empty (i.e. C<"">), then the original (unrenamed) name
-will be restored.
+If the new name is empty (i.e. C<"">), then the original (before the
+rename) name will be restored.
 
 Note: maximum allowed name length is 127 characters.
 
@@ -784,7 +776,7 @@ not be sorted.
 
 If sort_inventory is not set (default), items will be inserted via type,
 subtype and magic. This, all axes will be grouped together in magic order,
-all daggers by magic order, etc. Unforunately, for scrolls and rings, new
+all daggers by magic order, etc. Unfortunately, for scrolls and rings, new
 ones just get inserted last.
 
 If you have a lot of stuff that is not in alphabetical order but you would
@@ -793,13 +785,13 @@ like it to be, the best method is to drop all of it and then pick it up.
 =head2 sound
 
 Toggles between sound enabled and disabled. This has no relevance to the
-sound settings of the client, it only governs wether the server will send
+sound settings of the client, it only governs whether the server will send
 sound effect command to the client and is enabled if the client supports
-sound (i.e. always for cfplus).
+sound (i.e. always for the deliantra client).
 
 =head2 sourcecode
 
-This command displays the means to download the sourcecode (server code,
+This command displays the means to download the source code (server code,
 maps and archetypes) used to implement this version of the game.
 
 Every player has the right to download and modify the source code of the
@@ -879,12 +871,12 @@ weather if weather is enabled in the server.
 
 =head2 title
 
-Players can change their title. For example you called yourself Gandalf and
-your race is elf, you can use the title command to change your name from
-"Gandalf the elf" to "Gandalf the white". Usage:
-
    title <new title>
    title clear   # Sets your title back to your race.
+
+Players can change their title. For example you called yourself Gandalf and
+your race is elf, you can use the title command to change your name from
+"Gandalf the elf" to "Gandalf the white" by using C<title the white>.
 
 Dragons cannot set their title because it changes during the game.
 
@@ -912,14 +904,18 @@ The B<usekeys> option determines the behaviour of using keys.
 
 Values are:
 
-inventory: Only keys in the top level inventory are used (default)
+=over 4
 
-keyrings: Only keys in active keyrings are used.
+=item B<inventory>: Only keys in the top level inventory are used (default)
 
-containers: Only keys in active containers are used.
+=item B<keyrings>: Only keys in active key rings are used.
 
-Note that keyrings are just a specialized container, so the containers
-will also find keys in keyrings.
+=item B<containers>: Only keys in active containers are used.
+
+=back
+
+Note that key rings are just a specialized container, so the containers
+will also find keys in key rings.
 
 Only active containers are used - keys will not jump out of closed
 containers, but hints will be given if you have keys in such containers.

@@ -63,15 +63,15 @@ WriteMakefile(
     EXE_FILES => [qw(bin/deliantra)],
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
-       BDB           => 1.7,
+       BDB           => 1.8,
        Deliantra     => 1.22,
        Time::HiRes   => 0,
        EV            => 3.42,
        AnyEvent      => 4.22,
-       Compress::LZF => 1.6,
+       Compress::LZF => 3.41,
        Pod::POM      => 0.15,
        LWP           => 0,
-       JSON::XS      => 2.01,
+       JSON::XS      => 2.2222,
     },
     depend    => {
        "Client.o" => 'glfunc.h pangoopengl.h pango-font.c pango-fontmap.c pango-render.c texcache.c rendercache.c',

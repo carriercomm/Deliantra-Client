@@ -14,13 +14,12 @@ sub new {
          can_close     => 0,
          can_undock    => 0,
          info => {
+            id            => "",
             title         => "Log",
-            tooltip       =>
-               "<b>Server Log</b>. This text viewer contains all recent message sent by the server.",
-            entry_tooltip =>
-               "<b>Command Entry</b>. If you enter something and press return/enter here, "
-               ."the line you entered will be sent to the server as a command.",
-            reply => ''
+            tooltip       => "<b>Server Log</b>. This text viewer contains all recent message sent by the server.",
+            entry_tooltip => "<b>Command Entry</b>. If you enter something and press return/enter here, "
+                             . "the line you entered will be sent to the server as a command.",
+            reply         => ''
          }
       )
    );

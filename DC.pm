@@ -12,8 +12,6 @@ DC - undocumented utility garbage for our deliantra client
 
 =cut
 
-package Deliantra::Client; # work around CPAN breakage
-package App::Deliantra; # try to reserve namespace
 package DC;
 
 use Carp ();
@@ -21,7 +19,7 @@ use Carp ();
 our $VERSION;
 
 BEGIN {
-   $VERSION = '0.9976';
+   $VERSION = '0.9977';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;

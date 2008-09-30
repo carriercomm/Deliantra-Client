@@ -1,5 +1,21 @@
 Revision history for Perl extension Deliantra::Client
 
+0.9977 Tue Sep 30 09:27:29 CEST 2008
+	- require newer BDB version to avoid possible database corruption or crashes
+          on login.
+	- fixed the often choppy smooth movement.
+	- switch to proportional font in log view.
+        - improve the paragraph indent hack to align characters better.
+        - tweak server message output.
+        - optimise visibility handing in multiplexers (only put the current tab
+          into visible state).
+        - reduce the number of unneecssary refreshes.
+        - allow empty multiplexers.
+        - fixed clearing issue in the inventory upon logout.
+        - use the same workarounds for pango for gnu/linux binaries as we use for osx,
+          but additionally patch the pango library because stupid braindead idiotic
+          debian maintainers of course apply custom patches that completely break it.
+
 0.9976 Fri Sep  5 17:28:30 CEST 2008
 	- use keysym not unicode symbol, maybe that helps with some of those keyboard
           issues on OS X.

@@ -75,6 +75,7 @@ sub new {
 
       delete $self->{items};
       $::INV->clear;
+      $::INVR->clear;
       $::INVR_HB->clear;
       $::FLOORBOX->clear;
    });
@@ -1098,21 +1099,19 @@ sub msg {
       # no longer neecssary with TRT servers
       #$text =~ s/(?<=\S)\n(?=\w)/ /g;
 
-      for (split /\n/, $text) {
-         ::message ({
-            fg     => $fg,
-            markup => $_,
-            type   => $type,
-            extra  => [@extra],
-            color_flags => $color, #d# ugly, kill
-         });
+      ::message ({
+         fg     => $fg,
+         markup => $text,
+         type   => $type,
+         extra  => [@extra],
+         color_flags => $color, #d# ugly, kill
+      });
 
-         $color &= ~NDI_CLEAR; # only clear once for multiline messages
-         # actually, this is an ugly design. _we_ should control the channels,
-         # not some random other widget, as the channels are clearly protocol-specific.
-         # then we could also react to flags such as CLEAR without resorting to
-         # hacks such as color_flags, above.
-      }
+#      $color &= ~NDI_CLEAR; # only clear once for multiline messages
+#      # actually, this is an ugly design. _we_ should control the channels,
+#      # not some random other widget, as the channels are clearly protocol-specific.
+#      # then we could also react to flags such as CLEAR without resorting to
+#      # hacks such as color_flags, above.
 
       $self->{statusbox}->add ($text,
          group        => $text,

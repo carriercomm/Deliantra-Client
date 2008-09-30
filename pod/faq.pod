@@ -17,6 +17,10 @@ reset) and the ability to let more players play, by using less resources
 and having a fully asynchronous design, and full support for sound effects
 and background music.
 
+=head3 I found a bug, how can I report it/what do I do?
+
+Mail us at support@deliantra.net , which is best, unless it is a small, temporary, or urgent issue. If it is, then tell schmorp, elmex, or Asarth.
+
 =head3 The client is very sluggish and slow, what can I do about this?
 
 Most likely, you don't have accelerated OpenGL support. Try to find a
@@ -120,7 +124,10 @@ cast C<cure disease> on you.
 
 =item * Your stats change.
 
-Switching items or being restored from depletion can affect your stats, which in turn can affect your healthpoints. While this is not a regular effect (it only happens when you change items or are restored from depletion), it can sometimes look as if you are losing health.
+Switching items or being restored from depletion can affect your stats,
+which in turn can affect your healthpoints. While this is not a regular
+effect (it only happens when you change items or are restored from
+depletion), it can sometimes look as if you are losing health.
 
 =back
 
@@ -155,6 +162,18 @@ You need a spell to uncurse or undamn items, but luckily, magic shops commonly h
 To actually remove the curse or damnation with a scroll, you need to L<mark> the item, and then L<apply> the scroll.
 
 =back
+
+=head3 When I log-in, I keep dying! Why is this?
+
+What happened is that you died of a cave-in. Cave-ins kill you when you unsafely log out. An unsafe log out is when you disconnect without using a bed to reality, or when you time out (after 10-20 seconds without reply, the server automatically kicks players). Safe log outs are when you log out using a bed to realtiy, or when you are disconnected when the server crashes or restarts.
+
+If the disconnection was safe, then you will appear where you were before you got logged out. If it was unsafe, and more than 1 hour has passed, you will die of a cave-in. If the map you were in reset, but 1 hour has not passed, then you will be recalled to your bed to reality.
+
+=head3 How does the I<identify> spell work?
+
+The I<identify> spell identifies your items, making it give it's full description. The spell goes through your inventory in a psuedo-random order, skipping past identified items. If it identifies all the items in your inventory, or they are already identified, it then checks for identified items on the ground, again in a psuedo-random order. If it identifies all the items on the ground, then the remaining power is wasted.
+
+The I<identify> spell counts stacks of items, such as arrows or gems, as one 'item'. It can only identify a certain amount of items. Therefore, the only way to choose what it identifies is by dropping what you don't want identified on the ground.
 
 =head3 How can I Prepare/Improve/Enchant Weapons?
 
@@ -346,12 +365,12 @@ good in, and of course vice versa!
 
 =head3 How can I summon a specific monster with C<summon pet monster>?
 
-Higher levels of L<skill_description/summoning> give you access to higher
-level monsters, but not all monsters have equal abilities. Instead of
-summoning the highest level monster allowed by your level you can also
-summon any other monster you had before by adding its I<archetype name>
-after the command, i.e. to summon bees you would use the C<cast summon pet
-monster bee> (short: C<cspm bee>) command.
+Higher (effective) casting levels of L<skill_description/summoning> give
+you access to higher level monsters, but not all monsters have equal
+abilities. Instead of summoning the highest level monster allowed by your
+level you can also summon any other monster you had before by adding its
+I<archetype name> after the command, i.e. to summon bees you would use the
+C<cast summon pet monster bee> (short: C<cspm bee>) command.
 
    Level  Monster
        1  bat
@@ -378,9 +397,59 @@ monster bee> (short: C<cspm bee>) command.
      100  laoch
      105  snitchangel
 
+=head3 How does being attuned/repelled/denied affect casting level?
+
+Some spells are attuned to one or more spell classes (such as wounding,
+summoning, fire and so on). The player can likewise be attuned to some of
+these classes, giving a bonus, or repelled to them, giving a malus, or
+denied to them, making her unable to cast the spell at all.
+
+The skill level is the level of the skill that the spell uses (e.g.
+summoning or sorcery).
+
+When attuned, the bonus is up to 16 levels, but never higher than the
+skill level itself, i.e. at level 2, the bonus is 4, at level 5, the
+bonus is 10 and at level 50, the bonus is 16.
+
+When repelled, the malus is 16 levels always.
+
+These are added (or subtracted) to the skill level when checking whether
+the player can cast the spell and when calculating the effective casting
+level.
+
+The effect on strength is as if the minimum spell level is lower (when
+attuned) or higher (when repelled), and the strength will increase the
+same as without any attunement.
+
+=head3 What is the "effective" casting level?
+
+Effective casting levels start at 1 (lowest spell strength) and go up to
+100 (highest nominal spell strength). Higher levels are also possible and
+make the spell correspondingly stronger.
+
+The effective casting level is calculated from the skill level, after
+adding/subtracting any bonus from attunements.
+
+If the skill level plus bonus is lower than 100, then the minimum spell
+level comes into play: the minimum level is not only the minimum level
+a caster is required to have, it is also the level where the effective
+casting level equals 1. From there it grows till it reaches casting level
+100, whre the effective level will also be 100.
+
+If the skill level plus bonus is 100 or higher, then this is the effective
+spell level.
+
+That means, when you have a spell with a minimum level of 90, then it's
+effective range will be spread evenly over the 90..100 range, e.g. when
+you cast this spell at skill level 90, the effective casting level will
+be 1 (lowest). Casting at level 91 gives casting level 11, skill level
+98 gives effective level 80, up to skill level 100, which then gives
+effective level 100.
+
+
 =head2 Praying, Gods and Cults
 
-=head3 X<how_tp_pray>How do I pray?
+=head3 X<how_to_pray>How do I pray?
 
 First enter the "praying mode" by readying your L<skill_description/praying> skill
 (by default bound to C<Alt-P>, or by typing C<rspraying>), then hold and keep holding

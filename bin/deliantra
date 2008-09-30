@@ -51,30 +51,10 @@ BEGIN {
 
       if ($^O eq "MSWin32") {
          # pango is relocatable on win32
-      } elsif (-e "$root/pangoversion") {
-         open my $fh, "<:perlio", "$root/pangoversion"
-            or die "pangoversion: $!";
-         my $PANGO = <$fh>;
-         # unix, need to patch pango rc file
-         open my $fh, "<:perlio", "$root/usr/lib/pango/$PANGO/module-files.d/libpango1.0-0.modules"
-            or die "$root/usr/lib/$PANGO/module-files.d/libpango1.0-0.modules: $!";
-         local $/;
-         my $rc = <$fh>;
-         $rc =~ s/^\//$root\//gm; # replace abs paths by relative ones
-
-         mkdir "$root/pango-modules";
-         open my $fh, ">:perlio", "$root/pango-modules/pango.modules"
-            or die "$root/pango-modules/pango.modules: $!";
-         print $fh $rc;
-
-         $ENV{PANGO_RC_FILE} = "$root/pango.rc";
-         open my $fh, ">:perlio", $ENV{PANGO_RC_FILE}
-            or die "$ENV{PANGO_RC_FILE}: $!";
-         print $fh "[Pango]\nModuleFiles = $root/pango-modules\n";
       } else {
          # OS X
-         $ENV{FC_CONFIG_FILE} = "$root/fonts.conf"; # no effect??!?!
-         $ENV{FC_CONFIG_DIR} = $root; # no effect??!?!
+         $ENV{FONTCONFIG_FILE} = "$root/fonts.conf"; # no effect??!?!
+         $ENV{FONTCONFIG_DIR} = $root; # no effect??!?!
          $ENV{PANGO_RC_FILE} = "$root/pango.rc";
          $ENV{DYLD_LIBRARY_PATH} = $root;
          chdir $root; # for pango modules, maybe other things
@@ -877,197 +857,208 @@ sub stop_game {
 sub graphics_setup {
    my $vbox = new DC::UI::VBox;
 
-   $vbox->add (my $table = new DC::UI::Table expand => 1, col_expand => [0, 1]);
+   {
+      $vbox->add (my $frame = new DC::UI::FancyFrame expand => 1, label => "Video Mode");
 
-   my $row = 0;
+      $frame->add (my $table = new DC::UI::Table expand => 1, col_expand => [0, 1]);
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "OpenGL Info");
-   $table->add_at (1, $row++, new DC::UI::Label fontsize => 0.8, text => DC::OpenGL::gl_vendor . ", " . DC::OpenGL::gl_version,
-                                                can_events => 1,
-                                                tooltip => "<tt><span size='8192'>" . (DC::OpenGL::gl_extensions) . "</span></tt>");
+      my $row = 0;
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Caveats");
-   $table->add_at (1, $row++, $CAVEAT_LABEL = new DC::UI::Label fontsize => 0.8,
-      can_events => 1,
-      tooltip => "This field shows any known issues with your config or driver, such as "
-               . "a non-accelerated display format. You can try to work around these issues "
-               . "by selecting a different video mode, changing the settings below or "
-               . "by installing the right driver for your graphics card.");
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "OpenGL Info");
+      $table->add_at (1, $row++, new DC::UI::Label fontsize => 0.8, text => DC::OpenGL::gl_vendor . ", " . DC::OpenGL::gl_version,
+                                                   can_events => 1,
+                                                   tooltip => "<tt><span size='8192'>" . (DC::OpenGL::gl_extensions) . "</span></tt>");
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "UI Theme");
-   $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::Selector
-      value   => $CFG->{uitheme},
-      options => [
-         [wood   => "Wood (the default)"],
-         [plain  => "Plain (very)"],
-         [blue   => "Blue (dark)"],
-         [metal  => "Metal (light)"],
-      ],
-      tooltip => "Choose the User Interface theme that you like most :)",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{uitheme} = $value; 0 }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Caveats");
+      $table->add_at (1, $row++, $CAVEAT_LABEL = new DC::UI::Label fontsize => 0.8,
+         can_events => 1,
+         tooltip => "This field shows any known issues with your config or driver, such as "
+                  . "a non-accelerated display format. You can try to work around these issues "
+                  . "by selecting a different video mode, changing the settings below or "
+                  . "by installing the right driver for your graphics card.");
 
-   my $vidmode_tooltip =
-      "<b>Video Mode.</b> The video mode to use for fullscreen (and the window size for windowed operation). "
-    . "The format is <i>width</i> x <i>height</i> \@ <i>depth-per-channel</i> + <i>alpha-channel</i>.";
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "UI Theme");
+      $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::Selector
+         value   => $CFG->{uitheme},
+         options => [
+            [wood   => "Wood (the default)"],
+            [plain  => "Plain (very)"],
+            [blue   => "Blue (dark)"],
+            [metal  => "Metal (light)"],
+         ],
+         tooltip => "Choose the User Interface theme that you like most :)",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{uitheme} = $value; 0 }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Video Mode");
-   $table->add_at (1, $row++, my $hbox = new DC::UI::HBox);
+      my $vidmode_tooltip =
+         "<b>Video Mode.</b> The video mode to use for fullscreen (and the window size for windowed operation). "
+       . "The format is <i>width</i> x <i>height</i> \@ <i>depth-per-channel</i> + <i>alpha-channel</i>.";
 
-   $hbox->add ($MODE_SLIDER = new DC::UI::Slider
-      force_w => $WIDTH * 0.1, expand => 1,
-      range => [ ($CFG->{sdl_mode}) x 3 ],
-      tooltip => $vidmode_tooltip);
-   $hbox->add (my $mode_label = new DC::UI::Label
-      height => 0.8, template => "9999x9999@9+9",
-      can_events => 1, tooltip => $vidmode_tooltip);
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Video Mode");
+      $table->add_at (1, $row++, my $hbox = new DC::UI::HBox);
 
-   $MODE_SLIDER->connect (changed => sub {
-      my ($self, $value) = @_;
+      $hbox->add ($MODE_SLIDER = new DC::UI::Slider
+         force_w => $WIDTH * 0.1, expand => 1,
+         range => [ ($CFG->{sdl_mode}) x 3 ],
+         tooltip => $vidmode_tooltip);
+      $hbox->add (my $mode_label = new DC::UI::Label
+         height => 0.8, template => "9999x9999@9+9",
+         can_events => 1, tooltip => $vidmode_tooltip);
 
-      $CFG->{sdl_mode} = $self->{range}[0] = $value = int $value;
-      $mode_label->set_text (sprintf '%dx%d@%d+%d', @{$SDL_MODES[$value]});
-   });
-   $MODE_SLIDER->emit (changed => $MODE_SLIDER->{range}[0]);
-
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fullscreen");
-   $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::CheckBox
-      state => $CFG->{fullscreen},
-      tooltip => "Bring the client into fullscreen mode.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{fullscreen} = $value; 0 }
-   );
-
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Force OpenGL 1.1");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{force_opengl11},
-      tooltip => "Limit Deliantra to use OpenGL 1.1 features only. This will normally result in "
-               . "higher memory usage and slower performance. It will, however, help tremendously on "
-               . "cards that claim to support a feature but fall back to software rendering. "
-               . "Nvidia Geforce FX cards are known to claim features the hardware doesn't support, "
-               . "but cards and drivers from other vendors (ATI) are often just as bad. "
-               . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{force_opengl11} = $value; 0 }
-   );
-
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Forbid Alpha");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{disable_alpha},
-      tooltip => "Forbid off the use of the alpha channel. This makes Deliantra look a lot worse "
-               . "by disabling a number of textures and transparency effects. Normally, these "
-               . "effects do not cost a lot of resources, but some graphics cards might fall "
-               . "back to etxremely slow rendering if this is enabled. If disabling this option "
-               . "noticably improves the framerate of the client please report this! "
-               . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
-      on_changed => sub {
+      $MODE_SLIDER->connect (changed => sub {
          my ($self, $value) = @_;
-         $CFG->{disable_alpha} = $value;
-         $SDL_REINIT = 1; # SDL_SetVideoMode ignores GL attr changes
-         0
-      }
-   );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Compress Textures");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{texture_compression},
-      tooltip => "Use texture compression. Normally this will not reduce visual quality noticable but "
-               . "will save a lot of memory and increase performance (and also fall prey to the ever-buggy Mac OS X software renderer). "
-               . "The compression algorithm can differ form card to card, so your mileage may vary. This setting is ignored in "
-               . "forced OpenGL 1.1 mode and when using the Apple renderer.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{texture_compression} = $value; 0 }
-   );
+         $CFG->{sdl_mode} = $self->{range}[0] = $value = int $value;
+         $mode_label->set_text (sprintf '%dx%d@%d+%d', @{$SDL_MODES[$value]});
+      });
+      $MODE_SLIDER->emit (changed => $MODE_SLIDER->{range}[0]);
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fast & Ugly");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{fast},
-      tooltip => "Lower the visual quality considerably to speed up rendering.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{fast} = $value; 0 }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fullscreen");
+      $table->add_at (1, $row++, $FULLSCREEN_ENABLE = new DC::UI::CheckBox
+         state => $CFG->{fullscreen},
+         tooltip => "Bring the client into fullscreen mode.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{fullscreen} = $value; 0 }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "GUI Fontsize");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range => [$CFG->{gui_fontsize}, 0.5, 2, 0, 0.1],
-      tooltip => "The base font size used by most GUI elements that do not have their own setting.",
-      on_changed => sub { $CFG->{gui_fontsize} = $_[1]; 0 },
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Force OpenGL 1.1");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{force_opengl11},
+         tooltip => "Limit Deliantra to use OpenGL 1.1 features only. This will normally result in "
+                  . "higher memory usage and slower performance. It will, however, help tremendously on "
+                  . "cards that claim to support a feature but fall back to software rendering. "
+                  . "Nvidia Geforce FX cards are known to claim features the hardware doesn't support, "
+                  . "but cards and drivers from other vendors (ATI) are often just as bad. "
+                  . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{force_opengl11} = $value; 0 }
+      );
 
-   $table->add_at (1, $row++, new DC::UI::Button
-      expand => 1, text => "Apply",
-      tooltip => "Apply the video settings above.",
-      on_activate => sub {
-         video_shutdown ();
-         video_init ();
-         0
-      }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Forbid Alpha");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{disable_alpha},
+         tooltip => "Forbid off the use of the alpha channel. This makes Deliantra look a lot worse "
+                  . "by disabling a number of textures and transparency effects. Normally, these "
+                  . "effects do not cost a lot of resources, but some graphics cards might fall "
+                  . "back to extremely slow rendering if this is enabled. If disabling this option "
+                  . "noticably improves the framerate of the client please report this! "
+                  . "<b>If you experience extremely low framerates and your card should do better, try this option.</b>",
+         on_changed => sub {
+            my ($self, $value) = @_;
+            $CFG->{disable_alpha} = $value;
+            $SDL_REINIT = 1; # SDL_SetVideoMode ignores GL attr changes
+            0
+         }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Smooth Movement");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{smooth_movement},
-      tooltip => "<b>Smooth Movement</b> tries to make movement, well, smoother, but also increases the framerate. "
-               . "If you have a very slow system, non-accelerated drivers or plain dislike smooth scrolling, "
-               . "then disable this option. Changes take effect immdiately.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{smooth_movement} = $value; 0 }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Compress Textures");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{texture_compression},
+         tooltip => "Use texture compression. Normally this will not reduce visual quality noticable but "
+                  . "will save a lot of memory and increase performance (and also fall prey to the ever-buggy Mac OS X software renderer). "
+                  . "The compression algorithm can differ form card to card, so your mileage may vary. This setting is ignored in "
+                  . "forced OpenGL 1.1 mode and when using the Apple renderer.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{texture_compression} = $value; 0 }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Scale");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range      => [(log $CFG->{map_scale}) / (log 2), -3, 1, 0, 1],
-      tooltip    => "Enlarge or shrink the displayed map. Changes are instant.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{map_scale} = 2 ** $value; 0 }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fast & Ugly");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{fast},
+         tooltip => "Lower the visual quality considerably to speed up rendering.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{fast} = $value; 0 }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Smoothing");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{map_smoothing},
-      tooltip => "<b>Map Smoothing</b> tries to make tile borders less square. "
-               . "This increases load on the graphics subsystem and works only with TRT servers. "
-               . "Changes take effect at next login only.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{map_smoothing} = $value; 0 }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "GUI Fontsize");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range => [$CFG->{gui_fontsize}, 0.5, 2, 0, 0.1],
+         tooltip => "The base font size used by most GUI elements that do not have their own setting.",
+         on_changed => sub { $CFG->{gui_fontsize} = $_[1]; 0 },
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fog of War");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
-      state => $CFG->{fow_enable},
-      tooltip => "<b>Fog-of-War</b> marks areas that cannot be seen by the player. Changes are instant.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{fow_enable} = $value; 0 }
-   );
+      $table->add_at (1, $row++, new DC::UI::Button
+         expand => 1, text => "Apply",
+         tooltip => "Apply the video settings above.",
+         on_activate => sub {
+            video_shutdown ();
+            video_init ();
+            0
+         }
+      );
+   }
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "FoW Intensity");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range => [$CFG->{fow_intensity}, 0, 1, 0, 1 / 256],
-      tooltip => "<b>Fog of War Lightness.</b> The higher the intensity, the lighter the Fog-of-War color. Changes are instant.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{fow_intensity} = $value; 0 }
-   );
+   {
+      $vbox->add (my $frame = new DC::UI::FancyFrame expand => 1, label => "Other Settings");
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Message Fontsize");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range => [$CFG->{log_fontsize}, 0.5, 2, 0, 0.1],
-      tooltip => "The font size used by the <b>message/server log</b> window only. Changes are instant, "
-               . "but you still need to press apply to correctly re-layout the widget.",
-      on_changed => sub { $MESSAGE_DIST->set_fontsize ($CFG->{log_fontsize} = $_[1]); 0 },
-   );
+      $frame->add (my $table = new DC::UI::Table expand => 1, col_expand => [0, 1]);
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Gauge fontsize");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range => [$CFG->{gauge_fontsize}, 0.5, 2, 0, 0.1],
-      tooltip => "Adjusts the fontsize of the gauges at the bottom right. Changes are instant.",
-      on_changed => sub {
-         $CFG->{gauge_fontsize} = $_[1];
-         &set_gauge_window_fontsize;
-         0
-      }
-   );
+      my $row = 0;
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Smooth Movement");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{smooth_movement},
+         tooltip => "<b>Smooth Movement</b> tries to make movement, well, smoother, but also increases the framerate. "
+                  . "If you have a very slow system, non-accelerated drivers or plain dislike smooth scrolling, "
+                  . "then disable this option. Changes take effect immdiately.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{smooth_movement} = $value; 0 }
+      );
 
-   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Gauge size");
-   $table->add_at (1, $row++, new DC::UI::Slider
-      range      => [$CFG->{gauge_size}, 0.2, 0.8],
-      tooltip    => "Adjust the size of the stats gauges at the bottom right. Changes are instant.",
-      on_changed => sub {
-         $CFG->{gauge_size} = $_[1];
-         $GAUGES->{win}->set_size ($WIDTH, int $HEIGHT * $CFG->{gauge_size});
-         0
-      }
-   );
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Scale");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range      => [(log $CFG->{map_scale}) / (log 2), -3, 1, 0, 1],
+         tooltip    => "Enlarge or shrink the displayed map. Changes are instant.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{map_scale} = 2 ** $value; 0 }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Smoothing");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{map_smoothing},
+         tooltip => "<b>Map Smoothing</b> tries to make tile borders less square. "
+                  . "This increases load on the graphics subsystem and works only with TRT servers. "
+                  . "Changes take effect at next login only.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{map_smoothing} = $value; 0 }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Fog of War");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{fow_enable},
+         tooltip => "<b>Fog-of-War</b> marks areas that cannot be seen by the player. Changes are instant.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{fow_enable} = $value; 0 }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "FoW Intensity");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range => [$CFG->{fow_intensity}, 0, 1, 0, 1 / 256],
+         tooltip => "<b>Fog of War Lightness.</b> The higher the intensity, the lighter the Fog-of-War color. Changes are instant.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{fow_intensity} = $value; 0 }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Message Fontsize");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range => [$CFG->{log_fontsize}, 0.5, 2, 0, 0.1],
+         tooltip => "The font size used by the <b>message/server log</b> window only. Changes are instant, "
+                  . "but you still need to press apply to correctly re-layout the widget.",
+         on_changed => sub { $MESSAGE_DIST->set_fontsize ($CFG->{log_fontsize} = $_[1]); 0 },
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Gauge fontsize");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range => [$CFG->{gauge_fontsize}, 0.5, 2, 0, 0.1],
+         tooltip => "Adjusts the fontsize of the gauges at the bottom right. Changes are instant.",
+         on_changed => sub {
+            $CFG->{gauge_fontsize} = $_[1];
+            &set_gauge_window_fontsize;
+            0
+         }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Gauge size");
+      $table->add_at (1, $row++, new DC::UI::Slider
+         range      => [$CFG->{gauge_size}, 0.2, 0.8],
+         tooltip    => "Adjust the size of the stats gauges at the bottom right. Changes are instant.",
+         on_changed => sub {
+            $CFG->{gauge_size} = $_[1];
+            $GAUGES->{win}->set_size ($WIDTH, int $HEIGHT * $CFG->{gauge_size});
+            0
+         }
+      );
+   }
 
    $vbox
 }

@@ -29,6 +29,8 @@ DC/Pod.pm
 DC/MapWidget.pm
 DC/Macro.pm
 
+Client.pm			dummy file for CPAN
+
 glfunc.h
 texcache.c
 rendercache.c

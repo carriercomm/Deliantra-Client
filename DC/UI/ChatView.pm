@@ -20,9 +20,9 @@ sub new {
 
    $vbox->add ($self->{txt} = new DC::UI::TextScroller (
       expand     => 1,
-      font       => $::FONT_FIXED,
+      font       => $::FONT_PROP,
       fontsize   => $::CFG->{log_fontsize},
-      indent     => -4,
+      indent     => -4.34, # hack
       can_hover  => 1,
       can_events => 1,
       max_par    => $::CFG->{logview_max_par},
@@ -158,21 +158,20 @@ sub message {
       }
    }
 
-   if ($para->{color_flags} & NDI_REPLY) {
-      $self->select_my_tab;
-   }
-
-   if ($para->{color_flags} & NDI_CLEAR) {
-      $self->clear_log;
-   }
+   $self->select_my_tab if $para->{color_flags} & NDI_REPLY;
+   $self->clear_log     if $para->{color_flags} & NDI_CLEAR;
 
    my $time = sprintf "%02d:%02d:%02d", (localtime time)[2,1,0];
 
-   $para->{markup} = "<span foreground='#ffffff'>$time</span> $para->{markup}";
+   $para->{markup} = "<span foreground='#ffffff'><tt>$time </tt></span>$para->{markup}";
+
+   # boy this is ugly
+   $para->{markup} =~ s%\n%\n<tt>         </tt>%g;
 
    my $txt = $self->{txt};
    $txt->add_paragraph ($para);
-   $txt->scroll_to_bottom;
+
+   $txt->scroll_to_bottom unless $para->{color_flags} & NDI_CLEAR;
 }
 
 # This method is called when 

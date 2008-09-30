@@ -295,7 +295,7 @@ sub set_visible {
 
    $self->realloc if !exists $self->{req_w};
 
-   $_->set_visible for $self->children;
+   $_->set_visible for $self->visible_children;
 }
 
 sub set_invisible {
@@ -1363,7 +1363,7 @@ sub new {
    my $self = $class->SUPER::new (
       bg          => [1, 1, 1, 1],
       border_bg   => [1, 1, 1, 1],
-      border      => 1,
+      border      => 0.8,
       can_events  => 1,
       min_w       => 64,
       min_h       => 32,
@@ -3935,8 +3935,7 @@ sub new {
       @_,
    );
 
-   $self->{current} = $self->{children}[0]
-      if @{ $self->{children} };
+   $self->set_current_page (0);
 
    $self
 }
@@ -3946,8 +3945,8 @@ sub add {
 
    $self->SUPER::add (@widgets);
 
-   $self->{current} = $self->{children}[0]
-      if @{ $self->{children} };
+   $self->set_current_page (0)
+      unless @widgets == @{ $self->{children} };
 }
 
 sub get_current_page {
@@ -3963,28 +3962,35 @@ sub set_current_page {
                    ? $page_or_widget
                    : $self->{children}[$page_or_widget];
 
-   $self->{current} = $widget;
-   $self->{current}->configure (0, 0, $self->{w}, $self->{h});
+   $self->{current}->set_invisible if $self->{current} && $self->{visible};
 
-   $self->emit (page_changed => $self->{current});
+   if (($self->{current} = $widget)) {
+      $self->{current}->set_visible if $self->{current} && $self->{visible};
+      $self->{current}->configure (0, 0, $self->{w}, $self->{h});
+
+      $self->emit (page_changed => $self->{current});
+   }
 
    $self->realloc;
 }
 
 sub visible_children {
-   $_[0]{current}
+   $_[0]{current} || ()
 }
 
 sub size_request {
    my ($self) = @_;
 
-   $self->{current}->size_request
+   $self->{current}
+      ? $self->{current}->size_request
+      : (0, 0)
 }
 
 sub invoke_size_allocate {
    my ($self, $w, $h) = @_;
 
-   $self->{current}->configure (0, 0, $w, $h);
+   $self->{current}->configure (0, 0, $w, $h)
+     if $self->{current};
 
    1
 }
@@ -3992,7 +3998,8 @@ sub invoke_size_allocate {
 sub _draw {
    my ($self) = @_;
 
-   $self->{current}->draw;
+   $self->{current}->draw
+      if $self->{current};
 }
 
 #############################################################################
@@ -4212,7 +4219,7 @@ sub new {
 
 sub reorder {
    my ($self) = @_;
-   my $NOW = Time::HiRes::time;
+   my $NOW = EV::time;
 
    # freeze display when hovering over any label
    return if $DC::UI::TOOLTIP->{owner}
@@ -4272,6 +4279,10 @@ sub reorder {
 
       push @widgets, $label;
    }
+
+   my $hash = join ",", @widgets;
+   return if $hash eq $self->{last_widget_hash};
+   $self->{last_widget_hash} = $hash;
 
    $self->clear;
    $self->SUPER::add (reverse @widgets);

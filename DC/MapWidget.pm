@@ -434,24 +434,26 @@ sub movement_update {
          # the minimum time for a single tile movement
          my $mintime = DC::Protocol::TICK * DC::ceil 1 / ($spd * DC::Protocol::TICK || 1);
 
+         $spd *= $self->{tilesize};
+
          # jump if "impossibly high" speed
          if (
             (max abs $self->{sdx}, abs $self->{sdy})
-            > $spd * $self->{tilesize} * $mintime * 1.1
+            > $spd * $mintime * 2.1
          ) {
-            #warn "jump ", (max abs $self->{sdx}, abs $self->{sdy}), " ", $spd * $mintime * 1.0;#d#
+            #warn "jump ", (max abs $self->{sdx}, abs $self->{sdy}), " ", $spd * $mintime * 2.1;#d#
             $self->{sdx} = $self->{sdy} = 0;
          } else {
-            $spd *= $self->{tilesize} * $diff * 1.0001; # 1.0001 so that we don't accumulate rounding errors the wrong direction
+            $spd *= $diff * 1.0001; # 1.0001 so that we don't accumulate rounding errors the wrong direction
 
             my $dx = $self->{sdx} < 0 ? -$spd : $spd;
             my $dy = $self->{sdy} < 0 ? -$spd : $spd;
 
             if ($self->{sdx} * ($self->{sdx} - $dx) <= 0) { $self->{sdx} = 0 } else { $self->{sdx} -= $dx }
             if ($self->{sdy} * ($self->{sdy} - $dy) <= 0) { $self->{sdy} = 0 } else { $self->{sdy} -= $dy }
-
-            $self->update;
          }
+
+         $self->update;
       }
    } else {
       $self->{sdx} = $self->{sdy} = 0;
