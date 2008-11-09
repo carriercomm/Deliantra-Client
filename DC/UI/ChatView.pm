@@ -92,6 +92,7 @@ sub new {
    ));
 
    $self->{initiated} = 1; # for update_info
+   $self->update_tooltip;
 
    $self
 }
@@ -106,15 +107,14 @@ sub update_info {
       $info->{entry_tooltip}
       || "Enter a message and press enter to send it to the channel '$info->{title}'.";
 
-   # TODO: needs some testing maybe, if known that this works: remove comment!
    if ($self->{initiated}) {
       $self->{say_command_label}->set_markup ($self->{say_command});
-      $self->{txt}->{tooltip}   = $self->{text_tooltip};
-      $self->{input}->{tooltip} = $self->{entry_tooltip};
       $self->set_title ($self->{title});
+      $self->update_tooltip;
    }
 }
 
+# updates only the 
 sub update_tooltip {
    my ($self) = @_;
    my $t = $self->{text_tooltip}
@@ -126,6 +126,8 @@ sub update_tooltip {
                    . "</small>"
                  : "");
    $self->{c_tab}->set_tooltip ($t);
+   $self->{txt}->{tooltip}   = $self->{text_tooltip};
+   $self->{input}->{tooltip} = $self->{entry_tooltip};
 }
 
 sub set_dockbar_pos {

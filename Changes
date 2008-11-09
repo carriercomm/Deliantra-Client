@@ -1,5 +1,17 @@
 Revision history for Perl extension Deliantra::Client
 
+TODO: add help to completer, add close tab to completer, do stuff to complete
+TODO: warn about sofwtare renderers
+TODO: [num] indicator malfunctioning
+TODO: cfplus_ext => 2 is sometime snot beign negotiated!
+
+0.9978 Sun Nov  9 14:35:41 CET 2008
+	- correctly smooth-move the healthbar as well.
+        - own text is emphasized in the NPC dialogues now.
+        - fixed a crash bug in the macro dialogue.
+        - fixed updating of tooltips of the tabs in the message window.
+        - closing tabs with Alt-x won't let them disappear for every anymore.
+
 0.9977 Tue Sep 30 09:27:29 CEST 2008
 	- require newer BDB version to avoid possible database corruption or crashes
           on login.

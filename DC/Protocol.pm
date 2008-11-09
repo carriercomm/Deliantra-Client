@@ -1545,7 +1545,12 @@ sub feed {
 sub send {
    my ($self, $msg) = @_;
 
-   $self->{textview}->add_paragraph ({ markup => "\n" . DC::asxml $msg });
+   $self->{textview}->add_paragraph ({
+      markup =>
+         "\n<span foreground='#ffff00'><b>"
+         . (DC::asxml $msg)
+         . "</b></span>"
+   });
    $self->{textview}->scroll_to_bottom;
 
    $self->{conn}->send_ext_msg (npc_dialog_tell => $self->{id}, $msg);

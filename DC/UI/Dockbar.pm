@@ -199,7 +199,8 @@ sub select_dockable {
 # close current tab
 sub close_current_tab {
    my ($self) = @_;
-   $self->remove_dock ($self->{notebook}->get_current_page);
+   my $curdock = $self->{notebook}->get_current_page;
+   $curdock->emit ('close_dock');
 }
 
 # "activates" the current page

@@ -458,12 +458,12 @@ sub keyboard_setup {
             if ($ev->{button} == 1) {
                $edit_macro->($macro),
             } elsif ($ev->{button} == 2) {
-               $::CONN->macro_send ($macro) if $::CONN;
+               execute ($macro);
             } elsif ($ev->{button} == 3) {
                (new DC::UI::Menu
                   items => [
                      ["Edit"   => sub { $edit_macro->($macro) }],
-                     ["Invoke" => sub { $::CONN->macro_send ($macro) if $::CONN }],
+                     ["Invoke" => sub { execute ($macro) }],
                      ["Delete" => sub { 
                         # might want to use grep instead
                         splice @{$::PROFILE->{macro}}, $idx, 1, ();

@@ -2254,6 +2254,12 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                     int px = x * T;
                     int py = y * T;
 
+                    if (expect_false (cell->player == player))
+                      {
+                        px += sdx;
+                        py += sdy;
+                      }
+
                     if (cell->stat_hp)
                       {
                         int width = cell->stat_width * T;

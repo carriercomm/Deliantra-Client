@@ -19,7 +19,8 @@ and background music.
 
 =head3 I found a bug, how can I report it/what do I do?
 
-Mail us at support@deliantra.net , which is best, unless it is a small, temporary, or urgent issue. If it is, then tell schmorp, elmex, or Asarth.
+Mail us at support@deliantra.net , which is best, unless it is a small,
+temporary, or urgent issue. If it is, then tell schmorp, elmex, or Asarth.
 
 =head3 The client is very sluggish and slow, what can I do about this?
 
@@ -93,7 +94,7 @@ itself, but this will also delete your settings and keybindings.
 
 =head2 Game Mechanics
 
-=head3 I lose health, but I can't see why!
+=head3 I lose health, but I can't see why! Or how do I cure diseases/depletion/poison?
 
 Here are the typical reasons why you lose health:
 
@@ -127,14 +128,15 @@ cast C<cure disease> on you.
 Switching items or being restored from depletion can affect your stats,
 which in turn can affect your healthpoints. While this is not a regular
 effect (it only happens when you change items or are restored from
-depletion), it can sometimes look as if you are losing health.
+depletion), it can sometimes look as if you are losing health. You can
+restore depletion by drinking a potion of life.
 
 =back
 
 =head3 I lost an item! How?
 
-Well, we don't know. If you don't know, either, here is a partial list of ways people
-typically lose stuff:
+Well, we don't know. If you don't know, either, here is a partial list of
+ways people typically lose stuff:
 
 =over 4
 
@@ -148,7 +150,8 @@ shops do not "buy" money. For other items you will have to buy it back.
 Yes, thieves and many other monsters (such as demons) can actually steal
 stuff. They can steal about anything that you don't currently wield, and
 if they are good, you don't even notice it. Your only chance of getting
-the item back is to kill the thief or steal the item back with the steal skill before the map he is in resets.
+the item back is to kill the thief or steal the item back with the steal
+skill before the map he is in resets.
 
 Many adventurers find that the old road to Navar harbours a lot of thieves
 and is best avoided by the beginning adventurers.
@@ -157,23 +160,63 @@ and is best avoided by the beginning adventurers.
 
 =head3 How do I uncurse/undamn items?
 
-You need a spell to uncurse or undamn items, but luckily, magic shops commonly have scrolls of remove curse or remove damnation. In addition, all of the gods except the Devourers can remove curses, and Gnarg, Lythander, Mostrai, Gaea, and Valriel can remove damnation. Gaea also grants the remove damnation spell at 300 grace.
+You need a spell to uncurse or undamn items, but luckily, magic shops
+commonly have scrolls of remove curse or remove damnation. In addition,
+all of the gods except the Devourers can remove curses, and Gnarg,
+Lythander, Mostrai, Gaea, and Valriel can remove damnation. Gaea also
+grants the remove damnation spell at 300 grace.
 
-To actually remove the curse or damnation with a scroll, you need to L<mark> the item, and then L<apply> the scroll.
-
-=back
+To actually remove the curse or damnation with a scroll, you need to
+L<mark> the item, and then L<apply> the scroll.
 
 =head3 When I log-in, I keep dying! Why is this?
 
-What happened is that you died of a cave-in. Cave-ins kill you when you unsafely log out. An unsafe log out is when you disconnect without using a bed to reality, or when you time out (after 10-20 seconds without reply, the server automatically kicks players). Safe log outs are when you log out using a bed to realtiy, or when you are disconnected when the server crashes or restarts.
+What happened is that you died of a cave-in. Cave-ins kill you when you
+unsafely log out. An unsafe log out is when you disconnect without using a
+bed to reality, or when you time out (after 10-20 seconds without reply,
+the server automatically kicks players). Safe log outs are when you log
+out using a bed to realtiy, or when you are disconnected when the server
+crashes or restarts.
 
-If the disconnection was safe, then you will appear where you were before you got logged out. If it was unsafe, and more than 1 hour has passed, you will die of a cave-in. If the map you were in reset, but 1 hour has not passed, then you will be recalled to your bed to reality.
+If the disconnection was safe, then you will appear where you were before
+you got logged out. If it was unsafe, and more than 1 hour has passed, you
+will die of a cave-in. If the map you were in reset, but 1 hour has not
+passed, then you will be recalled to your bed to reality.
+
+=head3 Where do I find beds to reality?
+
+Inns usually have them, and apartments almost always have beds to
+reality. Almost every city has an inn. Taverns sometimes have them, and
+they might be in surprising places. Scorn has an inn that is located in
+the southern area.
 
 =head3 How does the I<identify> spell work?
 
-The I<identify> spell identifies your items, making it give it's full description. The spell goes through your inventory in a psuedo-random order, skipping past identified items. If it identifies all the items in your inventory, or they are already identified, it then checks for identified items on the ground, again in a psuedo-random order. If it identifies all the items on the ground, then the remaining power is wasted.
+The I<identify> spell identifies your items, making it give it's full
+description. The spell goes through your inventory in a psuedo-random
+order, skipping past identified items. If it identifies all the items
+in your inventory, or they are already identified, it then checks for
+identified items on the ground, again in a psuedo-random order. If it
+identifies all the items on the ground, then the remaining power is
+wasted.
 
-The I<identify> spell counts stacks of items, such as arrows or gems, as one 'item'. It can only identify a certain amount of items. Therefore, the only way to choose what it identifies is by dropping what you don't want identified on the ground.
+The I<identify> spell counts stacks of items, such as arrows or gems, as
+one 'item'. It can only identify a certain amount of items. Therefore, the
+only way to choose what it identifies is by dropping what you don't want
+identified on the ground.
+
+=head3 How come I don't get any change from an altar?
+
+Altars do not give change. This means that you might drop a platinum piece
+on a table that identifies for 2 gold, or equivalent, and get only one
+identify. The equivalent means that you can make the price up in smaller
+currency, like 200 silver, but higher currency won't get you any more
+identifies.
+
+=head3 Where can I use building materials?
+
+You can only use them in tiles that are buildable. These tiles are found in
+guild storages, and in some apartments.
 
 =head3 How can I Prepare/Improve/Enchant Weapons?
 
@@ -182,11 +225,12 @@ for the desired number of enchantments, then you apply the enchanments
 (weapons remember how many times they can be enchanted further).
 
 To prepare a weapon, wield it and L<mark> (e.g. using the popup menu in
-the inventory) some diamonds, as a sacrifice, then read the I<Prepare
-Weapon> scroll. The square root of the total number of diamonds sacrificed
-this way determines the number of enchantments the weapon accepts: one
-diamond for one enchanment, nine diamonds for three enchantments, 100
-diamonds for ten enchantments and so on. 
+the inventory) it. Then, as a sacrifice, drop some diamonds on the floor
+then read the I<Prepare Weapon> scroll. The square root of the total 
+number of diamonds sacrificed this way determines the number of 
+enchantments the weapon accepts: one diamond for one enchanment, nine 
+diamonds for three enchantments, 100 diamonds for ten enchantments, 
+and so on.
 
 Remember, once you prepare the weapon, it can only be wielded by you.
 
@@ -239,9 +283,11 @@ power.
 =head3 What is this item power business?
 
 In general, the more interesting/powerful items have higher item power
-values. Your character can handle only handle only a limited amount of power - for each overall level
-you can handle C<1.25> item power points, so if you are level 16 you can handle a total of 20 item power points
-(see the L<skills> command for your current limit and remaining item power points).
+values. Your character can handle only handle only a limited amount of
+power - for each overall level you can handle C<1.25> item power points,
+so if you are level 16 you can handle a total of 20 item power points (see
+the L<skills> command for your current limit and remaining item power
+points).
 
 All the equipment you wear adds to this limit, so if you wield a weapon of
 item power 30 plus two rings of item power 14 each you will need 58 item
@@ -249,6 +295,18 @@ power (and a level of 47).
 
 
 =head2 Generic how do I...
+
+=head3 How do I uncurse/undamn items or unwear cursed/damned items?
+
+You need a spell to uncurse or undamn items, but luckily, magic shops
+commonly have scrolls of remove curse or remove damnation. In addition,
+all of the gods except the Devourers can remove curses, and Gnarg,
+Lythander, Mostrai, Gaea, and Valriel can remove damnation. Gaea also
+grants the remove damnation spell at 300 grace.
+
+To actually remove the curse or damnation with a scroll, you need to
+L<mark> the item, and then L<apply> the scroll. Once the curse or
+damnation is removed, you can unwear the item.
 
 =head3 How do I use range weapons such as bows?
 
@@ -286,6 +344,99 @@ You can bind these commands to a key and invoke them repeatedly.
 Use the C<5>-key on your keypad. This will cats spells "onto yourself"
 which has the desired effect with cone spells.
 
+=head3 How do I pay for items from a shop?
+
+You need to have the unpaid item in your inventory, and then walk out of
+the store with the shop mat. It will automatically pay for the item, if
+you have enough money. If you don't, you will be prevented from leaving,
+until you drop the unpaid item, or if you obtain enough money.
+
+=head3 How do I sell items to a shop?
+
+Just drop the item in a shop. Some tiles in a shop might not be shop
+tiles; usually, shop tiles are white brick floors. Try going over one of
+them and dropping the item. If the shop is not interested, the item will
+not leave your inventory.
+
+=head3 How do I increase my attributes?
+
+To increase your attributes (strength, dexterity, etc.) you can wear items
+that can increase them as long as you have them worn. You can get your
+attributes up to 30 like this. To increase them permanently, you can
+drink a stat potion, which have special colors and a letter on the potion
+named 'potion of <attribute>'. These potions can increase your attributes
+up to the natural maximum of your race; which can be viewd with the
+statistics command. It increases your 'natural' attribute, up to the
+'maximum' attribute.
+
+=head3 How do I get my literacy experience up?
+
+You need to read books and scrolls to get literacy experience. You can
+also use the literacy skill to identify scrolls and books. Identifying
+them gives you literacy experience, and you are still able to read them
+once you identify them.
+
+=head3 How do I rent and maintain an apartment?
+
+Payment for an apartment is done in 3 steps. First, there is an entry fee
+in the apartment map that you need to pay only once. Then, the apartment
+rental fee depends on the apartment model, not you. The taxes depend on
+your character level, and need to be paid, even while you are offline (the
+rental fee is only paid while you are online.)
+
+You can rent apartments in Scorn's Apartment Shop, and the hourly fees are
+deducted from your bank account.
+
+=head3 How do I use passes/keys?
+
+Whatever looks at your pass or key opens automatically, if you have it in
+your inventory or in an applied container. Some keys might just open a
+locked door, not a gate, and can be used by moving into the locked door.
+
+=head3 How do I find out where the key is to a locked door?
+
+Usually, bumping into the locked door will tell you what kind of key
+you need. This key is probably hidden somewhere in the same or close maps.
+Some of the characters near by might give you hints or explain something.
+
+=head3 How do I see how much an altar or table costs to use?
+
+You can move your mouse over it, and it will tell you how much currency it
+needs.
+
+=head3 How do I drop items?
+
+To drop items, you can right click on the item in your inventory screen in
+the playerbook, which you can get by pressing F5 or the Playerbook tab,
+and selecting drop. You can also shift + left click an item to drop it, or
+enter the command
+
+   drop <item>
+
+This command drops items with the names that have <item> in it. If you are
+unable to drop an item, this will probably be because it is locked. You
+can unlock it by right clicking the item in your inventory, and selecting
+unlock.
+
+=head3 How do I pick up items?
+
+You can pick up items by pressing the comma key (,) or by right clicking
+the item on the floor, and selecting 'take'. You can also type the
+
+   take <item>
+
+command.
+
+=head3 How do I make money, fast?!
+
+You should identify the items you sell. Unidentified items sell MUCH
+lower. Make sure you have the bargaining skill. It lets you save lots of
+money when you buy stuff, and gain more money when you sell stuff. You can
+level it up by buying items or selling expensive items. The higher it is
+priced, the more experience. You can get a scroll of bargaining in Scorn's
+gem shop.
+
+Quests also might give you something valuable as a reward.
 
 =head2 Playing Together
 
@@ -362,6 +513,21 @@ good in, and of course vice versa!
 
 
 =head2 Magic
+
+=head3 How does an improvement potion work?
+
+An improvement potion increases your hitpoints, spellpoints, or your grace, 
+permanently. It does this by rerolling the rolls for your hitpoints, spellpoints,
+or grace, and increasing it. This way, if you drink enough improvement
+potions, your hitpoints, spellpoints, or grace would be as if you rolled perfectly.
+
+However, only lower levels roll for hitpoints, spellpoints, or grace. After level 
+10, skills increase hitpoints, spellpoints, or grace by a certain fixed amount.
+
+=head3 How do I control golems I summon?
+
+You can control golems by holding down shift + a direction key. It moves in the
+direction you are holding.
 
 =head3 How can I summon a specific monster with C<summon pet monster>?
 
@@ -449,13 +615,19 @@ effective level 100.
 
 =head2 Praying, Gods and Cults
 
-=head3 X<how_to_pray>How do I pray?
+=head3 X<how_to_pray>How do I pray or get the praying skill?
 
 First enter the "praying mode" by readying your L<skill_description/praying> skill
 (by default bound to C<Alt-P>, or by typing C<rspraying>), then hold and keep holding
 C<Shift> and a direction key (e.g. C<Shift-Up>).
 
 You will now pray as long as you keep pressing the keys.
+
+However, if you do not have the praying skill, you can obtain it by
+reading a scroll of praying. This will let you learn the praying skill
+depending on your intelligence. You can also use a holy symbol to use the
+praying skill, as long as you have the holy symbol in your inventory. Holy
+symbols can be found in shops and random dungeons.
 
 =head3 How can I summon a specific monster with C<summon cult monster>?
 
@@ -529,4 +701,9 @@ In the tower of stars, which is almost directly south of Scorn (but not
 too near to it). You have to talk to people to solve this quest, and it
 does not involve a random maze.
 
+
+=head1 Authors
+
+The following people contributed to this document: Robin Redeker, John O'Donnell
+and Marc Lehmann.
 

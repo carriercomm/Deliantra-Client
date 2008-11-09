@@ -95,6 +95,7 @@ sub touch_channel {
 
 sub update_chat {
    my ($self, $id) = @_;
+
    $self->{chatview}->{$id}->update_info ($self->{info}->{$id});
 }
 

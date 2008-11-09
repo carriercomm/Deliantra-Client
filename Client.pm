@@ -3,11 +3,11 @@
 
 package Deliantra::Client;
 
-$VERSION = 0;
+$VERSION = 0.9978;
 
 package App::Deliantra;
 
-$VERSION = 0;
+$VERSION = 0.9978;
 
 1;
 
