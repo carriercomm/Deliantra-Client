@@ -176,6 +176,7 @@ sub is_docked_active {
 # is removed from the dockbar.
 sub close {
    my ($self) = @_;
+   return if !$self->{can_close};
    $self->emit ("close_dock");
 }
 

@@ -83,7 +83,7 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 
 #define OBJ_STR "\xef\xbf\xbc" /* U+FFFC, object replacement character */
 
-#define FOW_DARKNESS 32
+#define FOW_DARKNESS 16
 
 #define MAP_EXTEND_X  32
 #define MAP_EXTEND_Y 512
@@ -235,6 +235,7 @@ typedef struct {
   uint8_t r, g, b, a;
   tileid smoothtile;
   uint8_t smoothlevel;
+  uint8_t unused; /* set to zero on use */
 } maptex;
 
 typedef struct {
@@ -1208,6 +1209,13 @@ debug ()
 #endif
 }
 
+int
+SvREFCNT (SV *sv)
+	CODE:
+        RETVAL = SvREFCNT (sv);
+	OUTPUT:
+	RETVAL
+
 MODULE = Deliantra::Client	PACKAGE = DC::Font
 
 PROTOTYPES: DISABLE
@@ -1762,6 +1770,26 @@ set_texture (DC::Map self, int texid, int name, int w, int h, float s, float t, 
        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
+void
+expire_textures (DC::Map self, int texid, int count)
+	PPCODE:
+  	for (; texid < self->texs && count; ++texid, --count)
+          {
+            maptex *tex = self->tex + texid;
+
+            if (tex->name)
+              {
+                if (tex->unused)
+                  {
+                    tex->name   = 0;
+                    tex->unused = 0;
+                    XPUSHs (sv_2mortal (newSViv (texid)));
+                  }
+                else
+                  tex->unused = 1;
+              }
+          }
+
 int
 ox (DC::Map self)
 	ALIAS:
@@ -1891,12 +1919,14 @@ map1a_update (DC::Map self, SV *data_, int extmap)
                       if (cell->tile [z])
                         {
                           maptex *tex = self->tex + cell->tile [z];
+                          tex->unused = 0;
                           if (!tex->name)
                             av_push (missing, newSViv (cell->tile [z]));
 
                           if (tex->smoothtile)
                             {
                               maptex *smooth = self->tex + tex->smoothtile;
+                              smooth->unused = 0;
                               if (!smooth->name)
                                 av_push (missing, newSViv (tex->smoothtile));
                             }
@@ -2051,6 +2081,8 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
 
                             if (key.texname != tex.name)
                               {
+                                self->tex [tile].unused = 0;
+
                                 if (!tex.name)
                                   tex = self->tex [2]; /* missing, replace by noface */
 
@@ -2182,6 +2214,8 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                                       // save gobs of state changes.
                                       if (key.texname != tex.name)
                                         {
+                                          self->tex [skey->tile].unused = 0;
+
                                           glEnd ();
                                           glBindTexture (GL_TEXTURE_2D, key.texname = tex.name);
                                           glBegin (GL_QUADS);

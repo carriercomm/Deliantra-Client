@@ -24,6 +24,8 @@ sub new {
       )
    );
 
+   $self->{dockbar}->select_dockable ($self->{log});
+
    return $self
 }
 

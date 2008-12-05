@@ -29,6 +29,8 @@ our $ODBDIR  = "cfplus-" . BDB::VERSION_MAJOR . "." . BDB::VERSION_MINOR . "-$Co
 our $DBDIR   = "client-" . BDB::VERSION_MAJOR . "." . BDB::VERSION_MINOR . "-$Config{archname}";
 our $DB_HOME = "$Deliantra::VARDIR/$DBDIR";
 
+sub FIRST_TILE_ID () { 64 }
+
 unless (-d $DB_HOME) {
    if (-d "$Deliantra::VARDIR/$ODBDIR") {
       rename "$Deliantra::VARDIR/$ODBDIR", $DB_HOME;
@@ -158,7 +160,7 @@ sub do_get_tile_id {
 
    unless ($TILE_SEQ) {
       $TILE_SEQ = $table->sequence;
-      $TILE_SEQ->initial_value (64);
+      $TILE_SEQ->initial_value (FIRST_TILE_ID);
       $TILE_SEQ->set_cachesize (0);
       db_sequence_open $TILE_SEQ, undef, "id", BDB::CREATE;
    }

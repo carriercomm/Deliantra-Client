@@ -1,9 +1,11 @@
 Revision history for Perl extension Deliantra::Client
 
-TODO: add help to completer, add close tab to completer, do stuff to complete
-TODO: warn about sofwtare renderers
-TODO: [num] indicator malfunctioning
-TODO: cfplus_ext => 2 is sometime snot beign negotiated!
+2.0  Fri Dec  5 15:42:51 CET 2008
+        - the Log window can't be close anymore by alt+x
+        - pressing return or alt+x directly after start won't crash the client
+          anymore.
+        - the Log window is displayed correctly now after start.
+        - darken the invisible/cached parts of the map further.
 
 0.9978 Sun Nov  9 14:35:41 CET 2008
 	- correctly smooth-move the healthbar as well.

@@ -94,6 +94,20 @@ itself, but this will also delete your settings and keybindings.
 
 =head2 Game Mechanics
 
+=head3 What is this place I go to when I die?
+
+When you die, you go to a place called the nimbus. In the nimbus, you are
+able to play minesweeper for your experience. If you win and have applied
+all the spaces except for bombs, you will automatically be teleported to
+a hallway you can walk down to be teleported back to life, with your
+experience intact.
+
+If you lose by applying a bomb, you are teleported to a hallway
+with a flower, and you can walk down to be teleported back to life,
+without your experience you lost when you died. There are rumors
+that the Key to Life can let the losers walk in the winner's
+hallway, however...
+
 =head3 I lose health, but I can't see why! Or how do I cure diseases/depletion/poison?
 
 Here are the typical reasons why you lose health:
@@ -132,6 +146,22 @@ depletion), it can sometimes look as if you are losing health. You can
 restore depletion by drinking a potion of life.
 
 =back
+
+=head3 How do diseases work?
+
+Diseases are obtained by things like traps or spells. Usually, they
+will reduce some of your attributes, like strength. They might also
+cause damage to you, or slow you down. Some of them infect monsters
+and players around you, spreading the disease.
+
+If your disease can be cured naturally, and if you do wait until
+it is cured naturally, you develop immunity for that level of
+disease. Higher level forms of that disease will still infect
+you, but you can wait it out to get better immunity.
+
+Some diseases, like rabies, cannot be cured by waiting.
+Instead, you will have to cure it magically. For information on how
+to do that, see the above entry.
 
 =head3 I lost an item! How?
 
@@ -204,6 +234,20 @@ The I<identify> spell counts stacks of items, such as arrows or gems, as
 one 'item'. It can only identify a certain amount of items. Therefore, the
 only way to choose what it identifies is by dropping what you don't want
 identified on the ground.
+
+=head3 What do altars do?
+
+There are different types of altars. Altars found in churches and
+chapels are aligned to gods; they usually have decoration based
+on the god they are aligned to. You can pray at these altars to 
+start worshipping the god the altar is aligned to, or pray to
+get over your normal grace limit, get grace faster, or any
+other effects the altar might have.
+
+Pink altars usually require a sacrifice, which can be seen by
+rolling your mouse over it at the bottom of the screen. If you
+drop the sacrifiice, it will activate something, like a gate, or
+maybe it will teleport something.
 
 =head3 How come I don't get any change from an altar?
 
@@ -688,14 +732,14 @@ quests). There are rumors about lands beyond (St. Bartholemew and other
 cities) and other even more mystical places, but little is known about
 that.
 
-=head2 Where is that damn Goblin Chief?
+=head3 Where is that damn Goblin Chief?
 
 In his cave to the north-east of the Scorn Gate. It is the one that starts
 with a random maze (yes, there are multiple caves). Keep in mind that the
 Goblin Chief's Head is fastened to his body, so you have to find and kill
 him first.
 
-=head2 Where can I find the I<comet> spell?
+=head3 Where can I find the I<comet> spell?
 
 In the tower of stars, which is almost directly south of Scorn (but not
 too near to it). You have to talk to people to solve this quest, and it
@@ -706,4 +750,3 @@ does not involve a random maze.
 
 The following people contributed to this document: Robin Redeker, John O'Donnell
 and Marc Lehmann.
-

@@ -97,25 +97,26 @@ toggle NumLock.
 =head2 X<stat_health>
 
 B<Health points>. Measures of how much damage you can take before
-dying. Hit points are determined from your level and are influenced by the
-value of your Con stat. Hp value may range between 1 to beyond 500, and higher
-values indicate a greater ability to withstand punishment.
+dying. Hit points are determined from your overall level and are
+influenced by the value of your Con stat. Hp value may range between 1
+to beyond 500, and higher values indicate a greater ability to withstand
+punishment.
 
 =head2 X<stat_mana>
 
 B<Spell points>. Measures of how much "fuel" you have for casting spells
-and incantations. Mana is calculated from your level and your Pow. Mana
-values can range between 1 to beyond 500 (glowing crystals can increase
-the current spell points beyond your normal maximum). Higher values
-indicate greater amounts of mana.
+and incantations. Mana is calculated from your highest magic skill
+school level and your Pow. Mana values can range between 1 to beyond 500
+(glowing crystals can increase the current spell points beyond your normal
+maximum). Higher values indicate greater amounts of mana.
 
 =head2 X<stat_grace>
 
-B<Grace points> - how favored you are by your god. In game terms, how much
-divine magic (prayers) you can cast. Your level, Wis and Pow effect what
-the value of grace is. Praying on an altar of your god can increase this
-value to twice your normal maximum. Grace can take on large positive and
-negative values. Positive values indicate favor by the gods.
+B<Grace points> - how favored you are by your god. In game terms, how
+much divine magic (prayers) you can cast. Your praying level, Wis and Pow
+effect what the value of grace is. Praying on an altar of your god can
+increase this value to twice your normal maximum. Grace can take on large
+positive and negative values. Positive values indicate favor by the gods.
 
 =head2 X<stat_food>
 

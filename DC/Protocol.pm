@@ -20,6 +20,8 @@ our $TEX_DIALOGUE = new_from_resource DC::Texture
 our $TEX_NOFACE = new_from_resource DC::Texture
         "noface.png", minify => 1, mipmap => 1;
 
+sub MIN_TEXTURE_UNUSED() { 1 }#d#
+
 sub new {
    my ($class, %arg) = @_;
 
@@ -92,6 +94,21 @@ sub new {
       $self->{noface} = my $tex = $TEX_NOFACE;
       $self->{map}->set_texture (2, @$tex{qw(name w h s t)}, @{$tex->{minified}});
    }
+
+#   $self->{expire_count} = DC::DB::FIRST_TILE_ID; # minimum non-fixed tile id
+#   $self->{expire_w} = EV::timer 1, 1, sub {
+#      my $count = (int @{ $self->{texture} } / MIN_TEXTURE_UNUSED) || 1;
+# 
+#      for ($self->{map}->expire_textures ($self->{expire_count}, $count)) {
+#         warn DC::SvREFCNT $self->{texture}[$_];
+#         $self->{texture}[$_]->unload;
+#         warn "expire texture $_\n";#d#
+#      }
+# 
+#      ($self->{expire_count} += $count) < @{ $self->{texture} }
+#         or $self->{expire_count} = DC::DB::FIRST_TILE_ID;
+#      warn "count is $count\n";#d#
+#   };
 
    $self->{open_container} = 0;
 
@@ -658,12 +675,12 @@ sub feed_map1a {
 
       $delay = 1;
 
-      if (my $tex = $::CONN->{texture}[$tile]) {
+      if (my $tex = $self->{texture}[$tile]) {
          $tex->upload;
       } else {
          $self->{delay}{$tile} = 1;
 
-         # we assume the face is in-flight and will eventually come
+         # we assume the face is in-flight and will eventually arrive
          push @{$self->{tile_cb}{$tile}}, sub {
             delete $self->{delay}{$tile};
             $_[0]->upload;
@@ -672,7 +689,7 @@ sub feed_map1a {
    }
 
    if ($delay) {
-      # delay the map drawing a tiny bit in the hope of getting the missing fetched
+      # delay the map drawing a tiny bit in the hope of getting the missing tiles fetched
       EV::once undef, 0, 0.03, sub {
          $self->{map_widget}->update
             if $self->{map_widget};

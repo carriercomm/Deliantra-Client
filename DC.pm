@@ -19,7 +19,7 @@ use Carp ();
 our $VERSION;
 
 BEGIN {
-   $VERSION = '0.9978';
+   $VERSION = '2.0';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
