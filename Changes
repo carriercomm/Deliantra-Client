@@ -1,5 +1,28 @@
 Revision history for Perl extension Deliantra::Client
 
+2.02 Wed Dec 24 06:02:53 CET 2008
+   	- mark hidden mapspaces visually with a question mark.
+        - make hidden spaces as light as the darkest normal spaces.
+	- don't lie about the window size anymore in fear of crashing
+          the server (as we are dealing with deliantra servers only these days).
+        - correctly draw the speech bubbles and other overlays even when the
+          topmost face isn't visible.
+	- fix swirly tile draw offset.
+        - fix a crash when the user clicks on the map during log-in.
+        - incorporate tips of the day by botz (former madness).
+        - handle failure to load a music face more gracefully (still
+          log the error, but do not crash, instead, ignore the failure).
+        - try to log, instead of crash, on the "cannot call update method"
+          problem.
+
+2.01 - (Mon Dec 15 00:41:33 CET 2008)
+        - rewrote the client tutorial which can be found via the 'Help!' button.
+        - fixed the mostly random switching of message window tabs when
+          new tabs were added.
+        - small typo fix in tooltip on the Skills page in the playerbook.
+        - avoid accessing potentially undefined memory when drawing the map.
+        - fixed speech bubbles which were drawn below some objects sometimes.
+
 2.0  Fri Dec  5 15:42:51 CET 2008
         - the Log window can't be close anymore by alt+x
         - pressing return or alt+x directly after start won't crash the client

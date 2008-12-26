@@ -20,6 +20,9 @@ our $TEX_DIALOGUE = new_from_resource DC::Texture
 our $TEX_NOFACE = new_from_resource DC::Texture
         "noface.png", minify => 1, mipmap => 1;
 
+our $TEX_HIDDEN = new_from_resource DC::Texture
+        "hidden.png", minify => 1, mipmap => 1;
+
 sub MIN_TEXTURE_UNUSED() { 1 }#d#
 
 sub new {
@@ -93,6 +96,11 @@ sub new {
    {
       $self->{noface} = my $tex = $TEX_NOFACE;
       $self->{map}->set_texture (2, @$tex{qw(name w h s t)}, @{$tex->{minified}});
+   }
+
+   {
+      $self->{hidden} = my $tex = $TEX_HIDDEN;
+      $self->{map}->set_texture (3, @$tex{qw(name w h s t)}, @{$tex->{minified}});
    }
 
 #   $self->{expire_count} = DC::DB::FIRST_TILE_ID; # minimum non-fixed tile id
@@ -565,7 +573,7 @@ sub update_stats_window {
 
       my @add = @$sw;
 
-      my $TOOLTIP_ALL = "\n\n<small>Left click - ready skill\nMiddle click - use spell\nRight click - further options</small>";
+      my $TOOLTIP_ALL = "\n\n<small>Left click - ready skill\nMiddle click - use skill\nRight click - further options</small>";
 
       my @TOOLTIP_LVL  = (tooltip => "<b>Level</b>. The level of the skill.$TOOLTIP_ALL", can_events => 1, can_hover => 1);
       my @TOOLTIP_EXP  = (tooltip => "<b>Experience</b>. The experience points you have in this skill.$TOOLTIP_ALL", can_events => 1, can_hover => 1);

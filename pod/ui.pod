@@ -47,6 +47,148 @@ You can move the map (I<not> the minimap) around by dragging it with the
 middle mouse button. This is useful when you rearrange your windows and
 want to move the center of the map.
 
+=head2 Chat 
+
+You can communicate with other players via the "Chat" tab in the
+"Messages" window. Chat can be heard by anyone and anywhere. You can also
+chat by simply typing C<c some text>+return, without having to activate
+the Chat entry.
+
+=head2 Basic commands
+
+You can B<move> around using arrow keys, B<pickup> items via "," (the
+comma-key), B<run> and attack by holding down control and an arrow-key,
+and B<fire> by holding down shift and an arrow key.
+
+=head2 Weight
+
+Each item has some weight, and having a lot of items in you inventory may
+B<slow> you down.
+
+=head2 Food
+
+All characters (well, almost all) need to eat sometimes, watch the food
+bar to keep yourself fed.
+
+=head2 Depletion
+
+If your stats are damaged (depleted) you should use potion of life to
+B<restore> them.
+
+=head2 Signs and other Textual Information
+
+B<Reading> all kinds of things is important in this game. It could provide
+valuable advice or even save your life.
+
+=head2 Shops
+
+Specialized shops B<pay well> for the items they are interested in and pay 
+almost B<nothing> for items which are not of their kind.
+
+=head2 Identification of Items
+
+Selling items B<identified> may be more profitable than selling them plain.
+You can do it via spells, scrolls, altars and other means.
+
+=head2 Stuck 
+
+If you don't know how to exit a location you can try to B<use>
+transportation spells, B<ask> for help in chat, or as last resort, type
+the B<"suicide"> command.
+
+=head2 Money 
+
+The most common currencies in Deliantra are silver coins, gold coins and
+platinum coins, which you can exchange in a bank. Also, other types of
+currencies are present in game.
+
+=head2 Talking 
+
+Talk to B<all> NPC (the ones with a speech bubble): not only it will help
+you to become familiar with game world, but they are also a source of
+B<quests> and B<treasure> hints.
+
+=head2 Death and Beyond 
+
+Don't become upset when you die, you'll be I<resurrected> at the last
+B<bed of reality> you used, after having paid some B<penalty>. To negate
+the penalty you can try to B<play a game> with Death.
+
+=head2 Saving
+
+You must leave the game via "beds to reality", or savebeds, as they are
+usually called. If you simply disconnect, then monsters can do a harm to
+you.
+
+Usually, these savebeds could be found in inns, houses and so on. Also,
+these B<beds for reality> are "markers" where you will be resurrected
+after your death.
+
+If you disconnect or are disconnected without having used a savebed,
+you'll have about 30 minutes to reconnect.
+
+=head2 Exploration 
+
+It is very useful (but also interesting :) ) to B<explore> the country. Don't 
+visit a couple of dungeons on and on, try to find new ones!
+
+=head2 Illumination 
+
+Deliantra has light levels and these light levels are changing with time,
+and some dungeons can be very dark. To be comfortable with it, you can use
+B<lanterns>, or B<torches> with flint and steel.
+
+=head2 Newbie area 
+
+After character creation you'll start in a newbie area. You shouldn't try to 
+leave it early, before you are at least level 5 (some characters may take 
+more or less than that).
+
+=head2 Diseases 
+
+You can catch a disease via traps, monsters, other players and just by
+visiting contaminated areas. All low-level diseases wear off with time,
+but it is recommended to B<cure> them quickly. Although, if you survive
+long enough, you can acquire B<immunity> to that disease.
+
+=head2 Magic Resistances 
+
+Some monsters are unaffected by attacks of a certain type. For
+example, fire dragons cannot be hurt by fire. Try the opposite element
+instead. Experiment.
+
+=head2 Poisoning 
+
+You can get poisoned via a bite of venomous creatures or magic attacks. In
+this case, you'll start loosing you HP and your food consumption rate will
+increase. You can try to B<wait> until it wears off, or try to B<remove>
+it via spells or potions.
+
+=head2 Player Shop 
+
+You can sell B<interesting> or B<unique> items to other players. Please,
+don't fill it with regular junk and put each type of item in the section
+it deserves.
+
+=head2 Quests 
+
+Quests in Deliantra are B<unique> compared to other MMORPGs. You'll never
+see two similar quests or something like "Kill 20 silver bugs" or "Kill
+30 golden bugs". No hours of mobslaying! Each quest requires creative
+approach. You can get your first quests in the B<palace> or at the B<quest
+master>.
+
+=head2 Arrows 
+
+You can buy B<unlimited> amounts of arrows in specialized archer shops.
+
+=head2 Binding 
+
+It is vital to B<bind> keys to some actions, such as applying healing
+potion to a key. You can do that by using the right-mouse-button popup
+menu on items, skills and spells, but also by recording a macro, or by
+writing it by hand.
+
 
 =head1 X<tooltip>Tooltips
 

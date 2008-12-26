@@ -83,7 +83,7 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 
 #define OBJ_STR "\xef\xbf\xbc" /* U+FFFC, object replacement character */
 
-#define FOW_DARKNESS 16
+#define FOW_DARKNESS 64
 
 #define MAP_EXTEND_X  32
 #define MAP_EXTEND_Y 512
@@ -94,6 +94,10 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 #define MOD_MASK (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_META)
 
 #define KMOD_LRAM 0x10000 // our extension
+
+#define TEXID_SPEECH 1
+#define TEXID_NOFACE 2
+#define TEXID_HIDDEN 3
 
 static AV *texture_av;
 
@@ -2007,13 +2011,14 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
         smooth_key skey;
         int pl_x, pl_y;
         maptex pl_tex;
-        rc_t *rc = rc_alloc ();
+        rc_t *rc    = rc_alloc ();
+        rc_t *rc_ov = rc_alloc ();
         rc_key_t key;
-        rc_array_t *arr;
+        rc_array_t *arr, *arr_hidden;
 
         pl_tex.name = 0;
 
-        // thats current max. sorry.
+        // that's current max. sorry.
         if (sw > 255) sw = 255;
         if (sh > 255) sh = 255;
 
@@ -2027,7 +2032,6 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
         key.a       = 255;
         key.mode    = GL_QUADS;
         key.format  = GL_T2F_V3F;
-        key.texname = -1;
 
         mx += self->x;
         my += self->y;
@@ -2058,9 +2062,13 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+        key.texname = self->tex [TEXID_HIDDEN].name;
+        arr_hidden = rc_array (rc_ov, &key);
+
         for (z = 0; z <= 2; z++)
           {
             memset (smooth_level, 0, sizeof (smooth_level));
+            key.texname = -1;
 
             for (y = 0; y < sh; y++)
               if (0 <= y + my && y + my < self->rows)
@@ -2076,19 +2084,21 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                         if (tile)
                           {
                             maptex tex = self->tex [tile];
-                            int px = (x + 1) * T - tex.w;
-                            int py = (y + 1) * T - tex.h;
+                            int px, py;
 
                             if (key.texname != tex.name)
                               {
                                 self->tex [tile].unused = 0;
 
                                 if (!tex.name)
-                                  tex = self->tex [2]; /* missing, replace by noface */
+                                  tex = self->tex [TEXID_NOFACE]; /* missing, replace by noface */
 
                                 key.texname = tex.name;
                                 arr = rc_array (rc, &key);
                               }
+
+                            px = (x + 1) * T - tex.w;
+                            py = (y + 1) * T - tex.h;
 
                             if (expect_false (cell->player == player) && expect_false (z == 2))
                               {
@@ -2102,31 +2112,6 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                             rc_t2f_v3f (arr, 0    , tex.t, px        , py + tex.h, 0);
                             rc_t2f_v3f (arr, tex.s, tex.t, px + tex.w, py + tex.h, 0);
                             rc_t2f_v3f (arr, tex.s, 0    , px + tex.w, py        , 0);
-
-                            if (expect_false (cell->flags) && expect_false (z == 2))
-                              {
-                                // overlays such as the speech bubble, probably more to come
-                                if (cell->flags & 1)
-                                  {
-                                    maptex tex = self->tex [1];
-                                    int px = x * T + T * 2 / 32;
-                                    int py = y * T - T * 6 / 32;
-
-                                    if (tex.name)
-                                      {
-                                        if (key.texname != tex.name)
-                                          {
-                                            key.texname = tex.name;
-                                            arr = rc_array (rc, &key);
-                                          }
-
-                                        rc_t2f_v3f (arr, 0    , 0    , px    , py    , 0);
-                                        rc_t2f_v3f (arr, 0    , tex.t, px    , py + T, 0);
-                                        rc_t2f_v3f (arr, tex.s, tex.t, px + T, py + T, 0);
-                                        rc_t2f_v3f (arr, tex.s, 0    , px + T, py    , 0);
-                                      }
-                                  }
-                              }
 
                             // update smooth hash
                             if (tex.smoothtile)
@@ -2165,6 +2150,43 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                                 skey.x = x    ; skey.y = y + 2; smooth_or_bits (smooth, &skey, 0x0200);
                                 skey.x = x    ; skey.y = y    ; smooth_or_bits (smooth, &skey, 0x0400);
                                 skey.x = x + 2; skey.y = y    ; smooth_or_bits (smooth, &skey, 0x0800);
+                              }
+                          }
+
+                        if (expect_false (z == 2))
+                          {
+                            /* draw question marks on top of hidden spaces */
+                            if (!cell->darkness)
+                              {
+                                maptex tex = self->tex [TEXID_HIDDEN];
+                                int px = (x + 1) * T - tex.w;
+                                int py = (y + 1) * T - tex.h;
+
+                                rc_t2f_v3f (arr_hidden, 0    , 0    , px        , py        , 0);
+                                rc_t2f_v3f (arr_hidden, 0    , tex.t, px        , py + tex.h, 0);
+                                rc_t2f_v3f (arr_hidden, tex.s, tex.t, px + tex.w, py + tex.h, 0);
+                                rc_t2f_v3f (arr_hidden, tex.s, 0    , px + tex.w, py        , 0);
+                              }
+
+                            if (expect_false (cell->flags))
+                              {
+                                // overlays such as the speech bubble, probably more to come
+                                if (cell->flags & 1)
+                                  {
+                                    rc_key_t key_ov = key;
+                                    maptex tex = self->tex [TEXID_SPEECH];
+                                    rc_array_t *arr;
+                                    int px = x * T + T * 2 / 32;
+                                    int py = y * T - T * 6 / 32;
+
+                                    key_ov.texname = tex.name;
+                                    arr = rc_array (rc_ov, &key_ov);
+
+                                    rc_t2f_v3f (arr, 0    , 0    , px    , py    , 0);
+                                    rc_t2f_v3f (arr, 0    , tex.t, px    , py + T, 0);
+                                    rc_t2f_v3f (arr, tex.s, tex.t, px + T, py + T, 0);
+                                    rc_t2f_v3f (arr, tex.s, 0    , px + T, py    , 0);
+                                  }
                               }
                           }
                       }
@@ -2271,8 +2293,12 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
             rc_draw (rc);
           }
 
+        rc_draw (rc_ov);
+        rc_clear (rc_ov);
+
         glDisable (GL_BLEND);
         rc_free (rc);
+        rc_free (rc_ov);
 
         // top layer: overlays such as the health bar
         for (y = 0; y < sh; y++)

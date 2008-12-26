@@ -64,6 +64,7 @@ resources/g1_mana_gauge_full.png
 resources/g1_mana_gauge_overflow.png
 resources/magicmap.png
 resources/noface.png
+resources/hidden.png
 resources/s1_slider.png
 resources/s1_slider_bg.png
 resources/x1_close.png
@@ -126,6 +127,13 @@ resources/pod/sc_newbiew_npc_dialog.jpg
 resources/pod/sc_skill_list.jpg
 resources/pod/sc_spellbook.jpg
 resources/pod/sc_statistics.jpg
+resources/pod/sc_button_bar.jpg
+resources/pod/sc_minimap.png
+resources/pod/sc_tooltips.png
+resources/pod/sc_message_window.png
+resources/pod/sc_short_log.png
+resources/pod/sc_gauges.png
+resources/pod/sc_floorbox.png
 resources/arch/cauldron.x11.png
 resources/arch/flint_and_steel.x11.png
 resources/arch/scrollr.x11.png

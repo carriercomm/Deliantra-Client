@@ -288,6 +288,9 @@ sub set_visible {
 
    return if $self->{visible};
 
+   $self->{parent} && $self->{parent}{root}#d#
+      or return ::clienterror ("set_visible called without parent ($self->{parent}) or root\n" => 1);
+
    $self->{root}    = $self->{parent}{root};
    $self->{visible} = $self->{parent}{visible} + 1;
 
@@ -3946,7 +3949,7 @@ sub add {
    $self->SUPER::add (@widgets);
 
    $self->set_current_page (0)
-      unless @widgets == @{ $self->{children} };
+      if @widgets == @{ $self->{children} };
 }
 
 sub get_current_page {

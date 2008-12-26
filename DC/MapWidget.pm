@@ -165,7 +165,7 @@ sub invoke_button_down {
 
    if ($ev->{button} == 1) {
       $self->grab_focus;
-      return unless $::CONN;
+      return unless $::CONN && $self->{ctilesize};
 
       my $x = $self->{dx} + DC::floor +($ev->{x} - $self->{sx0}) / $self->{ctilesize};
       my $y = $self->{dy} + DC::floor +($ev->{y} - $self->{sy0}) / $self->{ctilesize};
@@ -520,7 +520,7 @@ sub refresh_hook {
                        $::CONN->{player}{tag},
                        -$self->{sdx}, -$self->{sdy});
 
-         #glTranslate -$self->{sdx}, -$self->{sdy}; # anchro fow at player
+         #glTranslate -$self->{sdx}, -$self->{sdy}; # anchor fow at player
          glScale $self->{tilesize}, $self->{tilesize};
 
          if (my $tex = $self->{fow_texture}) {

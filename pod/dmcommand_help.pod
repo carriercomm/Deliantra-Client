@@ -292,10 +292,10 @@ as dm. Without argument it toggles between on and off.
 
 =head2 wizlook
 
-   wizlook
+   wizlook [<on_off>]
 
-This will temporarily increase your area of sight to the maximum. It will
-return to normal when lighting conditions change or when you move.
+This will enable/disable increase your area of sight to the
+maximum. Without argument it toggles between on and off.
 
 =head2 wizpass
 

@@ -87,6 +87,9 @@ sub table($) {
 
       $table =~ s/([^a-zA-Z0-9_\-])/sprintf "=%x=", ord $1/ge;
 
+      $DB_ENV#d#
+         or return ::clienterror ("trying to create table $_[0] with empty db_env $DB_ENV" => 1);#d#
+
       my $db = db_create $DB_ENV;
       $db->set_flags (BDB::CHKSUM);
 

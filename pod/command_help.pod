@@ -426,7 +426,7 @@ known to the server. The different fields are Pl, I, Svd, Reset and Path:
 The server keeps maps in memory only for a short time (by default about
 40 seconds). After that time, it saves them to disk. As the server loads
 most maps in the background it is possible that you can see a map that is
-currently being loaded, but thats rare, as loading a map is fast.
+currently being loaded, but that's rare, as loading a map is fast.
 
 =item Svd: the amount of seconds the map was last saved (++ means >99).
 
@@ -824,7 +824,7 @@ Kills yourself. No, really.
 This command might not look useful at first, but sometimes you can get
 yourself into a corner you can't escape anymore, either due to a map
 bug or your own stupidity. Killing oneself can be difficult and time
-consuming, thats why this command is provided. It is fast, painless,
+consuming, that's why this command is provided. It is fast, painless,
 effective, humane.
 
 =head2 take
@@ -862,12 +862,19 @@ for this to work.
 
 Shows the Deliantra in-game time, not the server time. It looks like this:
 
-   It is 52 minutes past 8 o'clock am, on the Day of the Bull
-   The 2nd Day of the Month of the Frost Giant, Year 63
-   Time of Year: The Season of New Year
+   It is 52 minutes past 8 o'clock am, on the Day of the Bull,
+   the 2nd Day of the Month of the Frost Giant, Year 63.
+   Time of Year: The Season of New Year.
 
-It is partially just for fun but it affects the darkness outside and the
-weather if weather is enabled in the server.
+An hour of game time passes in 3 minutes of real time. The time and
+calendar uses 60 minutes per hour, 28 hours per day, seven days per week,
+five weeks per month, and 17 months per year. The year is additionally
+split into four seasons of 4 months each, except the season of the
+Blizzard, which is 5 months long.
+
+The number "zero" is unknown, which is why the minutes go from 1 to 60.
+
+Seasons and the time of the day affect the overall outdoor daylight.
 
 =head2 title
 

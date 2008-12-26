@@ -127,7 +127,7 @@ $SIG{QUIT} = sub { Carp::cluck "QUIT" };
 $SIG{PIPE} = 'IGNORE';
 
 $EV::DIED = sub {
-   crash "CRASH/EV::DIED: $@" => 1;
+   crash "CRASH/EV::DIED: $@" => 0;
    DC::fatal Carp::longmess $@;
 };
 
@@ -217,6 +217,8 @@ our $INVR_HB;
 *crash = sub($;$) {
    my ($msg, $backtrace) = @_;
 
+   warn $msg;
+
    return unless $CONN;
 
    my $fh = $CONN->{fh}
@@ -236,6 +238,17 @@ our $INVR_HB;
    crash Carp::longmess "$msg\nbacktrace, for client version $DC::VERSION, generated"
       if $backtrace;
 };
+
+sub clienterror($;$) {
+   my ($msg, $backtrace) = @_;
+
+   warn $msg;
+
+   return unless $CONN;
+
+   $CONN->send_exti_msg (clientlog => $msg);
+   $CONN->send_exti_msg (clientlog => Carp::longmess "$msg\nbacktrace, for client version $DC::VERSION, generated") if $backtrace;
+}
 
 #############################################################################
 
@@ -400,7 +413,7 @@ sub audio_music_start {
          : new DC::RW $$MUSIC_PLAYING_DATA;
 
       $MUSIC_PLAYER = new DC::MixMusic $rwops
-         or Carp::confess "music face $meta->{face} unloadable: " . DC::Mix_GetError;
+         or return clienterror "music face $meta->{face} unloadable: " . DC::Mix_GetError => 1;
 
       my $NOW = time;
 
@@ -768,7 +781,8 @@ sub server_query {
 sub dc_connect {
    my ($host, $port) = @_;
 
-   my $mapsize = List::Util::min 32, List::Util::max 11, int $WIDTH * $CFG->{mapsize} * 0.01 / 32;
+   my $mapw = List::Util::min 48, List::Util::max 11, int 1.5 + $WIDTH  * $CFG->{mapsize} * 0.01 / 32;
+   my $maph = List::Util::min 48, List::Util::max 11, int 1.5 + $HEIGHT * $CFG->{mapsize} * 0.01 / 32;
 
    $CONN = 
       new DC::Protocol
@@ -776,8 +790,8 @@ sub dc_connect {
          port => $port,
          user => $PROFILE->{user},
          pass => $PROFILE->{password},
-         mapw => $mapsize,
-         maph => $mapsize,
+         mapw => $mapw,
+         maph => $maph,
 
          client => "$DC::VERSION $] $^O",
 
@@ -935,7 +949,7 @@ sub graphics_setup {
       $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Forbid Alpha");
       $table->add_at (1, $row++, new DC::UI::CheckBox
          state => $CFG->{disable_alpha},
-         tooltip => "Forbid off the use of the alpha channel. This makes Deliantra look a lot worse "
+         tooltip => "Forbid the use of the alpha channel. This makes Deliantra look a lot worse "
                   . "by disabling a number of textures and transparency effects. Normally, these "
                   . "effects do not cost a lot of resources, but some graphics cards might fall "
                   . "back to extremely slow rendering if this is enabled. If disabling this option "
