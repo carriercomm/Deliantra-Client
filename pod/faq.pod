@@ -618,10 +618,12 @@ The skill level is the level of the skill that the spell uses (e.g.
 summoning or sorcery).
 
 When attuned, the bonus is up to 16 levels, but never higher than the
-skill level itself, i.e. at level 2, the bonus is 4, at level 5, the
-bonus is 10 and at level 50, the bonus is 16.
+skill level itself, i.e. at level 2, the bonus is 2 also, resulting in an
+attuned casting level of 4, at level 5, the bonus is 5, yielding a casting
+level of 10, and at level 50, the bonus is 16, yielding 66.
 
-When repelled, the malus is 16 levels always.
+When repelled, the malus is 16 levels always. If you are both attuned and
+repelled at the same time, the effects will add.
 
 These are added (or subtracted) to the skill level when checking whether
 the player can cast the spell and when calculating the effective casting

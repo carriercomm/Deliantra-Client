@@ -3,6 +3,8 @@ package DC::Protocol;
 use utf8;
 use strict;
 
+use Guard ();
+
 use Deliantra::Protocol::Constants;
 
 use DC;
@@ -287,6 +289,9 @@ sub ext_ws_a {
       tooltip        => $DC::UI::TOOLTIP,
 
       mapwidget      => $::MAPWIDGET,
+      menubar        => $::MENUBAR,
+      menupopup      => $::MENUPOPUP,
+      pickup_enable  => $::PICKUP_ENABLE,
       buttonbar      => $::BUTTONBAR,
       metaserver     => $::METASERVER,
       buttonbar      => $::BUTTONBAR,
@@ -313,7 +318,7 @@ sub ext_ws_a {
       help_window    => $::HELP_WINDOW,
       message_window => $::MESSAGE_WINDOW,
       message_dist   => $::MESSAGE_DIST,
-      statusbox      => $::SDTATUSBOX,
+      statusbox      => $::STATUSBOX,
 
       inv            => $::INV,
       invr           => $::INVR,
@@ -520,9 +525,9 @@ sub update_stats_window {
    $::GAUGES->{mana}    ->set_value ($sp, $sp_m);
    $::GAUGES->{food}    ->set_value ($fo, $fo_m);
    $::GAUGES->{grace}   ->set_value ($gr, $gr_m);
-   $::GAUGES->{exp}     ->set_text ("Exp: " . (::formsep ($stats->{+CS_STAT_EXP64}))
-                                    . " (lvl " . ($stats->{+CS_STAT_LEVEL} * 1) . ")");
-   $::GAUGES->{prg}     ->set_value ($stats->{+CS_STAT_LEVEL}, $stats->{+CS_STAT_EXP64});
+   $::GAUGES->{exp}     ->set_label ("Exp: " . (::formsep ($stats->{+CS_STAT_EXP64}))#d#
+                                     . " (lvl " . ($stats->{+CS_STAT_LEVEL} * 1) . ")");
+   $::GAUGES->{exp}     ->set_value ($stats->{+CS_STAT_LEVEL}, $stats->{+CS_STAT_EXP64});
    $::GAUGES->{range}   ->set_text ($stats->{+CS_STAT_RANGE});
    my $title = $stats->{+CS_STAT_TITLE};
    $title =~ s/^Player: //;
@@ -645,8 +650,8 @@ sub update_stats_window {
       $sw->[1]->set_text ($val->[0] * 1);
       $sw->[2]->set_value (@$val);
 
-      $::GAUGES->{sklprg}->set_label ("$name %d%%");
-      $::GAUGES->{sklprg}->set_value (@$val);
+      $::GAUGES->{skillexp}->set_label ("$name %d%%");
+      $::GAUGES->{skillexp}->set_value (@$val);
    }
 }
 
@@ -1010,7 +1015,7 @@ sub on_face_change {
    push @{$self->{face_cb}{$num}}, $cb;
 
    defined wantarray
-      ? DC::guard {
+      ? Guard::guard {
            @{$self->{face_cb}{$num}}
               = grep $_ != $cb,
                    @{$self->{face_cb}{$num}};
@@ -1393,7 +1398,7 @@ sub logged_in {
    $self->update_server_info;
 
    $self->send_command ("output-rate $::CFG->{output_rate}") if $::CFG->{output_rate} > 0;
-   $self->send_command ("pickup $::CFG->{pickup}");
+   $self->send_pickup ($::CFG->{pickup});
 
    $self->send_exti_msg (clientlog => sprintf "OpenGL Info: %s [%s]",
                                               DC::OpenGL::gl_vendor, DC::OpenGL::gl_version);#d#

@@ -20,8 +20,10 @@ use utf8;
 use File::Path ();
 use Carp ();
 use Storable ();
+use AnyEvent::Util ();
 use Config;
 use BDB;
+use Fcntl ();
 
 use DC;
 
@@ -48,12 +50,67 @@ BDB::max_poll_time 0.03;
 BDB::max_parallel 1;
 
 our $DB_ENV;
+our $DB_ENV_FH;
 our $DB_STATE;
 our %DB_TABLE;
 our $TILE_SEQ;
 
+sub all_databases {
+   opendir my $fh, $DB_HOME
+      or return;
+
+   grep !/^(?:\.|log\.|_)/, readdir $fh
+}
+
+sub try_verify_env($) {
+   my ($env) = @_;
+
+   open my $lock, "+>$DB_HOME/__lock"
+      or die "__lock: $!";
+
+   flock $lock, &Fcntl::LOCK_EX
+      or die "flock: $!";
+
+   # we look at the __db.register env file that has been created by now
+   # and check for the number of registered processes - if there is
+   # only one, we verify all databases, otherwise we skip this
+   # we MUST NOT close the filehandle as longa swe keep the env open, as
+   # this destroys the record locks on it.
+   open $DB_ENV_FH, "<$DB_HOME/__db.register"
+      or die "__db.register: $!";
+
+   # __db.register contains one record per process, with X signifying
+   # empty records (of course, this is completely private to bdb...)
+   my $count = grep /^[^X]/, <$DB_ENV_FH>;
+
+   if ($count == 1) {
+      # if any databases are corrupted, we simply delete all of them
+
+      for (all_databases) {
+         my $dbh = db_create $env
+            or last;
+
+         # a failed verify will panic the environment, which is fine with us
+         db_verify $dbh, "$DB_HOME/$_";
+
+         return if $!; # nuke database and recreate if verification failure
+      }
+
+   }
+
+   # close probably cleans those up, but we also want to run on windows,
+   # so better be safe.
+   flock $lock, &Fcntl::LOCK_UN
+      or die "funlock: $!";
+
+   1
+}
+
 sub try_open_db {
    File::Path::mkpath [$DB_HOME];
+
+   undef $DB_ENV;
+   undef $DB_ENV_FH;
 
    my $env = db_env_create;
 
@@ -75,6 +132,11 @@ sub try_open_db {
                0666;
 
    $! and die "cannot open database environment $DB_HOME: " . BDB::strerror;
+
+   # now we go through the registered processes, if there is only one, we verify all files
+   # to make sure windows didn'T corrupt them (as windows does....)
+   try_verify_env $env
+      or die "database environment failed verification";
 
    $DB_ENV = $env;
 
@@ -357,7 +419,8 @@ sub do_logprint {
 }
 
 sub run {
-   ($FH, my $fh) = DC::socketpipe;
+   ($FH, my $fh) = AnyEvent::Util::portable_socketpair
+     or die "unable to create database socketpair: $!";
 
    my $oldfh = select $FH; $| = 1; select $oldfh;
    my $oldfh = select $fh; $| = 1; select $oldfh;
@@ -417,6 +480,9 @@ sub stop {
 package DC::DB;
 
 sub nuke_db {
+   undef $DB_ENV;
+   undef $DB_ENV_FH;
+
    File::Path::mkpath [$DB_HOME];
    eval { File::Path::rmtree $DB_HOME };
 }

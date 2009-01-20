@@ -19,6 +19,11 @@ BEGIN {
 
       require Win32::GUI::SplashScreen;
 
+      # initialise the resolver now, as vista forces us back to the desktop
+      # when doing this.
+      use AnyEvent::DNS ();
+      AnyEvent::DNS::resolver;
+
       Win32::GUI::SplashScreen::Show (
          -file => "$ENV{PAR_TEMP}/SPLASH.bmp",
       );
@@ -88,8 +93,8 @@ use Deliantra;
 use Deliantra::Protocol::Constants;
 
 use AnyEvent::Util ();
-use AnyEvent::DNS;
 use AnyEvent::Socket ();
+use AnyEvent::DNS ();
 
 use Compress::LZF;
 use JSON::XS;
@@ -163,7 +168,10 @@ our $MAP;
 our $MAPMAP;
 our $MAPWIDGET;
 our $COMPLETER;
-our $BUTTONBAR;
+our $MENUFRAME;   # the rectangle at the top
+our $MENUBAR;     # the hbox at the top
+our $MENUPOPUP;
+our $BUTTONBAR;   # the menu buttons
 our $METASERVER;
 our $LOGIN_BUTTON;
 our $QUIT_DIALOG;
@@ -199,7 +207,7 @@ our $GAUGES;
 our $STATWIDS;
 
 our $SDL_ACTIVE;
-our %SDL_CB;
+our @SDL_CB;
 
 our $ALT_ENTER_MESSAGE;
 our $STATUSBOX;
@@ -340,10 +348,10 @@ sub audio_sound_push($) {
       $meta->{data}
          or return;
 
-      # if its a jingle, play it as ambient music
+      # if it's a jingle, play it as ambient music
       if ($meta->{data}{jingle}) {
          if (delete $AUDIO_PLAY{$face}) { # take the jingle out of the sound queue
-            push @MUSIC_JINGLE, $meta; # push it oto the music/jingle queue
+            push @MUSIC_JINGLE, $meta; # push it unto the music/jingle queue
             &audio_music_push ($face);
          }
       } else {
@@ -351,7 +359,7 @@ sub audio_sound_push($) {
          DC::DB::get res_data => $meta->{name}, sub {
             my $rwops = new DC::RW $_[0];
             my $chunk = new DC::MixChunk $rwops
-               or Carp::confess "sound face " . (JSON::XS::encode_json $meta) . " unloadable: " . DC::Mix_GetError;
+               or Carp::confess "sound face " . (JSON::XS::encode_json $meta) . " (" . (unpack "H64", $_[0]) . ") unloadable: " . DC::Mix_GetError;
             $chunk->volume (($meta->{data}{volume} || 1) * 128);
             $AUDIO_CHUNK{$face} = $chunk;
 
@@ -408,8 +416,11 @@ sub audio_music_start {
 
       $MUSIC_PLAYING_DATA = \$_[0];
 
+      $meta->{path} or length $_[0]
+         or return clienterror "empty music face from res_data ($meta->{face})";#d#
+
       my $rwops = $meta->{path}
-         ? new_from_file DC::RW $meta->{path}
+         ? (new_from_file DC::RW $meta->{path} or return clienterror "unable to load music face $meta->{path}: $!")#d#clienterror
          : new DC::RW $$MUSIC_PLAYING_DATA;
 
       $MUSIC_PLAYER = new DC::MixMusic $rwops
@@ -912,6 +923,7 @@ sub graphics_setup {
       $table->add_at (1, $row++, my $hbox = new DC::UI::HBox);
 
       $hbox->add ($MODE_SLIDER = new DC::UI::Slider
+         c_rescale => 1,
          force_w => $WIDTH * 0.1, expand => 1,
          range => [ ($CFG->{sdl_mode}) x 3 ],
          tooltip => $vidmode_tooltip);
@@ -1245,7 +1257,7 @@ sub set_gauge_window_fontsize {
 sub make_gauge_window {
    my $gh = int $HEIGHT * $CFG->{gauge_size};
 
-   my $win = new DC::UI::Frame (
+   $GAUGES->{win} = my $win = new DC::UI::Frame (
       force_x => 0,
       force_y => "max",
       force_w => $WIDTH,
@@ -1271,21 +1283,10 @@ sub make_gauge_window {
       ],
    );
 
-   $hb->add (my $hg = new DC::UI::Gauge type => 'hp', tooltip => "#stat_health");
-   $hb->add (my $mg = new DC::UI::Gauge type => 'mana', tooltip => "#stat_mana");
-   $hb->add (my $gg = new DC::UI::Gauge type => 'grace', tooltip => "#stat_grace");
-   $hb->add (my $fg = new DC::UI::Gauge type => 'food', tooltip => "#stat_food");
-
-   $vbox->add (my $exp    = new DC::UI::Label align => 1, can_hover => 1, can_events => 1, tooltip => "#stat_exp");
-   $vbox->add (my $prg    = new DC::UI::ExperienceProgress);
-   $vbox->add (my $sklprg = new DC::UI::ExperienceProgress);
-   $vbox->add (my $rng    = new DC::UI::Label align => 1, can_hover => 1, can_events => 1, tooltip => "#stat_ranged");
-
-   $GAUGES = {
-      exp => $exp, prg => $prg, sklprg => $sklprg,
-      win => $win, range => $rng,
-      hp => $hg, mana => $mg, grace => $gg, food => $fg,
-   };
+   $hb->add ($GAUGES->{hp}    = new DC::UI::Gauge type => 'hp', tooltip => "#stat_health");
+   $hb->add ($GAUGES->{mana}  = new DC::UI::Gauge type => 'mana', tooltip => "#stat_mana");
+   $hb->add ($GAUGES->{grace} = new DC::UI::Gauge type => 'grace', tooltip => "#stat_grace");
+   $hb->add ($GAUGES->{food}  = new DC::UI::Gauge type => 'food', tooltip => "#stat_food");
 
    &set_gauge_window_fontsize;
 
@@ -1637,7 +1638,7 @@ sub login_setup {
    $table->add_at (0, 4, new DC::UI::Label align => 1, text => "Username");
    $table->add_at (1, 4, new DC::UI::Entry
       text => $CFG->{profile}{default}{user},
-      tooltip => "The name of your character on the server.",
+      tooltip => "The name of your character on the server. The name is case-sensitive!",
       on_changed => sub { my ($self, $value) = @_; $CFG->{profile}{default}{user} = $value; 1 }
    );
 
@@ -1749,6 +1750,7 @@ sub client_setup {
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Tip of the day");
    $table->add_at (1, $row++, new DC::UI::CheckBox
+      c_colspan => 2,
       state   => $CFG->{show_tips},
       tooltip => "Show the <b>Tip of the day</b> window at startup?",
       on_changed => sub {
@@ -1760,6 +1762,7 @@ sub client_setup {
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Message Window Size");
    $table->add_at (1, $row++, my $saycmd = new DC::UI::Entry
+      c_colspan => 2,
       text    => $CFG->{logview_max_par},
       tooltip => "This is maximum number of messages remembered in the <b>Message</b> window. If the server "
                . "sends more messages than this number, older messages get removed to save memory and "
@@ -1769,6 +1772,28 @@ sub client_setup {
          $MESSAGE_DIST->set_max_par ($CFG->{logview_max_par} = $value*1);
          0
       },
+   );
+
+   $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Config Autosave");
+   $table->add_at (1, $row, new DC::UI::CheckBox
+      state   => $CFG->{config_autosave},
+      tooltip => "Normally, configuration settings and the user interface layout  "
+               . "are saved on client exit. You can disable this behaviour by "
+               . "unchecking this checkbox.",
+      on_changed => sub {
+         my ($self, $value) = @_;
+         $CFG->{config_autosave} = $value;
+         0
+      }
+   );
+   $table->add_at (2, $row++, new DC::UI::Button
+      text    => "Save Now",
+      tooltip => "Use this to manually save configuration and UI layout when "
+               . "autosave is disabled.",
+      on_activate => sub {
+         DC::write_cfg;
+         0
+      }
    );
 
    $table
@@ -1786,8 +1811,7 @@ sub autopickup_setup {
 
    for (
          ["General", 0, 0,
-            ["Enable autopickup"       => PICKUP_NEWMODE, \$PICKUP_ENABLE],
-            ["Inhibit autopickup"      => PICKUP_INHIBIT],
+#            ["Inhibit autopickup"      => PICKUP_INHIBIT],
             ["Stop before pickup"      => PICKUP_STOP],
             ["Debug autopickup"        => PICKUP_DEBUG],
          ],
@@ -1845,7 +1869,7 @@ sub autopickup_setup {
                   $::CFG->{pickup} &= ~$mask;
                }
 
-               $::CONN->send_command ("pickup $::CFG->{pickup}")
+               $::CONN->send_pickup ($::CFG->{pickup})
                   if defined $::CONN;
 
                0
@@ -1872,7 +1896,7 @@ sub autopickup_setup {
    $table->add_at (3, 18, new DC::UI::Button 
       text => "set",
       on_activate => sub {
-         $::CONN->send_command ("pickup $::CFG->{pickup}")
+         $::CONN->send_pickup ($::CFG->{pickup})
             if defined $::CONN;
          0
       });
@@ -1995,7 +2019,7 @@ sub toggle_player_page {
    }
 }
 
-sub player_window {
+sub make_playerbook {
    my $plwin = $PL_WINDOW = new DC::UI::Toplevel
       x       => "center",
       y       => "center",
@@ -2039,14 +2063,13 @@ sub player_window {
    $ntb->set_current_page ($INVENTORY_PAGE);
 
    $plwin->add ($ntb);
-   $plwin
 }
 
 sub keyboard_setup {
    DC::Macro::keyboard_setup
 }
 
-sub help_window {
+sub make_help_window {
    my $win = new DC::UI::Toplevel
       x       => 'center',
       y       => 'center',
@@ -2145,28 +2168,7 @@ sub help_window {
       $win->show;
    };
 
-   $win
-}
-
-sub open_string_query {
-   my ($title, $cb, $txt, $tooltip) = @_;
-   my $dialog = new DC::UI::Toplevel
-      x => "center",
-      y => "center",
-      z => 50,
-      force_w => $WIDTH * 4/5,
-      title => $title;
-
-   $dialog->add (
-      my $e = new DC::UI::Entry
-         on_activate => sub { $cb->(@_); $dialog->hide; 0 },
-         on_key_down => sub { $_[1]->{sym} == 27 and $dialog->hide; 0 },
-         tooltip => $tooltip
-   );
-
-   $e->grab_focus;
-   $e->set_text ($txt) if $txt;
-   $dialog->show;
+   $HELP_WINDOW = $win;
 }
 
 sub open_quit_dialog {
@@ -2207,6 +2209,114 @@ sub open_quit_dialog {
 
    $QUIT_DIALOG->show;
    $QUIT_DIALOG->grab_focus;
+}
+
+sub make_menubar {
+   $MENUFRAME = new DC::UI::Toplevel
+      border  => 0,
+      force_x => 0,
+      force_y => 0,
+      force_w => $::WIDTH,
+      child   => ($MENUBAR = new DC::UI::HBox),
+   ;
+
+   $MENUBAR->add ($BUTTONBAR = new DC::UI::Buttonbar);
+
+   # XXX: this has to be done before make_stats_window as make_stats_window calls update_stats_window which updated the gauges also X-D
+   make_gauge_window->show;
+
+#      $BUTTONBAR->add (new DC::UI::Flopper text => "Message Window", other => $MESSAGE_WINDOW,
+#         tooltip => "Toggles the server message log, where the client collects <i>all</i> messages from the server.");
+
+   make_playerbook;
+
+   $MENUPOPUP = DC::UI::Menu->new (items => [
+      ["Setup…\tF9"        , sub { $SETUP_DIALOG->toggle_visibility }],
+      ["Playerbook…\tTab"  , sub { $PL_WINDOW   ->toggle_visibility }],
+      ["…Statistics\tF2"    , sub { toggle_player_page ($::STATS_PAGE) }],
+      ["…Skills\tF3"        , sub { toggle_player_page ($::SKILL_PAGE) }],
+      ["…Spells\tF4"       , sub { toggle_player_page ($::SPELL_PAGE) }],
+      ["…Inventory\tF5"    , sub { toggle_player_page ($::INVENTORY_PAGE) }],
+      ["Help Browser…\tF1" , sub { $HELP_WINDOW ->toggle_visibility }],
+      ["Quit…"             , sub {
+         if ($CONN) {
+            open_quit_dialog;
+         } else {
+            EV::unloop EV::UNLOOP_ALL;
+         }
+      }],
+   ]);
+
+   $BUTTONBAR->add (new DC::UI::Button text => "Menu…",
+      tooltip => "Shows the main menu",
+      on_button_down => sub {
+         my ($self, $ev) = @_;
+         local $ev->{x} = 0;
+         local $ev->{y} = 0;
+         $MENUPOPUP->popup ($ev);
+      },
+   );
+
+   $MENUBAR->add ($GAUGES->{exp} = new DC::UI::ExperienceProgress
+      padding_x => 6,
+      padding_y => 3,
+      tooltip   => "This progress bar shows your overall experience and your progress towards the next character level.",
+      template  => " Exp: 888,888,888,888 (lvl 188) ",
+   );
+
+   $MENUBAR->add ($PICKUP_ENABLE = new DC::UI::CheckBox # checkbox bad, button better?
+      tooltip => "Automatic Pickup Enable - when this checkbox is enabled, then your character "
+               . "will automatically pick up items as defined by your item pickup settings "
+               . "in the playerbook. Often (e.g. in apartments) you want to temporarily "
+               . "disable autopickup by disabling this checkbox.",
+      state   => $CFG->{pickup} & PICKUP_INHIBIT ? 0 : 1,
+      on_changed => sub {
+         my ($self, $value) = @_;
+         $CFG->{pickup} &= ~PICKUP_INHIBIT;
+         $CFG->{pickup} |= PICKUP_INHIBIT unless $_[1];
+         $CONN->send_pickup ($CFG->{pickup})
+            if $CONN;
+      },
+   );
+
+   $MENUBAR->add ($GAUGES->{skillexp} = new DC::UI::ExperienceProgress
+      c_rescale => 1,
+      padding_x => 6,
+      padding_y => 3,
+      force_w   => $::WIDTH * 0.2,
+      tooltip   => "This progress bar shows the currently used skill and your progress towards the next skill level of that skill.",
+      template  => "two handed weapons 99%",
+   );
+
+   $MENUBAR->add ($GAUGES->{range} = new DC::UI::Label
+      expand => 1,
+      align => 1, can_hover => 1, can_events => 1,
+      text => "Range and Combat Slots",
+      tooltip => "#stat_ranged",
+   );
+
+   $MENUFRAME->show;
+}
+
+sub open_string_query {
+   my ($title, $cb, $txt, $tooltip) = @_;
+   my $dialog = new DC::UI::Toplevel
+      x => "center",
+      y => "center",
+      z => 50,
+      force_w => $WIDTH * 4/5,
+      title => $title;
+
+   $dialog->add (
+      my $e = new DC::UI::Entry
+         on_activate => sub { $cb->(@_); $dialog->hide; 0 },
+         on_key_down => sub { $_[1]->{sym} == 27 and $dialog->hide; 0 },
+         tooltip => $tooltip
+   );
+
+   $e->grab_focus;
+   $e->set_text ($txt) if $txt;
+   $dialog->show;
 }
 
 sub show_tip_of_the_day {
@@ -2357,12 +2467,12 @@ sub video_init {
          bg      => [0, 0, 0, 0.4],
          force_x => 0,
          force_y => "max",
-         child   => (my $LR = new DC::UI::VBox),
+         child   => (my $LL = new DC::UI::VBox),
       )->show;
 
-      $LR->add ($STATUSBOX);
-      $LR->add ($MODBOX);
-      $LR->add (new DC::UI::Label
+      $LL->add ($STATUSBOX);
+      $LL->add ($MODBOX);
+      $LL->add (new DC::UI::Label
          align    => 0,
          markup   => "Use <b>Alt-Enter</b> to toggle fullscreen mode",
          fontsize => 0.5,
@@ -2373,7 +2483,7 @@ sub video_init {
          title     => "Minimap",
          name      => "mapmap",
          x         => 0,
-         y         => $FONTSIZE + 8,
+         y         => $::FONTSIZE + 8,#d# hack to move messages window below the menubar
          border_bg => [1, 1, 1, 192/255],
          bg        => [1, 1, 1, 0],
          child     => ($MAPMAP = new DC::MapWidget::MapMap
@@ -2412,6 +2522,7 @@ sub video_init {
       $MESSAGE_WINDOW = new DC::UI::Dockbar 
          name    => "message_window2",
          title   => 'Messages',
+         y       => $::FONTSIZE + 8,#d# hack to move messages window below the menubar
          force_w => $::WIDTH  * 0.6,
          force_h => $::HEIGHT * 0.25,
       ;
@@ -2441,47 +2552,9 @@ sub video_init {
       $SETUP_NOTEBOOK->add_tab (Debug    => debug_setup,
          "Some debuggin' options. Do not ask.");
 
-      $BUTTONBAR = new DC::UI::Buttonbar x => 0, y => 0, z => 200; # put on top
+      make_help_window;
+      make_menubar;
 
-      $BUTTONBAR->add (new DC::UI::Flopper text => "Setup", other => $SETUP_DIALOG,
-         tooltip => "Toggles a dialog where you can configure all aspects of this client.");
-
-#      $BUTTONBAR->add (new DC::UI::Flopper text => "Message Window", other => $MESSAGE_WINDOW,
-#         tooltip => "Toggles the server message log, where the client collects <i>all</i> messages from the server.");
-
-      make_gauge_window->show; # XXX: this has to be set before make_stats_window as make_stats_window calls update_stats_window which updated the gauges also X-D
-
-      $BUTTONBAR->add (new DC::UI::Flopper text => "Playerbook", other => player_window,
-         tooltip => "Toggles the player view, where you can manage Inventory, Spells, Skills and see your Stats.");
-
-      $BUTTONBAR->add (new DC::UI::Button
-         text             => "Save Config",
-         tooltip          => "Saves the options chosen in the client setting, server settings and the window layout to be restored on later runs.",
-         on_activate => sub {
-            $::CFG->{layout} = DC::UI::get_layout;
-            DC::write_cfg;
-            status "Configuration Saved";
-            0
-         },
-      );
-
-      $BUTTONBAR->add (new DC::UI::Flopper text => "Help!", other => $HELP_WINDOW = help_window,
-         tooltip => "View Documentation");
-
-      $BUTTONBAR->add (new DC::UI::Button
-         text        => "Quit",
-         tooltip     => "Terminates the program",
-         on_activate => sub {
-            if ($CONN) {
-               open_quit_dialog;
-            } else {
-               EV::unloop EV::UNLOOP_ALL;
-            }
-            0
-         },
-      );
-
-      $BUTTONBAR->show;
       $SETUP_DIALOG->show;
       $MESSAGE_WINDOW->show;
    }
@@ -2527,7 +2600,7 @@ my $want_refresh = EV::prepare_ns \&force_refresh;
 my $input = EV::periodic 0, 1 / $MAX_FPS, undef, sub {
    $NOW = EV::now;
 
-   ($SDL_CB{$_->{type}} || sub { warn "unhandled event $_->{type}" })->($_)
+   ($SDL_CB[$_->{type}] || sub { warn "unhandled event $_->{type}" })->($_)
       for DC::poll_events;
 
    if (%animate_object) {
@@ -2549,50 +2622,47 @@ sub animation_stop {
    delete $animate_object{$widget};
 }
 
-%SDL_CB = (
-   DC::SDL_QUIT => sub {
-      crash "SDL_QUIT";
-      EV::unloop EV::UNLOOP_ALL;
-   },
-   DC::SDL_VIDEORESIZE => sub {
-   },
-   DC::SDL_VIDEOEXPOSE => sub {
-      DC::UI::full_refresh;
-   },
-   DC::SDL_ACTIVEEVENT => sub {
-#      not useful, as APPACTIVE includes only iconified state, not unmapped
-#      printf "active %x %x %x\n", $_[0]{gain}, $_[0]{state}, DC::SDL_GetAppState;#d#
-#      printf "a %x\n", DC::SDL_GetAppState & DC::SDL_APPACTIVE;#d#
-#      printf "A\n" if $_[0]{state} & DC::SDL_APPACTIVE;
-#      printf "K\n" if $_[0]{state} & DC::SDL_APPINPUTFOCUS;
-#      printf "M\n" if $_[0]{state} & DC::SDL_APPMOUSEFOCUS;
-   },
-   DC::SDL_KEYDOWN => sub {
-      if ($_[0]{mod} & DC::KMOD_ALT && $_[0]{sym} == 13) {
-         # alt-enter
-         video_shutdown;
-         $FULLSCREEN_ENABLE->toggle;
-         video_init;
-      } else {
-         &DC::UI::feed_sdl_key_down_event;
-      }
-      update_modbox;
-   },
-   DC::SDL_KEYUP           => sub {
-      &DC::UI::feed_sdl_key_up_event;
-      update_modbox;
-   },
-   DC::SDL_MOUSEMOTION     => \&DC::UI::feed_sdl_motion_event,
-   DC::SDL_MOUSEBUTTONDOWN => \&DC::UI::feed_sdl_button_down_event,
-   DC::SDL_MOUSEBUTTONUP   => \&DC::UI::feed_sdl_button_up_event,
-   DC::SDL_USEREVENT       => sub {
-      if ($_[0]{code} == 1) {
-         audio_channel_finished $_[0]{data1};
-      } elsif ($_[0]{code} == 0) {
-         audio_music_finished;
-      }
-   },
-);
+$SDL_CB[DC::SDL_QUIT] = sub {
+   crash "SDL_QUIT";
+   EV::unloop EV::UNLOOP_ALL;
+};
+$SDL_CB[DC::SDL_VIDEORESIZE] = sub { };
+$SDL_CB[DC::SDL_VIDEOEXPOSE] = sub {
+   DC::UI::full_refresh;
+};
+$SDL_CB[DC::SDL_ACTIVEEVENT] = sub {
+#  not useful, as APPACTIVE includes only iconified state, not unmapped
+#  printf "active %x %x %x\n", $_[0]{gain}, $_[0]{state}, DC::SDL_GetAppState;#d#
+#  printf "a %x\n", DC::SDL_GetAppState & DC::SDL_APPACTIVE;#d#
+#  printf "A\n" if $_[0]{state} & DC::SDL_APPACTIVE;
+#  printf "K\n" if $_[0]{state} & DC::SDL_APPINPUTFOCUS;
+#  printf "M\n" if $_[0]{state} & DC::SDL_APPMOUSEFOCUS;
+};
+$SDL_CB[DC::SDL_KEYDOWN] = sub {
+   if ($_[0]{mod} & DC::KMOD_ALT && $_[0]{sym} == 13) {
+      # alt-enter
+      video_shutdown;
+      $FULLSCREEN_ENABLE->toggle;
+      video_init;
+   } else {
+      &DC::UI::feed_sdl_key_down_event;
+   }
+   update_modbox;
+};
+$SDL_CB[DC::SDL_KEYUP]           = sub {
+   &DC::UI::feed_sdl_key_up_event;
+   update_modbox;
+};
+$SDL_CB[DC::SDL_MOUSEMOTION]     = \&DC::UI::feed_sdl_motion_event,
+$SDL_CB[DC::SDL_MOUSEBUTTONDOWN] = \&DC::UI::feed_sdl_button_down_event,
+$SDL_CB[DC::SDL_MOUSEBUTTONUP]   = \&DC::UI::feed_sdl_button_up_event,
+$SDL_CB[DC::SDL_USEREVENT]       = sub {
+   if ($_[0]{code} == 1) {
+      audio_channel_finished $_[0]{data1};
+   } elsif ($_[0]{code} == 0) {
+      audio_music_finished;
+   }
+};
 
 #############################################################################
 
@@ -2601,7 +2671,7 @@ $SIG{INT} = $SIG{TERM} = sub {
    #d# TODO calling exit here hangs the process in some futex
 };
 
-# due to mac os x + sdl combined briandamage, we need this contortion
+# due to mac os x + sdl combined braindamage, we need this contortion
 sub main {
    {
       DC::Pod::load_docwiki DC::find_rcfile "docwiki.pst";
@@ -2628,6 +2698,7 @@ sub main {
       DC::UI::set_layout ($::CFG->{layout});
 
       my %DEF_CFG = (
+         config_autosave     => 1,
          sdl_mode            => undef,
          fullscreen          => 1,
          fast                => 0,
@@ -2655,13 +2726,15 @@ sub main {
          bgm_enable          => 1,
          bgm_volume          => 0.5,
          output_rate         => "",
-         pickup              => 0,
+         pickup              => PICKUP_SPELLBOOK | PICKUP_SKILLSCROLL | PICKUP_VALUABLES,
          inv_sort            => "mtime",
          default             => "profile", # default profile
          show_tips           => 1,
          logview_max_par     => 1000,
          shift_fire_stop     => 0,
          uitheme             => "wood",
+         map_shift_x         => -24, # arbitrary
+         map_shift_y         => +24, # arbitrary
       );
       
       while (my ($k, $v) = each %DEF_CFG) {
@@ -2734,8 +2807,11 @@ sub main {
    delete $SIG{__DIE__};
    EV::loop;
 
-#video_shutdown;
-#audio_shutdown;
+   DC::write_cfg if $CFG->{config_autosave};
+
+   #video_shutdown;
+   #audio_shutdown;
+
    DC::OpenGL::quit;
    DC::SDL_Quit;
    DC::DB::Server::stop;

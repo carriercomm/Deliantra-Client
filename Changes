@@ -1,5 +1,33 @@
 Revision history for Perl extension Deliantra::Client
 
+TODO: add help to completer, add close tab to completer, do stuff to complete
+TODO: warn about sofwtare renderers
+TODO: [num] indicator malfunctioning
+TODO: cfplus_ext => 2 is sometimes not beign negotiated! (hack in place, need better protocol)
+
+2.03 Tue Jan 20 14:54:30 CET 2009
+	- move experience label, progress bars and slot info to the menubar.
+        - move toplevel menu into a menu popup.
+        - use fontsize for chekcbox size requests to get a better layout.
+        - autopickup spellbooks, skillscrolls and valuables by default.
+	- automatically save config/layout on exit and add config options
+          to Setup=>Client to control this.
+        - fix positioning of popup windows.
+        - move autopickup enable (formerly inhibit) to menubar.
+        - correctly display face changes for inventory objects.
+   	- verify databases if we are the first process to register, to
+          detect corruption as is common on windows (but not limited to
+          windows, unfortunately).
+        - fall back to backup config file if main config file cannot be parsed.
+        - reduce shimmering during smooth scrolls.
+        - rely on AnyEvent to work around totally broken windows vista
+          tcp/ip subsystem once more (where getpeername returns fantasy
+          ports).
+        - use newer BDB version that works around windows vista tcp/ip
+          breakage.
+        - initialise the default resolver during startup, as windows vista
+          forces us back to the desktop when doing this later(!).
+
 2.02 Wed Dec 24 06:02:53 CET 2008
    	- mark hidden mapspaces visually with a question mark.
         - make hidden spaces as light as the darkest normal spaces.

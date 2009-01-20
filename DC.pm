@@ -19,7 +19,7 @@ use Carp ();
 our $VERSION;
 
 BEGIN {
-   $VERSION = '2.02';
+   $VERSION = '2.03';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
@@ -28,26 +28,15 @@ BEGIN {
 use utf8;
 use strict qw(vars subs);
 
+use Socket ();
 use AnyEvent ();
+use AnyEvent::Util ();
 use Pod::POM ();
 use File::Path ();
 use Storable (); # finally
 use Fcntl ();
 use JSON::XS qw(encode_json decode_json);
-
-=item guard { BLOCK }
-
-Returns an object that executes the given block as soon as it is destroyed.
-
-=cut
-
-sub guard(&) {
-   bless \(my $cb = $_[0]), "DC::Guard"
-}
-
-sub DC::Guard::DESTROY {
-   ${$_[0]}->()
-}
+use Guard qw(guard);
 
 =item shorten $string[, $maxlength]
 
@@ -69,17 +58,11 @@ sub asxml($) {
    $_
 }
 
-sub socketpipe() {
-   socketpair my $fh1, my $fh2, &Socket::AF_UNIX, &Socket::SOCK_STREAM, &Socket::PF_UNSPEC
-      or die "cannot establish bidirectional pipe: $!\n";
-
-   ($fh1, $fh2)
-}
-
 sub background(&;&) {
    my ($bg, $cb) = @_;
 
-   my ($fh_r, $fh_w) = DC::socketpipe;
+   my ($fh_r, $fh_w) = AnyEvent::Util::portable_socketpair
+     or die "unable to create background socketpair: $!";
 
    my $pid = fork;
 
@@ -173,7 +156,7 @@ sub load_json($) {
       or return;
 
    local $/;
-   JSON::XS->new->utf8->relaxed->decode (<$fh>)
+   eval { JSON::XS->new->utf8->relaxed->decode (<$fh>) }
 }
 
 sub set_theme($) {
@@ -201,17 +184,22 @@ sub set_theme($) {
 sub read_cfg {
    my ($file) = @_;
 
-   $::CFG = load_json $file;
+   $::CFG = (load_json $file) || (load_json "$file.bak");
 }
 
 sub write_cfg {
    my $file = "$Deliantra::VARDIR/client.cf";
 
    $::CFG->{VERSION} = $::VERSION;
+   $::CFG->{layout}  = DC::UI::get_layout ();
 
-   open my $fh, ">:utf8", $file
+   open my $fh, ">:utf8", "$file~"
       or return;
    print $fh JSON::XS->new->utf8->pretty->encode ($::CFG);
+   close $fh;
+
+   rename $file, "$file.bak";
+   rename "$file~", $file;
 }
 
 sub http_proxy {

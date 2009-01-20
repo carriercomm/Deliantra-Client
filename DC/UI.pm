@@ -5,6 +5,8 @@ use strict;
 
 use List::Util ();
 
+use Guard ();
+
 use DC;
 use DC::Pod;
 use DC::Texture;
@@ -191,7 +193,7 @@ sub rescale_widgets {
    my ($sx, $sy) = @_;
 
    for my $widget (values %WIDGET) {
-      if ($widget->{is_toplevel}) {
+      if ($widget->{is_toplevel} || $widget->{c_rescale}) {
          $widget->{x} += int $widget->{w} * 0.5 if $widget->{x} =~ /^[0-9.]+$/;
          $widget->{y} += int $widget->{h} * 0.5 if $widget->{y} =~ /^[0-9.]+$/;
 
@@ -532,7 +534,7 @@ sub connect {
 
    push @{ $self->{signal_cb}{$signal} }, $cb;
 
-   defined wantarray and DC::guard {
+   defined wantarray and Guard::guard {
       @{ $self->{signal_cb}{$signal} } = grep $_ != $cb,
          @{ $self->{signal_cb}{$signal} };
    }
@@ -654,6 +656,13 @@ sub new {
       #active_bg => [1, 1, 1, 0.5],
       @_
    )
+}
+
+sub set_bg {
+   my ($self, $bg) = @_;
+
+   $self->{bg} = $bg;
+   $self->update;
 }
 
 sub _draw {
@@ -1545,25 +1554,27 @@ sub _draw {
 
    my $border = $self->border;
 
-   glColor @{ $self->{border_bg} };
-   $border[0]->draw_quad_alpha (           0,            0, $w, $border);
-   $border[1]->draw_quad_alpha (           0,      $border, $border, $ch);
-   $border[2]->draw_quad_alpha ($w - $border,      $border, $border, $ch);
-   $border[3]->draw_quad_alpha (           0, $h - $border, $w, $border);
+   if ($border) {
+      glColor @{ $self->{border_bg} };
+      $border[0]->draw_quad_alpha (           0,            0, $w, $border);
+      $border[1]->draw_quad_alpha (           0,      $border, $border, $ch);
+      $border[2]->draw_quad_alpha ($w - $border,      $border, $border, $ch);
+      $border[3]->draw_quad_alpha (           0, $h - $border, $w, $border);
 
-   # move
-   my $w2 = ($w - $border) * .5;
-   my $h2 = ($h - $border) * .5;
-   $icon[0]->draw_quad_alpha (           0,          $h2, $border, $border);
-   $icon[0]->draw_quad_alpha ($w - $border,          $h2, $border, $border);
-   $icon[0]->draw_quad_alpha ($w2         , $h - $border, $border, $border);
+      # move
+      my $w2 = ($w - $border) * .5;
+      my $h2 = ($h - $border) * .5;
+      $icon[0]->draw_quad_alpha (           0,          $h2, $border, $border);
+      $icon[0]->draw_quad_alpha ($w - $border,          $h2, $border, $border);
+      $icon[0]->draw_quad_alpha ($w2         , $h - $border, $border, $border);
 
-   # resize
-   $icon[1]->draw_quad_alpha (           0,            0, $border, $border);
-   $icon[1]->draw_quad_alpha ($w - $border,            0, $border, $border)
-      unless $self->{has_close_button};
-   $icon[1]->draw_quad_alpha (           0, $h - $border, $border, $border);
-   $icon[1]->draw_quad_alpha ($w - $border, $h - $border, $border, $border);
+      # resize
+      $icon[1]->draw_quad_alpha (           0,            0, $border, $border);
+      $icon[1]->draw_quad_alpha ($w - $border,            0, $border, $border)
+         unless $self->{has_close_button};
+      $icon[1]->draw_quad_alpha (           0, $h - $border, $border, $border);
+      $icon[1]->draw_quad_alpha ($w - $border, $h - $border, $border, $border);
+   }
 
    if (@{$self->{bg}} < 4 || $self->{bg}[3]) {
       glColor @{ $self->{bg} };
@@ -2521,6 +2532,7 @@ sub new {
    my $class = shift;
 
    $class->SUPER::new (
+      fontsize  => 1,
       padding_x => 2,
       padding_y => 2,
       fg        => [1, 1, 1],
@@ -2536,7 +2548,7 @@ sub new {
 sub size_request {
    my ($self) = @_;
 
-   (6) x 2
+   ($self->{fontsize} * $::FONTSIZE) x 2
 }
 
 sub toggle {
@@ -2844,6 +2856,8 @@ sub new {
    my ($class, %arg) = @_;
 
    my $self = $class->SUPER::new (
+      padding_x  => 2,
+      padding_y  => 2,
       fg         => [1, 1, 1],
       bg         => [0, 0, 1, 0.2],
       bar        => [0.7, 0.5, 0.1, 0.8],
@@ -2893,17 +2907,24 @@ sub _draw {
    glEnable GL_BLEND;
    glBlendFunc GL_ONE, GL_ONE_MINUS_SRC_ALPHA;
 
+   my $px = $self->{padding_x};
+   my $py = $self->{padding_y};
+
    if ($self->{value} >= 0) {
-      my $s = int 2 + ($self->{w} - 4) * $self->{value};
+      my $s = int $px + ($self->{w} - $px * 2) * $self->{value};
 
       glColor_premultiply @{$self->{bar}};
-      glRect  2, 2,             $s, $self->{h} - 2;
+      glRect $px, $py,               $s, $self->{h} - $py;
       glColor_premultiply @{$self->{bg}};
-      glRect $s, 2, $self->{w} - 2, $self->{h} - 2;
+      glRect $s , $py, $self->{w} - $px, $self->{h} - $py;
    }
 
    glColor_premultiply @{$self->{outline}};
-   glRect_lineloop 1.5, 1.5, $self->{w} - 1.5, $self->{h} - 1.5;
+
+   $px -= .5;
+   $py -= .5;
+
+   glRect_lineloop $px, $py, $self->{w} - $px, $self->{h} - $py;
 
    glDisable GL_BLEND;
 
@@ -2922,17 +2943,21 @@ our @ISA = DC::UI::Progress::;
 sub new {
    my ($class, %arg) = @_;
 
+   my $tt = exists $arg{tooltip} ? "$arg{tooltip}\n\n" : "";
+
    my $self = $class->SUPER::new (
+      %arg,
       tooltip => sub {
          my ($self) = @_;
 
-         sprintf "level %d\n%s points\n%s next level\n%s to go",
+         sprintf "%slevel %d\n%s points\n%s next level\n%s to go, %d%% done",
+            $tt,
             $self->{lvl},
             ::formsep ($self->{exp}),
             ::formsep ($self->{nxt}),
             ::formsep ($self->{nxt} - $self->{exp}),
+            $self->_percent * 100,
       },
-      %arg
    );
 
    $::CONN->{on_exp_update}{$self+0} = sub { $self->set_value ($self->{value}) }
@@ -2950,24 +2975,27 @@ sub DESTROY {
    $self->SUPER::DESTROY;
 }
 
+sub _percent {
+   my ($self) = @_;
+
+   my $table = $::CONN && $::CONN->{exp_table}
+      or return -1;
+
+   my $l0 = $table->[$self->{lvl} - 1];
+   my $l1 = $table->[$self->{lvl}];
+
+   $self->{nxt} = $l1;
+
+   ($self->{exp} - $l0) / ($l1 - $l0)
+}
+
 sub set_value {
    my ($self, $lvl, $exp) = @_;
 
    $self->{lvl} = $lvl;
    $self->{exp} = $exp;
 
-   my $v = -1;
-
-   if ($::CONN && (my $table = $::CONN->{exp_table})) {
-      my $l0 = $table->[$lvl - 1];
-      my $l1 = $table->[$lvl];
-
-      $self->{nxt} = $l1;
-
-      $v = ($exp - $l0) / ($l1 - $l0);
-   }
-
-   $self->SUPER::set_value ($v);
+   $self->SUPER::set_value ($self->_percent);
 }
 
 #############################################################################
@@ -3707,27 +3735,7 @@ sub new {
       @_,
    );
 
-   if ($self->{anim} && $self->{animspeed}) {
-      DC::weaken (my $widget = $self);
-
-      $self->{animspeed} = List::Util::max 0.05, $self->{animspeed};
-      $self->{timer} = EV::periodic_ns 0, $self->{animspeed}, undef, sub {
-         return unless $::CONN;
-
-         my $w = $widget
-            or return;
-
-         ++$w->{frame};
-         $w->update_face;
-
-         # somehow, $widget can go away
-         $w->update;
-         $w->update_timer;
-      };
-
-      $self->update_face;
-      $self->update_timer;
-   }
+   $self->update_anim;
    
    $self
 }
@@ -3763,6 +3771,34 @@ sub update_face {
    }
 }
 
+sub update_anim {
+   my ($self) = @_;
+
+   if ($self->{anim} && $self->{animspeed}) {
+      DC::weaken (my $widget = $self);
+
+      $self->{animspeed} = List::Util::max 0.05, $self->{animspeed};
+      $self->{timer} = EV::periodic_ns 0, $self->{animspeed}, undef, sub {
+         return unless $::CONN;
+
+         my $w = $widget
+            or return;
+
+         ++$w->{frame};
+         $w->update_face;
+
+         # somehow, $widget can go away
+         $w->update;
+         $w->update_timer;
+      };
+
+      $self->update_face;
+      $self->update_timer;
+   } else {
+      delete $self->{timer};
+   }
+}
+
 sub size_request {
    my ($self) = @_;
 
@@ -3789,6 +3825,27 @@ sub update {
    return unless $self->{visible};
 
    $self->SUPER::update;
+}
+
+sub set_face {
+   my ($self, $face) = @_;
+
+   $self->{face} = $face;
+   $self->reconfigure;
+}
+
+sub set_anim {
+   my ($self, $anim) = @_;
+
+   $self->{anim} = $anim;
+   $self->update_anim;
+}
+
+sub set_animspeed {
+   my ($self, $animspeed) = @_;
+
+   $self->{animspeed} = $animspeed;
+   $self->update_anim;
 }
 
 sub invoke_visibility_change {
@@ -3896,7 +3953,15 @@ sub popup {
    $self->{button} = $ev->{button};
 
    $self->show;
-   $self->move_abs ($ev->{x} - $self->{w} * 0.5, $ev->{y} - $self->{h} * 0.5);
+
+   my $x = $ev->{x};
+   my $y = $ev->{y};
+
+   $self->{root}->on_post_alloc ($self => sub {
+      $self->move_abs ($x - $self->{w} * 0.25, $y - $self->{border} * $::FONTSIZE * .5);
+   });
+
+   1 # so it can be used inside event handlers
 }
 
 sub invoke_mouse_motion {
@@ -4600,4 +4665,3 @@ $ROOT    = new DC::UI::Root;
 $TOOLTIP = new DC::UI::Tooltip z => 900;
 
 1
-

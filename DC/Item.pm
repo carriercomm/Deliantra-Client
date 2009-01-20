@@ -14,7 +14,7 @@ sub desc_string {
    my $desc =
       $self->{nrof} < 2
          ? $self->{name}
-         : "$self->{nrof} × $self->{name_pl}";
+         : "$self->{nrof} $self->{name_pl}";
 
    $self->{flags} & F_OPEN
       and $desc .= " (open)";
@@ -68,6 +68,9 @@ sub do_n_dialog {
    $entry->grab_focus;
    $w->show;
 }
+
+my $bg_cursed = [1  , 0  , 0, 0.5];
+my $bg_magic  = [0.2, 0.2, 1, 0.5];
 
 sub update_widgets {
    my ($self) = @_;
@@ -165,30 +168,45 @@ sub update_widgets {
       . "Right click - further options"
       . "</small>\n";
 
-   my $bg = $self->{flags} & F_CURSED ? [1  , 0  , 0, 0.5]
-          : $self->{flags} & F_MAGIC  ? [0.2, 0.2, 1, 0.5]
+   my $bg = $self->{flags} & F_CURSED ? $bg_cursed
+          : $self->{flags} & F_MAGIC  ? $bg_magic
           : undef;
 
    my $desc = DC::Item::desc_string $self;
+   my $face_tooltip = "<b>$desc</b>\n\n$tooltip_std";
 
-   $self->{face_widget} ||= new DC::UI::Face 
-      can_events => 1,
-      can_hover  => 1,
-      anim       => $self->{anim},
-      animspeed  => $self->{animspeed}, # TODO# must be set at creation time
-      on_button_down => $button_cb,
-   ;
-   $self->{face_widget}{bg}        = $bg;
-   $self->{face_widget}{face}      = $self->{face};
-   $self->{face_widget}{anim}      = $self->{anim};
-   $self->{face_widget}{animspeed} = $self->{animspeed};
-#   $self->{face_widget}->set_tooltip (
-#      "<b>Face/Animation.</b>\n"
-#    . "Item uses face #$self->{face}. "
-#    . ($self->{animspeed} ? "Item uses animation #$self->{anim} at " . (1 / $self->{animspeed}) . "fps. " : "Item is not animated. ")
-#    . "\n\n$tooltip_std"
-#   );
-   $self->{face_widget}->set_tooltip ("<b>$desc</b>\n\n$tooltip_std");
+   if (my $face = $self->{face_widget}) {
+      # already exists, so update if it changed
+      if ($face->{bg} != $bg) {
+         $face->{bg} = $bg;
+         $face->update;
+      }
+
+      $face->set_bg        ($bg)                if $face->{bg}        != $bg;
+      $face->set_face      ($self->{face})      if $face->{face}      != $self->{face};
+      $face->set_anim      ($self->{anim})      if $face->{anim}      != $self->{anim};
+      $face->set_animspeed ($self->{animspeed}) if $face->{animspeed} != $self->{animspeed};
+
+      #$face->set_tooltip (
+      #   "<b>Face/Animation.</b>\n"
+      # . "Item uses face #$self->{face}. "
+      # . ($self->{animspeed} ? "Item uses animation #$self->{anim} at " . (1 / $self->{animspeed}) . "fps. " : "Item is not animated. ")
+      # . "\n\n$tooltip_std"
+      #);
+      $face->set_tooltip ($face_tooltip);
+   } else {
+      # new object, create new face
+      $self->{face_widget} = new DC::UI::Face 
+         can_events => 1,
+         can_hover  => 1,
+         bg         => $bg,
+         face       => $self->{face},
+         anim       => $self->{anim},
+         animspeed  => $self->{animspeed}, # TODO# must be set at creation time
+         tooltip    => $face_tooltip,
+         on_button_down => $button_cb,
+      ;
+   }
    
    $self->{desc_widget} ||= new DC::UI::Label
       can_events => 1,
@@ -211,10 +229,10 @@ sub update_widgets {
       },
    ;
 
-   $self->{desc_widget}{bg} = $bg;
-   $self->{desc_widget}->set_text ($desc);
-
    my $long_desc = $self->{long_desc} || $desc;
+
+   $self->{desc_widget}->set_bg ($bg) if $self->{desc_widget}{bg} != $bg;
+   $self->{desc_widget}->set_text ($desc);
    $self->{desc_widget}->set_tooltip ("<b>$long_desc</b>\n\n$tooltip_std");
 
    $self->{weight_widget} ||= new DC::UI::Label

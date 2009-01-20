@@ -203,12 +203,6 @@ sub invoke_button_down {
             ["Inventory…\tF5",    sub { ::toggle_player_page ($::INVENTORY_PAGE) }],
             ["Setup… \tF9",       sub { $::SETUP_DIALOG->toggle_visibility }],
 #            ["Server Messages…",  sub { $::MESSAGE_WINDOW->toggle_visibility }],
-            [
-               $::PICKUP_ENABLE->{state}
-                  ? "Disable automatic pickup"
-                  : "Enable automatic pickup",
-               sub { $::PICKUP_ENABLE->toggle }
-            ],
       );
 
       if ($::CONN && $::CONN->{editor_support}) {
@@ -513,7 +507,7 @@ sub refresh_hook {
          glPushMatrix;
          glTranslate $sx0, $sy0;
          glScale $::CFG->{map_scale}, $::CFG->{map_scale};
-         glTranslate $self->{sdx}, $self->{sdy};
+         glTranslate DC::ceil $self->{sdx}, DC::ceil $self->{sdy};
 
          $::MAP->draw ($dx, $dy, $sw, $sh,
                        $self->{tilesize},

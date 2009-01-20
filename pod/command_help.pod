@@ -71,9 +71,14 @@ See L<apply|command/apply>.
 
 =head2 body
 
-Shows how much you are wielding on certain body parts. For example as
-fireborn, you have 4 fingers to put rings on. If you have 3 rings on it will
-say: "on your finger  3 1", meaning you have 3 fingers full and one free.
+Shows how much (and what) you are wielding on certain body parts.
+
+For example as fireborn, you have 4 fingers to put rings on. If you have
+3 rings on it will say: "on your finger 3 1", meaning you have 3 fingers
+full and one free.
+
+Both items as well as skills and other more esoteric objects can use those
+body parts.
 
 =head2 X<bowmode>bowmode (normal|threewide|spreadshot|bestarrow|.*)
 
@@ -576,7 +581,7 @@ The options are:
 
 =item B<normal>
 
-As you would expect.
+Monsters behave normally, i.e. according to their own character.
 
 =item B<sad> (search and destroy)
    
@@ -594,37 +599,29 @@ Like B<normal>, except that pets will attack other players in the arena.
 
 =head2 pickup
 
-B<pickup> changes how you pick up items when you step on them. to pickup
-an item manually, use the ',' key.
+   pickup +mode
+   pickup -mode
+   pickup density
 
-Mode 0: Don't pick up items.
+B<pickup> changes whether you pick up items when you step on them. To
+pickup an item manually, use the ',' key.
 
-Mode 1: Pick up one item 
+The B<Pickup> tab in the playerbook is usually a better way to modify your
+autopickup settings than using this command.
 
-Mode 2: Pickup up one item and stop
+Mode can be one of:
 
-Mode 3: Stop before picking up items
+    "debug", "inhibit", "stop", "food", "drink", "valuables", "bow",
+    "arrow", "helmet", "shield", "armour", "boots", "gloves", "cloak",
+    "key", "missile", "allweapon", "magical", "potion", "spellbook",
+    "skillscroll", "readables", "magicdevice", "notcursed", "jewels",
+    "flesh"
 
-Mode 4: Pick up all items
-
-Mode 5: Pick up all items and stop
-
-Mode 6: Pick up all magical items
-
-Mode 7: Pick up all coins and gems
-
-Modes above 7: Pickup items with
-a value density greater than the pickup mode.
-
-Value density is value in gold/weight in kilograms.
+If a number (C<density>, must be 0..15) is specified, then items of at
+least the specified value density are picked up. Value density is given as
+gold/weight in kilograms.
 
 The value in gold is what the item is worth if you sold it in the shop.
-
-Goldcoins have a value density of 66,
-
-Density 10 will pickup silver, gold, rings, wands, books, and scrolls.
-Artifacts are also picked up.
-
 
 =head2 prepare
 
@@ -724,9 +721,14 @@ it. Doing B<save> and then B<quit>ing will still delete your character.
 
    search-items <word>
 
-Automatically picks up all items with <word> in their name. search-items rod
-will pick up all rods and heavy rods. search-items of Fire will pick up all
-bolts, arrows, swords, etc. of Fire.
+Automatically picks up all items with <word> in their name. C<search-items
+rod> will pick up all rods and heavy rods. C<search-items of Fire> will
+pick up all bolts, arrows, swords, etc. of Fire, C<search-items magic+1>
+will pick up all items with magic+1, and so on, and so on.
+
+While this mode is active, you will be slower and the normal autopickup is
+disabled. To disable search mode again, execute C<search-items> without
+any arguments.
 
 =head2 seen
 
