@@ -89,9 +89,9 @@ pango_opengl_font_map_new (void)
 
 void
 pango_opengl_font_map_set_default_substitute (PangoOpenGLFontMap        *fontmap,
-					   PangoOpenGLSubstituteFunc  func,
-					   gpointer                data,
-					   GDestroyNotify          notify)
+					      PangoOpenGLSubstituteFunc  func,
+					      gpointer                   data,
+					      GDestroyNotify             notify)
 {
   if (fontmap->substitute_destroy)
     fontmap->substitute_destroy (fontmap->substitute_data);
@@ -146,7 +146,6 @@ _pango_opengl_font_map_get_library (PangoFontMap *fontmap_)
   
   return fontmap->library;
 }
-
 
 /**
  * _pango_opengl_font_map_get_renderer:

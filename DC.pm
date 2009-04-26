@@ -19,7 +19,7 @@ use Carp ();
 our $VERSION;
 
 BEGIN {
-   $VERSION = '2.03';
+   $VERSION = '2.04';
 
    use XSLoader;
    XSLoader::load "Deliantra::Client", $VERSION;
@@ -143,7 +143,7 @@ sub find_rcfile($) {
 
    for (@RC_PATH, "") {
       $path = "$RC_BASE/$_/$_[0]";
-      return $path if -r $path;
+      return $path if -e $path;
    }
 
    die "FATAL: can't find required file \"$_[0]\" in \"$RC_BASE\"\n";

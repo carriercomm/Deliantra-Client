@@ -1,9 +1,14 @@
 Revision history for Perl extension Deliantra::Client
 
-TODO: add help to completer, add close tab to completer, do stuff to complete
-TODO: warn about sofwtare renderers
-TODO: [num] indicator malfunctioning
-TODO: cfplus_ext => 2 is sometimes not beign negotiated! (hack in place, need better protocol)
+2.04 Sun Apr 26 21:03:40 CEST 2009
+	- work around incompatible ABI change between 1.22 and 1.24 by using a runtime check,
+          this really is a bug that needs fixing inside pango.
+        - include a japanese font (Mona, selected for license and size) with the distribution.
+        - include our own fonts.conf file, to speed up startup and to be able to control
+          font selection.
+	- change confusing login successful message to "connect to server successful".
+        - update BDB and EV in win32 builds to work around the event loop creation bug.
+        - fall back to blocking dns resolve before using a hardcoded address.
 
 2.03 Tue Jan 20 14:54:30 CET 2009
 	- move experience label, progress bars and slot info to the menubar.
@@ -74,7 +79,7 @@ TODO: cfplus_ext => 2 is sometimes not beign negotiated! (hack in place, need be
         - tweak server message output.
         - optimise visibility handing in multiplexers (only put the current tab
           into visible state).
-        - reduce the number of unneecssary refreshes.
+        - reduce the number of unnecessary refreshes.
         - allow empty multiplexers.
         - fixed clearing issue in the inventory upon logout.
         - use the same workarounds for pango for gnu/linux binaries as we use for osx,

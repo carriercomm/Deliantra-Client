@@ -72,6 +72,17 @@ _pango_opengl_font_new (PangoOpenGLFontMap *fontmap_, FcPattern *pattern)
   if (FcPatternGetDouble (pattern, FC_PIXEL_SIZE, 0, &d) == FcResultMatch)
     font->size = d * PANGO_SCALE;
 
+#if PANGO_VERSION_CHECK (1, 16, 0)
+  /* pango 1.24 is ABI-incompatible with 1.22, but distros */
+  /* usually package it under the same name, so a runtime check */
+  /* is required */
+  /* unfortunately, pango fdoesn't sipport runtime checks in < 1.16 */
+  /* so there is no real way to ensure binary compatibility portably */
+  /* greta move, pango */
+  if (pango_version () > PANGO_VERSION_ENCODE (1, 23, 0))
+    PANGO_FC_FONT (font)->fontmap = fontmap;
+#endif
+
   return font;
 }
 

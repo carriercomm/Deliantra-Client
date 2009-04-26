@@ -58,8 +58,6 @@ BEGIN {
          # pango is relocatable on win32
       } else {
          # OS X
-         $ENV{FONTCONFIG_FILE} = "$root/fonts.conf"; # no effect??!?!
-         $ENV{FONTCONFIG_DIR} = $root; # no effect??!?!
          $ENV{PANGO_RC_FILE} = "$root/pango.rc";
          $ENV{DYLD_LIBRARY_PATH} = $root;
          chdir $root; # for pango modules, maybe other things
@@ -69,7 +67,7 @@ BEGIN {
    }
 }
 
-# prepend private library directory
+# prepend private library directory and prepare env
 BEGIN {
    for (grep !ref, @INC) {
       my $path = "$_/Deliantra/Client/private";
@@ -820,7 +818,7 @@ sub dc_connect {
             if ($_[0]) {
                DC::lowdelay fileno $CONN->{fh};
 
-               status "login successful";
+               status "successfully connected to the server";
             } else {
                undef $CONN;
                status "unable to connect: $!";
@@ -845,8 +843,12 @@ sub start_game {
    if ($host eq "gameserver.deliantra.net") {
       AnyEvent::DNS::a "dnstest.deliantra.net", sub {
          if ($_[0] ne "80.101.114.108") { # Perl
-            status "dns failure, using hardcoded address";
-            $host = "129.13.162.95";
+            status "dns failure, trying differently";
+            $host = eval { Socket::inet_ntoa Socket::inet_aton "gameserver.deliantra.net" };
+            unless (defined $host) {
+               status "dns failure, using hardcoded address";
+               $host = "129.13.162.95";
+            }
          }
 
          dc_connect $host, $port;
@@ -2758,6 +2760,9 @@ sub main {
 
       sdl_init;
 
+      $ENV{FONTCONFIG_FILE} = DC::find_rcfile "fonts/fonts.conf";
+      $ENV{FONTCONFIG_DIR} = DC::find_rcfile "fonts";
+
       {
          my @fonts = map DC::find_rcfile "fonts/$_", qw(
             DejaVuSans.ttf
@@ -2768,6 +2773,7 @@ sub main {
             DejaVuSansMono-Oblique.ttf
             DejaVuSans-BoldOblique.ttf
             DejaVuSansMono-BoldOblique.ttf
+            mona.ttf
          );
 
          DC::add_font $_ for @fonts;

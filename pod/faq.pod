@@ -209,8 +209,8 @@ out using a bed to realtiy, or when you are disconnected when the server
 crashes or restarts.
 
 If the disconnection was safe, then you will appear where you were before
-you got logged out. If it was unsafe, and more than 1 hour has passed, you
-will die of a cave-in. If the map you were in reset, but 1 hour has not
+you got logged out. If it was unsafe, and more than one hour has passed, you
+will die of a cave-in. If the map you were in reset, but one hour has not
 passed, then you will be recalled to your bed to reality.
 
 =head3 Where do I find beds to reality?
@@ -256,6 +256,11 @@ on a table that identifies for 2 gold, or equivalent, and get only one
 identify. The equivalent means that you can make the price up in smaller
 currency, like 200 silver, but higher currency won't get you any more
 identifies.
+
+=head3 What diseases cannot be cured naturally?
+
+Tapeworms, leprosy, and arthritis are all unable to be cured naturally,
+and thus you cannot have an immunity against them.
 
 =head3 Where can I use building materials?
 
@@ -447,6 +452,14 @@ Some of the characters near by might give you hints or explain something.
 
 You can move your mouse over it, and it will tell you how much currency it
 needs.
+
+=head3 How do I join a guild?
+
+To join a player guild, such as the Black Shield or Laughing Skull (not
+the Adventurer's Guild, the Guild of Freedom, or anything else like
+them), you need to be given a key by one of its current members.
+The players might have special tasks and requirements for you, but all that
+is needed is to have the key to enter the guild building and use its features.
 
 =head3 How do I drop items?
 

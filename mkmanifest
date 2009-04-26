@@ -9,6 +9,7 @@
          $base/theme.json		\
          $base/*.png			\
          $base/fonts/*.ttf		\
+         $base/fonts/fonts.conf		\
          $base/music/*.ogg		\
          $base/ui/resist/*.png		\
          $base/pod/*.png		\

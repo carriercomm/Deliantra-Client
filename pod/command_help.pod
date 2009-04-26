@@ -469,6 +469,19 @@ B<mark> will look for best match first, and then look for matches based
 on shortened name, object name, archetype name. It prints the match it
 finds.
 
+=head2 me
+
+   me <message>
+
+Sends a message to all players on the server, similar to chat, but instead
+of using C<name chats: message>, the form C<* name message> is used, which
+is useful to describe yourself, such as:
+
+   me feels lonely
+   =>
+   * schmorp feels lonely
+
+
 =head2 motd
 
 Shows the message of the day. It takes no arguments.
