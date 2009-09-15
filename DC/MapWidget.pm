@@ -848,15 +848,18 @@ sub update_labels {
    length $text
       or return $self->hide;
 
-   my ($cmd, $arg) = $text =~ /^\s*([^[:space:]]*)(.*)$/;
-
    if ($text ne $self->{last_search}) {
       my @match;
 
       if ($text =~ /^(.*?)\s+$/) {
-         @match = [$cmd, "(appended whitespace suppresses completion)"];
+         my ($cmd, $arg) = $text =~ /^\s*([^[:space:]]*)(.*)$/;
+         @match = ([[$cmd,'(appended whitespace suppresses completion)'],$text]);
       } else {
-         my $regexp = do {
+         # @match is [command, penalty, command with arguments] until sort
+
+         my ($cmd, $arg) = $text =~ /^\s*([^[:space:]]*)(.*)$/;
+
+         my $regexp_abbrev = do {
             my ($beg, @chr) = split //, lc $cmd;
 
             # the following regex is used to match our "completion entry"
@@ -868,17 +871,53 @@ sub update_labels {
             qr<$regexp>
          };
 
-         my @penalty;
+         my $regexp_partial = do {
+            my $regexp = "^\Q$text\E(.*)";
+            qr<$regexp>
+         };
 
          for (keys %{$self->{command}}) {
-            if (@penalty = $_ =~ $regexp) {
-               push @match, [$_, length join "", map "::$_", grep defined, @penalty];
+            my @scores;
+
+            # 1. Complete command [with args]
+            #    command is a prefix of the text
+            #    score is length of complete command matched
+            #    e.g. "invoke summon pet monster bat"
+            #         "invoke" "summon pet monster bat" = 6
+            #         "invoke summon pet monster" "bat" = 25
+            if ($text =~ /^\Q$_\E(.*)/) {
+               push @scores, [$_, length $_, $text];
             }
+
+            # 2. Partial command
+            #    text is a prefix of the full command
+            #    score is the length of the input text
+            #    e.g. "invoke s"
+            #         "invoke small fireball" = 8
+            #         "invoke summon pet monster" = 8
+
+            if ($_ =~ $regexp_partial) {
+               push @scores, [$_, length $text, $_];
+            }
+
+            # 3. Abbreviation match
+            #    attempts to use first word of text as an abbreviated command
+            #    score is length of word + 1 - 3 per non-word-initial character
+
+            if (my @penalty = $_ =~ $regexp_abbrev) {
+               push @scores, [$_, (length $cmd) + 1 - (length join "", map "::$_", grep defined, @penalty), "$_$arg"];
+            }
+
+            # Pick the best option for this command
+            push @match, (sort {
+                             $b->[1] <=> $a->[1]
+                          } @scores)[0];
          }
 
-         @match = map $self->{command}{$_->[0]},
+         # @match is now [command object, command with arguments]
+         @match = map [$self->{command}{$_->[0]}, $_->[2]],
                      sort {
-                        $a->[1] <=> $b->[1]
+                        $b->[1] <=> $a->[1]
                            or $self->{command}{$a->[0]}[4] <=> $self->{command}{$b->[0]}[4]
                            or (length $b->[0]) <=> (length $a->[0])
                      } @match;
@@ -907,20 +946,20 @@ sub update_labels {
    }
 
    if (@matches) {
-      $self->{select} = "$matches[0][0]$arg";
+      $self->{select} = "$matches[0][1]";
 
       $labels[0]->{fg} = [0, 0, 0, 1];
       $labels[0]->{bg} = [1, 1, 1, 0.8];
    } else {
-      $self->{select} = "$cmd$arg";
+      $self->{select} = "$text";
    }
 
    for my $match (@matches) {
       my $label = shift @labels;
 
       if (@labels) {
-         $label->set_text ("$match->[0]$arg");
-         $label->set_tooltip ($match->[1]);
+         $label->set_text ("$match->[1]");
+         $label->set_tooltip ("$match->[0][1]");
       } else {
          $label->set_text ("...");
          $label->set_tooltip ("Use Cursor-Down to view more matches");

@@ -550,6 +550,8 @@ sub audio_shutdown {
    %AUDIO_PLAY   = ();
    %AUDIO_CHUNK  = ();
 
+   DC::MixMusic::halt;
+   DC::Mix_AllocateChannels 0;
    DC::Mix_CloseAudio if $SDL_MIXER;
    undef $SDL_MIXER;
 }

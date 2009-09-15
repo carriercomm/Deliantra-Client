@@ -1,5 +1,16 @@
 Revision history for Perl extension Deliantra::Client
 
+TODO: add help to completer, add close tab to completer, do stuff to complete
+TODO: warn about sofwtare renderers
+TODO: [num] indicator malfunctioning
+TODO: cfplus_ext => 2 is sometimes not beign negotiated! (hack in place, need better protocol)
+
+TODO: multi-line paragraphs get indented strangely (book: collection of strange glyphs).
+
+2.05 Tue Sep 15 20:31:15 CEST 2009
+	- changed completer algorithm, thanks go to marcmagus!
+	- try to work around crashes in SDL_Mixer when reinitialising it.
+
 2.04 Sun Apr 26 21:03:40 CEST 2009
 	- work around incompatible ABI change between 1.22 and 1.24 by using a runtime check,
           this really is a bug that needs fixing inside pango.

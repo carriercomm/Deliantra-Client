@@ -39,7 +39,6 @@ pango-font.c
 pango-fontmap.c
 pango-render.c
 
-META.yml                                 Module meta-data (added by MakeMaker)
 
 resources/theme.json
 resources/b1_button_active.png
@@ -179,3 +178,4 @@ pod/manual.pod
 pod/skill_help.pod
 pod/tutorial.pod
 pod/ui.pod
+META.yml                                 Module meta-data (added by MakeMaker)

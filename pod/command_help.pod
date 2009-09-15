@@ -149,8 +149,8 @@ See C<help range> for more information on range weapons.
    drop [number] name
 
 B<name> is the name of the item(s) to drop. It may match multiple items.
-The name is matched against the start of the objects in your inventory.
-The name matching is case insensitive.
+An object name matches when it contains the name. The name matching is
+case insensitive.
 
 There are a few special name values:
 

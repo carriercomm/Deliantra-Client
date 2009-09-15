@@ -659,7 +659,7 @@ If the skill level plus bonus is lower than 100, then the minimum spell
 level comes into play: the minimum level is not only the minimum level
 a caster is required to have, it is also the level where the effective
 casting level equals 1. From there it grows till it reaches casting level
-100, whre the effective level will also be 100.
+100, where the effective level will also be 100.
 
 If the skill level plus bonus is 100 or higher, then this is the effective
 spell level.
