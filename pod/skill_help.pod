@@ -158,8 +158,12 @@ this skill is enough to move faster.
 
 =head2 literacy
 
-You can identify books and scrolls that you hold.  Since scrolls are
-currently always identified, this is not the greatest of skills.
+With this skill you can identify books and scrolls in your inventory,
+giving you more experience that you cna invest into identifying higher
+level books and scrolls.
+
+Literacy is also required to read books and scrolls, and to learn new
+spells and skills from books and scrolls.
 
 =head2 lockpicking
 

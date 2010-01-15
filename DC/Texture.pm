@@ -185,7 +185,7 @@ sub upload {
 
       # decide the amount of space used in the texture
       my ($rw, $rh);
-      my ($ox, $oy); # area shift to lessen effetc of buggy opengl implementations (nvida, ati)
+      my ($ox, $oy); # area shift to lessen effect of buggy opengl implementations (nvida, ati)
       my $render;
 
       if ($self->{render_cb}) {

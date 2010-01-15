@@ -39,7 +39,6 @@ pango-font.c
 pango-fontmap.c
 pango-render.c
 
-
 resources/theme.json
 resources/b1_button_active.png
 resources/b1_button_inactive.png
@@ -61,7 +60,9 @@ resources/g1_hp_gauge_full.png
 resources/g1_mana_gauge_empty.png
 resources/g1_mana_gauge_full.png
 resources/g1_mana_gauge_overflow.png
-resources/hidden.png
+resources/hidden-0.png
+resources/hidden-1.png
+resources/hidden-2.png
 resources/magicmap.png
 resources/noface.png
 resources/s1_slider.png
@@ -179,3 +180,4 @@ pod/skill_help.pod
 pod/tutorial.pod
 pod/ui.pod
 META.yml                                 Module meta-data (added by MakeMaker)
+META.json                                Module meta-data (added by MakeMaker)

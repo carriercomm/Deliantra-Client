@@ -136,6 +136,8 @@ $EV::DIED = sub {
 
 my $MAX_FPS = 60;
 
+our $DEFAULT_SERVER = "gameserver.deliantra.net";
+
 our $META_SERVER = "http://metaserver.schmorp.de/current.json";
 
 our $LAST_REFRESH;
@@ -832,11 +834,13 @@ sub dc_connect {
 
 sub start_game {
    status "logging in...";
+   
+   my $server = $PROFILE->{host} || $DEFAULT_SERVER;
+   my ($host, $port) = AnyEvent::Socket::parse_hostport $server, "deliantra=13327"
+      or return status "$server: unable to parse server address, try an empty field.";
 
    $LOGIN_BUTTON->set_text ("Logout");
    $SETUP_DIALOG->hide;
-
-   my ($host, $port) = AnyEvent::Socket::parse_hostport $PROFILE->{host}, "deliantra=13327";
 
    $MAP = new DC::Map;
 
@@ -1029,6 +1033,16 @@ sub graphics_setup {
          on_changed => sub { my ($self, $value) = @_; $CFG->{smooth_movement} = $value; 0 }
       );
 
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Smooth Transitions");
+      $table->add_at (1, $row++, new DC::UI::CheckBox
+         state => $CFG->{smooth_transitions},
+         tooltip => "<b>Smooth Transitions</b> tries to blend the fog of war and lighting smoothly between updates. "
+                  . "If you have a very slow system, non-accelerated drivers or plain dislike smooth scrolling, "
+                  . "then disable this option. Requires Smooth Movement and OpenGL Multitexturing. Changes take effect immdiately.",
+         on_changed => sub { my ($self, $value) = @_; $CFG->{smooth_transitions} = $value; 0 }
+      );
+
+
       $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Map Scale");
       $table->add_at (1, $row++, new DC::UI::Slider
          range      => [(log $CFG->{map_scale}) / (log 2), -3, 1, 0, 1],
@@ -1050,6 +1064,21 @@ sub graphics_setup {
          state => $CFG->{fow_enable},
          tooltip => "<b>Fog-of-War</b> marks areas that cannot be seen by the player. Changes are instant.",
          on_changed => sub { my ($self, $value) = @_; $CFG->{fow_enable} = $value; 0 }
+      );
+
+      $table->add_at (0, $row, new DC::UI::Label align => 1, text => "FoW Pattern");
+      $table->add_at (1, $row++, new DC::UI::ImageButton
+         tex => $DC::MapWidget::TEX_HIDDEN[$CFG->{fow_texture}],
+         bg  => [0.3, 0.3, 0.2],
+         force_w => 64,
+         force_h => 64,
+         tooltip => "<b>Fog of War Pattern.</b> The pattern that is overlaid over areas hidden from view. Click to cycle through various alternatives. Changes are instant.",
+         on_activate => sub {
+            my ($self) = @_;
+            $CFG->{fow_texture} = ($CFG->{fow_texture} + 1) % @DC::MapWidget::TEX_HIDDEN;
+            $self->set_texture ($DC::MapWidget::TEX_HIDDEN[$CFG->{fow_texture}]);
+            $MAPWIDGET->update;
+         }
       );
 
       $table->add_at (0, $row, new DC::UI::Label align => 1, text => "FoW Intensity");
@@ -2567,6 +2596,8 @@ sub video_init {
    $MODE_SLIDER->emit (changed => $CFG->{sdl_mode});
 
    $CAVEAT_LABEL->set_text ("None :)");
+   $CAVEAT_LABEL->set_text ("Apple/NVIDIA Texture bug (slow)")
+      if $DC::OpenGL::APPLE_NVIDIA_BUG;
    $CAVEAT_LABEL->set_text ("Software Rendering (very slow)")
       unless DC::SDL_GL_GetAttribute DC::SDL_GL_ACCELERATED_VISUAL;
 
@@ -2709,10 +2740,12 @@ sub main {
          force_opengl11      => undef,
          disable_alpha       => 0,
          smooth_movement     => 1,
+         smooth_transitions  => 1,
          texture_compression => 1,
          map_scale           => 1,
          fow_enable          => 1,
          fow_intensity       => 0,
+         fow_texture         => 0,
          map_smoothing       => 1,
          gui_fontsize        => 1,
          log_fontsize        => 0.7,

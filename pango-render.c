@@ -161,6 +161,43 @@ free_glyph_info (glyph_info *g)
   g_slice_free (glyph_info, g);
 }
 
+static int apple_nvidia_bug_workaround;
+
+static void
+apple_nvidia_bug (int enable)
+{
+  apple_nvidia_bug_workaround = enable;
+}
+
+static void
+tex_update (int name, int x, int y, int w, int stride, int h, void *bm)
+{
+  glBindTexture (GL_TEXTURE_2D, name);
+
+  if (!apple_nvidia_bug_workaround)
+    {
+      glPixelStorei (GL_UNPACK_ROW_LENGTH, stride);
+      /*glPixelStorei (GL_UNPACK_ALIGNMENT, 1); expected cfplus default */
+      glTexSubImage2D (GL_TEXTURE_2D, 0, x, y, w, h, GL_ALPHA, GL_UNSIGNED_BYTE, bm);
+      /*glPixelStorei (GL_UNPACK_ALIGNMENT, 4);*/
+      glPixelStorei (GL_UNPACK_ROW_LENGTH, 0);
+    }
+  else
+    {
+      /* starting with 10.5.5 (or 10.5.6), pple's nvidia driver corrupts textures */
+      /* when glTexSubImage is used, so do it the horribly slow way, */
+      /* reading/patching/uploading the full texture one each change */
+      int r;
+
+      glGetTexImage (GL_TEXTURE_2D, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tc_temptile);
+
+      for (r = 0; r < h; ++r)
+        memcpy (tc_temptile + (y + r) * TC_WIDTH + x, (char *)bm + r * stride, w);
+
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, TC_WIDTH, TC_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tc_temptile);
+    }
+}
+
 static void
 draw_glyph (PangoRenderer *renderer_, PangoFont *font, PangoGlyph glyph, double x, double y)
 {
@@ -198,14 +235,7 @@ draw_glyph (PangoRenderer *renderer_, PangoFont *font, PangoGlyph glyph, double 
       tc_get (&g->tex, bm.width, bm.height);
 
       if (bm.width && bm.height)
-        {
-          glBindTexture (GL_TEXTURE_2D, g->tex.name);
-          glPixelStorei (GL_UNPACK_ROW_LENGTH, bm.stride);
-          glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-          glTexSubImage2D (GL_TEXTURE_2D, 0, g->tex.x, g->tex.y, bm.width, bm.height, GL_ALPHA, GL_UNSIGNED_BYTE, bm.bitmap);
-          glPixelStorei (GL_UNPACK_ROW_LENGTH, 0);
-          glPixelStorei (GL_UNPACK_ALIGNMENT, 4);
-        }
+        tex_update (g->tex.name, g->tex.x, g->tex.y, bm.width, bm.stride, bm.height, bm.bitmap);
     }
 
   x += g->left;

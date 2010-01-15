@@ -11,6 +11,8 @@ our $GL_VERSION;
 our $GL_NPOT;
 our $GL_COMPRESS;
 our $GL_BFSEP; # blendfuncseparate
+our $GL_MULTITEX;
+our $APPLE_NVIDIA_BUG;
 
 our $DEBUG = 1;
 our %INIT_HOOK;
@@ -39,11 +41,11 @@ sub init {
          $GL_VERSION >= 2.0
          && (!$GL_EXT{GL_ARB_texture_non_power_of_two}
              || !$GL_EXT{GL_EXT_blend_func_separate})
-     ) {
-        $::CFG->{force_opengl11} = 1;
-     } else {
-        $::CFG->{force_opengl11} = 0;
-     }
+      ) {
+         $::CFG->{force_opengl11} = 1;
+      } else {
+         $::CFG->{force_opengl11} = 0;
+      }
    }
 
    if ($::CFG->{force_opengl11}) {
@@ -54,8 +56,13 @@ sub init {
    $GL_BFSEP    = $GL_EXT{GL_EXT_blend_func_separate}      || $GL_VERSION >= 2.0;
    $GL_NPOT     = $GL_EXT{GL_ARB_texture_non_power_of_two} || $GL_VERSION >= 2.0;
    $GL_COMPRESS = $GL_EXT{GL_ARB_texture_compression}      || $GL_VERSION >= 1.3;
+   $GL_MULTITEX = $GL_EXT{GL_ARB_multitexture}             || $GL_VERSION >= 1.3;
+   $GL_MULTITEX &&= 2 <= glGetInteger GL_MAX_TEXTURE_UNITS;
 
    $GL_COMPRESS = 0 if DC::OpenGL::gl_vendor eq "Apple Computer, Inc."; # there is no end to their suckage
+
+   $APPLE_NVIDIA_BUG = DC::OpenGL::gl_vendor eq "NVIDIA Corporation" && $^O eq "darwin";
+   apple_nvidia_bug $APPLE_NVIDIA_BUG;
 
    disable_GL_EXT_blend_func_separate
       unless $GL_BFSEP;
@@ -76,6 +83,7 @@ sub init {
    #glDrawBuffer GL_BACK;
    #glReadBuffer GL_BACK;
 
+   c_init;
    $_->() for values %INIT_HOOK;
 }
 

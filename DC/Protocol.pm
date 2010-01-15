@@ -20,10 +20,7 @@ our $TEX_DIALOGUE = new_from_resource DC::Texture
          "dialogue.png", minify => 1, mipmap => 1;
 
 our $TEX_NOFACE = new_from_resource DC::Texture
-        "noface.png", minify => 1, mipmap => 1;
-
-our $TEX_HIDDEN = new_from_resource DC::Texture
-        "hidden.png", minify => 1, mipmap => 1;
+        "noface.png", minify => 1, mipmap => 1, wrap => 1;
 
 sub MIN_TEXTURE_UNUSED() { 1 }#d#
 
@@ -98,11 +95,6 @@ sub new {
    {
       $self->{noface} = my $tex = $TEX_NOFACE;
       $self->{map}->set_texture (2, @$tex{qw(name w h s t)}, @{$tex->{minified}});
-   }
-
-   {
-      $self->{hidden} = my $tex = $TEX_HIDDEN;
-      $self->{map}->set_texture (3, @$tex{qw(name w h s t)}, @{$tex->{minified}});
    }
 
 #   $self->{expire_count} = DC::DB::FIRST_TILE_ID; # minimum non-fixed tile id
@@ -412,7 +404,7 @@ sub _stat_skillmaskdiff {
                  }
               sort { $a <=> $b } keys %{$self->{spell_paths}};
 
-   join "", @diff
+   "\u$name: " . (join ", ", @diff)
 }
 
 # all stats that are chacked against changes
@@ -477,7 +469,7 @@ sub stats_update {
    if (
       my @diffs = map $_->[1]->($self, $_->[2], $prev->{$_->[0]}, $stats->{$_->[0]}), @statchange
    ) {
-      my $msg = "<b>stat change</b>: " . (join " ", @diffs);
+      my $msg = "<b>stat change</b>: " . (join " ", map "($_)", @diffs);
       $self->{statusbox}->add ($msg, group => "stat $msg", fg => [0.8, 1, 0.2, 1], timeout => 20);
    }
 
@@ -1000,7 +992,7 @@ sub have_tile {
       new DC::Texture
          tile => $tile,
          image => $data, delete_image => 1,
-         minify => 1, mipmap => 1;
+         minify => 1;
 
    if (my $cbs = delete $self->{tile_cb}{$tile}) {
       $_->($tex) for @$cbs;

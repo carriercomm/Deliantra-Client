@@ -12,6 +12,11 @@ use DC::Macro;
 
 our @ISA = DC::UI::Base::;
 
+our @TEX_HIDDEN = map {
+   new_from_resource DC::Texture # MUST be POT
+        "hidden-$_.png", mipmap => 1, wrap => 1
+   } 0, 1, 2;
+
 my $magicmap_tex =
       new_from_resource DC::Texture "magicmap.png",
          mipmap => 1, wrap => 0, internalformat => GL_ALPHA;
@@ -398,12 +403,19 @@ sub set_tilesize {
 sub scroll {
    my ($self, $dx, $dy) = @_;
 
-   $::MAP->scroll ($dx, $dy);
-
    $self->movement_update;
 
    $self->{sdx} += $dx * $self->{tilesize}; # smooth displacement
    $self->{sdy} += $dy * $self->{tilesize};
+
+   # save old fow texture, if applicable
+   $self->{prev_fow_texture} = $::CFG->{smooth_transitions} && $self->{fow_texture};
+   $self->{lfdx} = $dx;
+   $self->{lfdy} = $dy;
+   $self->{lmdx} = $self->{dx};
+   $self->{lmdy} = $self->{dy};
+
+   $::MAP->scroll ($dx, $dy);
 }
 
 sub set_magicmap {
@@ -484,13 +496,8 @@ sub refresh_hook {
          my $dy = $self->{dy} = DC::ceil 0.5 * ($::MAP->h - $sh) - $sy;
 
          if ($::CFG->{fow_enable}) {
-            $sdx_t = $sdy_t = 0;#d#
-            my ($w, $h, $data) = $::MAP->fow_texture (
-               $dx + (min 0, $sdx_t),
-               $dy + (min 0, $sdy_t),
-               $sw + abs $sdx_t,
-               $sh + abs $sdy_t
-            );
+            # draw_fow_texture REQUIRES the fow texture to stay the same size.
+            my ($w, $h, $data) = $::MAP->fow_texture ($dx, $dy, $sw, $sh);
 
             $self->{fow_texture} = new DC::Texture
                w              => $w,
@@ -514,21 +521,30 @@ sub refresh_hook {
                        $::CONN->{player}{tag},
                        -$self->{sdx}, -$self->{sdy});
 
-         #glTranslate -$self->{sdx}, -$self->{sdy}; # anchor fow at player
          glScale $self->{tilesize}, $self->{tilesize};
 
          if (my $tex = $self->{fow_texture}) {
-            glPushMatrix;
-            glTranslate +(min 0, $sdx_t), (min 0, $sdy_t);
-            glScale 1/3, 1/3;
-            glEnable GL_TEXTURE_2D;
-            glTexEnv GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE;
+            my @prev_fow_params;
 
-            glColor +($::CFG->{fow_intensity}) x 3, 0.9;
-            $self->{fow_texture}->draw_quad_alpha (0, 0);
+            if ($DC::OpenGL::GL_MULTITEX && $self->{prev_fow_texture}) {
+               my $d1 = DC::distance $self->{sdx}, $self->{sdy};
+               my $d2 = (DC::distance $self->{lfdx}, $self->{lfdy}) * $tilesize;
 
-            glDisable GL_TEXTURE_2D;
-            glPopMatrix;
+               if ($d1 * $d2) {
+                  @prev_fow_params = (
+                     (min 1, $d1 / $d2),
+                     $self->{lmdx} - $dx - $self->{lfdx},
+                     $self->{lmdy} - $dy - $self->{lfdy},
+                     @{$self->{prev_fow_texture}}{qw(name data)}
+                  );
+               }
+            }
+
+            DC::Texture::draw_fow_texture
+               $::CFG->{fow_intensity},
+               $TEX_HIDDEN[$::CFG->{fow_texture}]{name},
+               @{$self->{fow_texture}}{qw(name data s t w h)},
+               @prev_fow_params;
          }
 
          if ($self->{magicmap}) {
@@ -539,13 +555,16 @@ sub refresh_hook {
 
             glTranslate - $x - 1, - $y - 1;
             glBindTexture GL_TEXTURE_2D, $magicmap_tex->{name};
-            $::MAP->draw_magicmap ($x, $y, $w, $h, $data);
+            $::MAP->draw_magicmap ($w, $h, $data);
          }
 
          glPopMatrix;
          glEndList;
       }
    } else {
+      delete $self->{last_fow_texture};
+      delete $self->{fow_texture};
+
       glDeleteList delete $self->{list}
          if $self->{list};
    }

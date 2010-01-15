@@ -399,6 +399,21 @@ name will be killed, e.g. killpets bat will kill bats
 but not bees. If a number is specified, the pet 
 corresponding to that number is killed.
 
+=head2 lock
+
+   lock [object]
+
+The lock command is a quick and convenient way to
+lock items in your inventory.
+
+If a object name is specified then only the
+objects that match that name are locked.
+e.g lock materials will lock any materials
+in your inventory and not touch anything else.
+
+lock by itself will lock everything in your
+inventory.
+
 =head2 mapinfo
 
 Shows some information about the map like this:
@@ -735,9 +750,12 @@ it. Doing B<save> and then B<quit>ing will still delete your character.
    search-items <word>
 
 Automatically picks up all items with <word> in their name. C<search-items
-rod> will pick up all rods and heavy rods. C<search-items of Fire> will
+rod> will pick up all rods and heavy rods. C<search-items of fire> will
 pick up all bolts, arrows, swords, etc. of Fire, C<search-items magic+1>
 will pick up all items with magic+1, and so on, and so on.
+
+You can also specify C<all> (to pick up I<everything>), C<cursed> to pick
+up only cursed items or C<unpaid>, which picks up only unpaid items.
 
 While this mode is active, you will be slower and the normal autopickup is
 disabled. To disable search mode again, execute C<search-items> without
@@ -907,6 +925,22 @@ Dragons cannot set their title because it changes during the game.
    unignore <login>
 
 Cancels all ignores set for the specified login. See B<ignore>.
+
+=head2 unlock
+
+   unlock [object]
+
+The unlock command is a quick and convenient way to
+unlock items in your inventory.
+
+If a object name is specified then only the
+objects that match that name are unlocked.
+
+e.g unlock materials will unlock any materials
+in your inventory and not touch anything else.
+
+unlock by itself will unlock everything in your
+inventory.
 
 =head2 uptime
 

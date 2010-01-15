@@ -19,6 +19,9 @@ static void tc_restore (void);
 
 /////////////////////////////////////////////////////////////////////////////
 
+// required as bug-workaround for apple/ati/...
+static unsigned char tc_temptile [TC_WIDTH * TC_HEIGHT];
+
 #include <glib.h>
 
 int tc_generation;
@@ -58,37 +61,42 @@ tc_clear (void)
 }
 
 void
+tex_backup (tc_texture *tex)
+{
+  tex->saved = g_slice_alloc (TC_WIDTH * TC_HEIGHT);
+
+  glBindTexture (GL_TEXTURE_2D, tex->name);
+  glGetTexImage (GL_TEXTURE_2D, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex->saved);
+}
+
+void
+tex_restore (tc_texture *tex)
+{
+  glBindTexture (GL_TEXTURE_2D, tex->name);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, TC_WIDTH, TC_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex->saved);
+
+  g_slice_free1 (TC_WIDTH * TC_HEIGHT, tex->saved);
+  tex->saved = 0;
+}
+
+void
 tc_backup (void)
 {
-  tc_texture *tex = first_texture;
-  while (tex)
-    {
-      tex->saved = g_slice_alloc (TC_WIDTH * TC_HEIGHT);
-
-      glBindTexture (GL_TEXTURE_2D, tex->name);
-      glGetTexImage (GL_TEXTURE_2D, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex->saved);
-
-      tex = tex->next;
-    }
+  tc_texture *tex;
+  
+  for (tex = first_texture; tex; tex = tex->next)
+    tex_backup (tex);
 }
 
 void
 tc_restore (void)
 {
-  tc_texture *tex = first_texture;
-
-  while (tex)
-    {
-      glBindTexture (GL_TEXTURE_2D, tex->name);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, TC_WIDTH, TC_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, tex->saved);
-
-      g_slice_free1 (TC_WIDTH * TC_HEIGHT, tex->saved);
-      tex->saved = 0;
-
-      tex = tex->next;
-    }
+  tc_texture *tex;
+  
+  for (tex = first_texture; tex; tex = tex->next)
+    tex_restore (tex);
 }
 
 void
@@ -124,7 +132,14 @@ tc_get (tc_area *area, int width, int height)
           glBindTexture (GL_TEXTURE_2D, match->name);
           glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
           glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-          glTexImage2D (GL_TEXTURE_2D, 0, GL_ALPHA, TC_WIDTH, TC_HEIGHT, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
+
+          // the last parameter should be NULL, but way too amny drivers (ATI, Mesa) crash,
+          // so we better provide some random garbage data for them.
+          glTexImage2D (GL_TEXTURE_2D,
+                        0, GL_ALPHA,
+                        TC_WIDTH, TC_HEIGHT,
+                        0, GL_ALPHA,
+                        GL_UNSIGNED_BYTE, tc_temptile);
         }
 
       match->avail -= slice_height;

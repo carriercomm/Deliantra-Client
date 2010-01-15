@@ -21,7 +21,6 @@
 # undef pipe
 // microsoft vs. C
 # define sqrtf(x) sqrt(x)
-# define roundf(x) (int)(x)
 # define atan2f(x,y) atan2(x,y)
 # define M_PI 3.14159265f
 #endif
@@ -44,6 +43,8 @@
 /* work around os x broken headers */
 #ifdef __MACOSX__
 typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
+typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC) (GLenum texture);
+typedef void (APIENTRYP PFNGLMULTITEXCOORD2FPROC) (GLenum target, GLfloat s, GLfloat t);
 #endif
 
 #define PANGO_ENABLE_BACKEND
@@ -83,7 +84,10 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 
 #define OBJ_STR "\xef\xbf\xbc" /* U+FFFC, object replacement character */
 
-#define FOW_DARKNESS 64
+/* this is used as fow flag as well, so has to have a different value */
+/* then anything that is computed by incoming darkness */
+#define FOW_DARKNESS 50
+#define DARKNESS_ADJUST(n) (n)
 
 #define MAP_EXTEND_X  32
 #define MAP_EXTEND_Y 512
@@ -97,7 +101,6 @@ typedef void (APIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum d
 
 #define TEXID_SPEECH 1
 #define TEXID_NOFACE 2
-#define TEXID_HIDDEN 3
 
 static AV *texture_av;
 
@@ -823,6 +826,12 @@ IV minpot (UV n)
 
 IV popcount (UV n)
 
+NV distance (NV dx, NV dy)
+	CODE:
+        RETVAL = pow (dx * dx + dy * dy, 0.5);
+	OUTPUT:
+        RETVAL
+
 void
 pango_init ()
 	CODE:
@@ -923,6 +932,9 @@ SDL_SetVideoMode (int w, int h, int rgb, int alpha, int fullscreen)
 #define GL_FUNC(ptr,name) gl.name = (ptr)SDL_GL_GetProcAddress ("gl" # name);
 #include "glfunc.h"
 #undef GL_FUNC
+
+            if (!gl.ActiveTexture  ) gl.ActiveTexture   = gl.ActiveTextureARB;
+            if (!gl.MultiTexCoord2f) gl.MultiTexCoord2f = gl.MultiTexCoord2fARB;
           }
 }
 	OUTPUT:
@@ -1660,6 +1672,127 @@ draw_quad (SV *self, float x, float y, float w = 0., float h = 0.)
           }
 }
 
+void
+draw_fow_texture (float intensity, int hidden_tex, int name1, uint8_t *data1, float s, float t, int w, int h, float blend = 0.f, int dx = 0, int dy = 0, int name2 = 0, uint8_t *data2 = data1)
+	PROTOTYPE: @
+	CODE:
+{
+        glEnable (GL_BLEND);
+        glBlendFunc (intensity ? GL_SRC_ALPHA : GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable (GL_TEXTURE_2D);
+        glBindTexture (GL_TEXTURE_2D, name1);
+
+        glColor3f (intensity, intensity, intensity);
+        glPushMatrix ();
+        glScalef (1./3, 1./3, 1.);
+
+        if (blend > 0.f)
+          {
+            float dx3 = dx * -3.f / w;
+            float dy3 = dy * -3.f / h;
+            GLfloat env_color[4] = { 0., 0., 0., blend };
+
+            /* interpolate the two shadow textures */
+            /* stage 0 == rgb(glcolor) + alpha(t0) */
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+            /* stage 1 == rgb(glcolor) + alpha(interpolate t0, t1, texenv) */
+            gl.ActiveTexture (GL_TEXTURE1);
+            glEnable (GL_TEXTURE_2D);
+            glBindTexture (GL_TEXTURE_2D, name2);
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+
+            /* rgb == rgb(glcolor) */
+            glTexEnvi (GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+            glTexEnvi (GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+            glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+
+            /* alpha = interpolate t0, t1 by env_alpha */
+            glTexEnvfv (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, env_color);
+
+            glTexEnvi (GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_INTERPOLATE);
+            glTexEnvi (GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+            glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+
+            glTexEnvi (GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_PREVIOUS);
+            glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
+
+            glTexEnvi (GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, GL_CONSTANT);
+            glTexEnvi (GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
+
+            glBegin (GL_QUADS);
+            gl.MultiTexCoord2f (GL_TEXTURE0, 0, 0); gl.MultiTexCoord2f (GL_TEXTURE1, dx3    , dy3    ); glVertex2i (0, 0);
+            gl.MultiTexCoord2f (GL_TEXTURE0, 0, t); gl.MultiTexCoord2f (GL_TEXTURE1, dx3    , dy3 + t); glVertex2i (0, h);
+            gl.MultiTexCoord2f (GL_TEXTURE0, s, t); gl.MultiTexCoord2f (GL_TEXTURE1, dx3 + s, dy3 + t); glVertex2i (w, h);
+            gl.MultiTexCoord2f (GL_TEXTURE0, s, 0); gl.MultiTexCoord2f (GL_TEXTURE1, dx3 + s, dy3    ); glVertex2i (w, 0);
+            glEnd ();
+
+            glDisable (GL_TEXTURE_2D);
+            gl.ActiveTexture (GL_TEXTURE0);
+          }
+        else
+          {
+            /* simple blending of one texture, also opengl <1.3 path */
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+            glBegin (GL_QUADS);
+            glTexCoord2f (0, 0); glVertex2f (0, 0);
+            glTexCoord2f (0, t); glVertex2f (0, h);
+            glTexCoord2f (s, t); glVertex2f (w, h);
+            glTexCoord2f (s, 0); glVertex2f (w, 0);
+            glEnd ();
+          }
+
+        /* draw ?-marks or equivalent, this is very clumsy code :/ */
+        {
+          int x, y;
+          int dx3 = dx * 3;
+          int dy3 = dy * 3;
+
+          glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+          glBindTexture (GL_TEXTURE_2D, hidden_tex);
+          glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+          glTranslatef (-1., -1., 0);
+          glBegin (GL_QUADS);
+
+          for (y = 1; y < h; y += 3)
+            {
+              int y1 = y - dy3;
+              int y1valid = y1 >= 0 && y1 < h;
+
+              for (x = 1; x < w; x += 3)
+                {
+                  int x1 = x - dx3;
+                  uint8_t h1 = data1 [x + y * w] == DARKNESS_ADJUST (255 - FOW_DARKNESS);
+                  uint8_t h2;
+
+                  if (y1valid && x1 >= 0 && x1 < w)
+                    h2 = data2 [x1 + y1 * w] == DARKNESS_ADJUST (255 - FOW_DARKNESS);
+                  else
+                    h2 = 1; /* out of range == invisible */
+
+                  if (h1 || h2)
+                    {
+                      float alpha = h1 == h2 ? 1.f : h1 ? 1.f - blend : blend;
+                      glColor4f (1., 1., 1., alpha);
+
+                      glTexCoord2f (0, 0.); glVertex2i (x    , y    );
+                      glTexCoord2f (0, 1.); glVertex2i (x    , y + 3);
+                      glTexCoord2f (1, 1.); glVertex2i (x + 3, y + 3);
+                      glTexCoord2f (1, 0.); glVertex2i (x + 3, y    );
+                    }
+                }
+            }
+        }
+
+        glEnd ();
+
+        glPopMatrix ();
+
+        glDisable (GL_TEXTURE_2D);
+        glDisable (GL_BLEND);
+}
+
 IV texture_valid_2d (GLint internalformat, GLsizei w, GLsizei h, GLenum format, GLenum type)
 	CODE:
 {
@@ -1883,7 +2016,7 @@ map1a_update (DC::Map self, SV *data_, int extmap)
                             cmd = ext & 0x7f;
 
                             if (cmd < 4)
-                              cell->darkness = 255 - ext * 64 + 1;
+                              cell->darkness = 255 - ext * 64 + 1; /* make sure this doesn't collide with FOW_DARKNESS */
                             else if (cmd == 5) // health
                               {
                                 cell->stat_width = 1;
@@ -2014,7 +2147,7 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
         rc_t *rc    = rc_alloc ();
         rc_t *rc_ov = rc_alloc ();
         rc_key_t key;
-        rc_array_t *arr, *arr_hidden;
+        rc_array_t *arr;
 
         pl_tex.name = 0;
 
@@ -2061,9 +2194,6 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
         glEnable (GL_BLEND);
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-        key.texname = self->tex [TEXID_HIDDEN].name;
-        arr_hidden = rc_array (rc_ov, &key);
 
         for (z = 0; z <= 2; z++)
           {
@@ -2153,40 +2283,24 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
                               }
                           }
 
-                        if (expect_false (z == 2))
+                        if (expect_false (z == 2) && expect_false (cell->flags))
                           {
-                            /* draw question marks on top of hidden spaces */
-                            if (!cell->darkness)
+                            // overlays such as the speech bubble, probably more to come
+                            if (cell->flags & 1)
                               {
-                                maptex tex = self->tex [TEXID_HIDDEN];
-                                int px = (x + 1) * T - tex.w;
-                                int py = (y + 1) * T - tex.h;
+                                rc_key_t key_ov = key;
+                                maptex tex = self->tex [TEXID_SPEECH];
+                                rc_array_t *arr;
+                                int px = x * T + T * 2 / 32;
+                                int py = y * T - T * 6 / 32;
 
-                                rc_t2f_v3f (arr_hidden, 0    , 0    , px        , py        , 0);
-                                rc_t2f_v3f (arr_hidden, 0    , tex.t, px        , py + tex.h, 0);
-                                rc_t2f_v3f (arr_hidden, tex.s, tex.t, px + tex.w, py + tex.h, 0);
-                                rc_t2f_v3f (arr_hidden, tex.s, 0    , px + tex.w, py        , 0);
-                              }
+                                key_ov.texname = tex.name;
+                                arr = rc_array (rc_ov, &key_ov);
 
-                            if (expect_false (cell->flags))
-                              {
-                                // overlays such as the speech bubble, probably more to come
-                                if (cell->flags & 1)
-                                  {
-                                    rc_key_t key_ov = key;
-                                    maptex tex = self->tex [TEXID_SPEECH];
-                                    rc_array_t *arr;
-                                    int px = x * T + T * 2 / 32;
-                                    int py = y * T - T * 6 / 32;
-
-                                    key_ov.texname = tex.name;
-                                    arr = rc_array (rc_ov, &key_ov);
-
-                                    rc_t2f_v3f (arr, 0    , 0    , px    , py    , 0);
-                                    rc_t2f_v3f (arr, 0    , tex.t, px    , py + T, 0);
-                                    rc_t2f_v3f (arr, tex.s, tex.t, px + T, py + T, 0);
-                                    rc_t2f_v3f (arr, tex.s, 0    , px + T, py    , 0);
-                                  }
+                                rc_t2f_v3f (arr, 0    , 0    , px    , py    , 0);
+                                rc_t2f_v3f (arr, 0    , tex.t, px    , py + T, 0);
+                                rc_t2f_v3f (arr, tex.s, tex.t, px + T, py + T, 0);
+                                rc_t2f_v3f (arr, tex.s, 0    , px + T, py    , 0);
                               }
                           }
                       }
@@ -2339,36 +2453,42 @@ draw (DC::Map self, int mx, int my, int sw, int sh, int T, U32 player = 0xffffff
 }
 
 void
-draw_magicmap (DC::Map self, int dx, int dy, int w, int h, unsigned char *data)
+draw_magicmap (DC::Map self, int w, int h, unsigned char *data)
 	CODE:
 {
 	static float color[16][3] = {
-           { 0.00F, 0.00F, 0.00F },
-           { 1.00F, 1.00F, 1.00F },
-           { 0.00F, 0.00F, 0.55F },
-           { 1.00F, 0.00F, 0.00F },
+           { 0.00f, 0.00f, 0.00f },
+           { 1.00f, 1.00f, 1.00f },
+           { 0.00f, 0.00f, 0.55f },
+           { 1.00f, 0.00f, 0.00f },
 
-           { 1.00F, 0.54F, 0.00F },
-           { 0.11F, 0.56F, 1.00F },
-           { 0.93F, 0.46F, 0.00F },
-           { 0.18F, 0.54F, 0.34F },
+           { 1.00f, 0.54f, 0.00f },
+           { 0.11f, 0.56f, 1.00f },
+           { 0.93f, 0.46f, 0.00f },
+           { 0.18f, 0.54f, 0.34f },
 
-           { 0.56F, 0.73F, 0.56F },
-           { 0.80F, 0.80F, 0.80F },
-           { 0.55F, 0.41F, 0.13F },
-           { 0.99F, 0.77F, 0.26F },
+           { 0.56f, 0.73f, 0.56f },
+           { 0.80f, 0.80f, 0.80f },
+           { 0.55f, 0.41f, 0.13f },
+           { 0.99f, 0.77f, 0.26f },
 
-           { 0.74F, 0.65F, 0.41F },
+           { 0.74f, 0.65f, 0.41f },
 
-           { 0.00F, 1.00F, 1.00F },
-           { 1.00F, 0.00F, 1.00F },
-           { 1.00F, 1.00F, 0.00F },
+           { 0.00f, 1.00f, 1.00f },
+           { 1.00f, 0.00f, 1.00f },
+           { 1.00f, 1.00f, 0.00f },
         };
         
 	int x, y;
 
 	glEnable (GL_TEXTURE_2D);
-        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        /* GL_REPLACE would be correct, as we don't need to modulate alpha,
+         * but the nvidia driver (185.18.14) mishandles alpha textures
+         * and takes the colour from god knows where instead of using
+         * Cp. MODULATE results in the same colour, but slightly different
+         * alpha, but atcually gives us the correct colour with nvidia.
+         */
+        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         glEnable (GL_BLEND);
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin (GL_QUADS);
@@ -2382,10 +2502,10 @@ draw_magicmap (DC::Map self, int dx, int dy, int w, int h, unsigned char *data)
                 {
                   float *c = color [m & 15];
 
-                  float tx1 = m & 0x40 ? 0.5 : 0.;
-                  float tx2 = tx1 + 0.5;
+                  float tx1 = m & 0x40 ? 0.5f : 0.f;
+                  float tx2 = tx1 + 0.5f;
 
-                  glColor4f (c[0], c[1], c[2], 0.75);
+                  glColor4f (c[0], c[1], c[2], 1);
                   glTexCoord2f (tx1, 0.); glVertex2i (x    , y    );
                   glTexCoord2f (tx1, 1.); glVertex2i (x    , y + 1);
                   glTexCoord2f (tx2, 1.); glVertex2i (x + 1, y + 1);
@@ -2403,21 +2523,19 @@ fow_texture (DC::Map self, int mx, int my, int sw, int sh)
 	PPCODE:
 {
         int x, y;
-        int sw1  = sw + 2;
-        int sh1  = sh + 2;
-        int sh3  = sh * 3;
-        int sw34 = (sw * 3 + 3) & ~3;
+        int sw1 = sw + 2;
+        int sh1 = sh + 2;
+        int sh3 = sh * 3;
+        int sw3 = sw * 3;
         uint8_t *darkness1 = (uint8_t *)malloc (sw1 * sh1);
-        SV *darkness3_sv = sv_2mortal (newSV (sw34 * sh3));
+        SV *darkness3_sv = sv_2mortal (newSV (sw3 * sh3));
         uint8_t *darkness3 = (uint8_t *)SvPVX (darkness3_sv);
 
         SvPOK_only (darkness3_sv);
-        SvCUR_set (darkness3_sv, sw34 * sh3);
+        SvCUR_set (darkness3_sv, sw3 * sh3);
 
         mx += self->x - 1;
         my += self->y - 1;
-
-        memset (darkness1, 255 - FOW_DARKNESS, sw1 * sh1);
 
         for (y = 0; y < sh1; y++)
           if (0 <= y + my && y + my < self->rows)
@@ -2430,8 +2548,8 @@ fow_texture (DC::Map self, int mx, int my, int sw, int sh)
                     mapcell *cell = row->col + (x + mx - row->c0);
 
                     darkness1 [y * sw1 + x] = cell->darkness
-                      ? 255 - (cell->darkness - 1)
-                      : 255 - FOW_DARKNESS;
+                      ? DARKNESS_ADJUST (255 - (cell->darkness - 1))
+                      : DARKNESS_ADJUST (255 - FOW_DARKNESS);
                   }
             }
 
@@ -2460,21 +2578,21 @@ fow_texture (DC::Map self, int mx, int my, int sw, int sh)
               uint8_t r23 = d23;
               uint8_t r33 = (d23 + d33 + d32) / 3;
 
-              darkness3 [(y * 3    ) * sw34 + (x * 3    )] = MAX (d22, r11);
-              darkness3 [(y * 3    ) * sw34 + (x * 3 + 1)] = MAX (d22, r21);
-              darkness3 [(y * 3    ) * sw34 + (x * 3 + 2)] = MAX (d22, r31);
-              darkness3 [(y * 3 + 1) * sw34 + (x * 3    )] = MAX (d22, r12);
-              darkness3 [(y * 3 + 1) * sw34 + (x * 3 + 1)] = MAX (d22, r22);
-              darkness3 [(y * 3 + 1) * sw34 + (x * 3 + 2)] = MAX (d22, r32);
-              darkness3 [(y * 3 + 2) * sw34 + (x * 3    )] = MAX (d22, r13);
-              darkness3 [(y * 3 + 2) * sw34 + (x * 3 + 1)] = MAX (d22, r23);
-              darkness3 [(y * 3 + 2) * sw34 + (x * 3 + 2)] = MAX (d22, r33);
+              darkness3 [(y * 3    ) * sw3 + (x * 3    )] = MAX (d22, r11);
+              darkness3 [(y * 3    ) * sw3 + (x * 3 + 1)] = MAX (d22, r21);
+              darkness3 [(y * 3    ) * sw3 + (x * 3 + 2)] = MAX (d22, r31);
+              darkness3 [(y * 3 + 1) * sw3 + (x * 3    )] = MAX (d22, r12);
+              darkness3 [(y * 3 + 1) * sw3 + (x * 3 + 1)] = MAX (d22, r22); /* this MUST be == d22 */
+              darkness3 [(y * 3 + 1) * sw3 + (x * 3 + 2)] = MAX (d22, r32);
+              darkness3 [(y * 3 + 2) * sw3 + (x * 3    )] = MAX (d22, r13);
+              darkness3 [(y * 3 + 2) * sw3 + (x * 3 + 1)] = MAX (d22, r23);
+              darkness3 [(y * 3 + 2) * sw3 + (x * 3 + 2)] = MAX (d22, r33);
             }
 
         free (darkness1);
 
         EXTEND (SP, 3);
-        PUSHs (sv_2mortal (newSViv (sw34)));
+        PUSHs (sv_2mortal (newSViv (sw3)));
         PUSHs (sv_2mortal (newSViv (sh3)));
         PUSHs (darkness3_sv);
 }
@@ -2741,7 +2859,7 @@ set_position_r (DC::Channel self, int dx, int dy, int maxdistance)
 	CODE:
 {
 	int distance = sqrtf (dx * dx + dy * dy) * (255.f / sqrtf (maxdistance * maxdistance));
-        int angle = 360 + (int)roundf (atan2f (dx, -dy) * 180.f / (float)M_PI);
+        int angle = atan2f (dx, -dy) * 180.f / (float)M_PI + 360.f;
         Mix_SetPosition (self, angle, CLAMP (distance, 0, 255));
 }
 
@@ -2854,6 +2972,7 @@ BOOT:
         const_iv (GL_VENDOR),
         const_iv (GL_VERSION),
         const_iv (GL_EXTENSIONS),
+        const_iv (GL_MAX_TEXTURE_UNITS),
 	const_iv (GL_COLOR_MATERIAL),
 	const_iv (GL_SMOOTH),
 	const_iv (GL_FLAT),
@@ -2875,6 +2994,10 @@ BOOT:
 	const_iv (GL_DST_ALPHA),
 	const_iv (GL_ONE_MINUS_SRC_ALPHA),
 	const_iv (GL_ONE_MINUS_DST_ALPHA),
+	const_iv (GL_SRC_COLOR),
+	const_iv (GL_DST_COLOR),
+	const_iv (GL_ONE_MINUS_SRC_COLOR),
+	const_iv (GL_ONE_MINUS_DST_COLOR),
 	const_iv (GL_SRC_ALPHA_SATURATE),
 	const_iv (GL_RGB),
 	const_iv (GL_RGBA),
@@ -2952,6 +3075,9 @@ BOOT:
         const_iv (GL_V3F),
         const_iv (GL_T2F_V3F),
         const_iv (GL_T2F_N3F_V3F),
+        const_iv (GL_FUNC_ADD),
+        const_iv (GL_FUNC_SUBTRACT),
+        const_iv (GL_FUNC_REVERSE_SUBTRACT),
 #	undef const_iv
   };
     
@@ -2967,6 +3093,9 @@ disable_GL_EXT_blend_func_separate ()
 	CODE:
         gl.BlendFuncSeparate    = 0;
         gl.BlendFuncSeparateEXT = 0;
+
+void
+apple_nvidia_bug (int enable)
 
 char *
 gl_vendor ()
@@ -3025,6 +3154,8 @@ void glBlendFunc (int sfactor, int dfactor)
 void glBlendFuncSeparate (int sa, int da, int saa, int daa)
 	CODE:
         gl_BlendFuncSeparate (sa, da, saa, daa);
+
+# void glBlendEquation (int se)
 
 void glDepthMask (int flag)
 
@@ -3184,6 +3315,11 @@ void glNewList (int list, int mode = GL_COMPILE)
 void glEndList ()
 
 void glCallList (int list)
+
+void c_init ()
+	CODE:
+        glPixelStorei (GL_PACK_ALIGNMENT  , 1);
+        glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 MODULE = Deliantra::Client	PACKAGE = DC::UI::Base
 

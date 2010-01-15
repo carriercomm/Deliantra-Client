@@ -24,7 +24,7 @@ print <<EOF;
 *** apt-get install perl libpango1.0-dev libglib2.0-dev libsdl1.2-dev
 *** apt-get install libsdl-mixer1.2-dev libsdl-image1.2-dev
 *** apt-get install libwww-perl libdb4.4-dev
-*** apt-get install anyevent-perl
+*** apt-get install libanyevent-perl
 
 EOF
 
@@ -42,7 +42,9 @@ EOF
                    qx<sdl-config --libs>,
                    "-lSDL_image -lSDL_mixer",
                    qx<pkg-config pangoft2 --libs>,
-                   "-L/usr/X11/lib -lGL";
+                   "-L/usr/X11/lib";
+
+   $LIBS .= " -lGL" unless $^O =~ /darwin/i; # sigh... os x is so borked
 
    $_ =~ s/\n/ /g for $INC, $LIBS;
 

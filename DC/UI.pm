@@ -668,8 +668,8 @@ sub set_bg {
 sub _draw {
    my ($self) = @_;
 
-   my $color = $FOCUS == $self && $self->{active_bg}
-             ? $self->{active_bg}
+   my $color = $FOCUS == $self
+             ? $self->{active_bg} || $self->{bg}
              : $self->{bg};
 
    if ($color && (@$color < 4 || $color->[3])) {
@@ -2596,7 +2596,7 @@ sub _draw {
 
 package DC::UI::Image;
 
-our @ISA = DC::UI::Base::;
+our @ISA = DC::UI::DrawBG::;
 
 use DC::OpenGL;
 
@@ -2639,6 +2639,13 @@ sub STORABLE_attach {
    $self->new (path => $path)
 }
 
+sub set_texture {
+   my ($self, $tex) = @_;
+
+   $self->{tex} = $tex;
+   $self->update;
+}
+
 sub size_request {
    my ($self) = @_;
 
@@ -2647,6 +2654,8 @@ sub size_request {
 
 sub _draw {
    my ($self) = @_;
+
+   $self->SUPER::_draw;
 
    my $tex = $self->{tex};
 
@@ -2674,8 +2683,6 @@ package DC::UI::ImageButton;
 our @ISA = DC::UI::Image::;
 
 use DC::OpenGL;
-
-my %textures;
 
 sub new {
    my $class = shift;

@@ -6,6 +6,41 @@ TODO: [num] indicator malfunctioning
 TODO: cfplus_ext => 2 is sometimes not beign negotiated! (hack in place, need better protocol)
 
 TODO: multi-line paragraphs get indented strangely (book: collection of strange glyphs).
+TODO: the ex command is always sent twice, as changing text causes a new descritpino to be querird.
+
+TODO: crash on switching bg music off?
+TODO: server restarts reorderign face numbers will disturb music faces played in client? caching?
+
+2.10 Fri Jan 15 16:14:02 CET 2010
+	- fix blending factors to avoid white-out when fow_intensity > 0.
+
+2.09 Tue Dec 22 01:40:24 CET 2009
+	- implement smooth fow/lighting transitions by blending.
+        - make fow texture configurable and add stipple/transparent versions.
+	- empty "Host" field will now default to gameserver.deliantra.net.
+        - do not crash when the user enters an invalid value into "Host".
+	- fix positional rounding on (pre-c99) windows.
+        - use a pack/unpack alignment of 1 by default everywhere, drop alignment
+          code in fow_texture.
+
+2.06 Fri Dec  4 15:35:33 CET 2009
+	- work around the Apple/NVIDIA font problem (a bug in glTexSubImage2D that
+          apple has no intention to fix, so we do the slow read/update/write way).
+        - work around various ATI/Mesa driver bugs in glTexImage2D by always
+          providing initialisation data for textures. Do they ever test their drivers
+          with, say, some newbie opengl code?
+	- stat change messages did not differentiate between attuned, repelled etc.
+        - work around a bug in the nvidia driver which mishandles alpha textures
+          with env mode REPLACE, causing all magic maps to be white only.
+        - do not use mipmapping for tiles - the trade-off was not worth it.
+        - fix packaging the pango modules twice in the linux and windows binaries.
+
+(2.05) Tue Sep 29 11:21:00 CEST 2009
+	- intermediate os x binary release only.
+	- linking against the opengl library works everywhere, except on Mac OS X 10.6,
+          which some people even spent money on (this seems to break a great number
+          of opengl apps actually).
+        - (os x binary) update libsdl to 1.2.14.
 
 2.05 Tue Sep 15 20:31:15 CEST 2009
 	- changed completer algorithm, thanks go to marcmagus!
