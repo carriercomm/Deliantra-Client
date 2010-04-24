@@ -1,7 +1,6 @@
 package DC::UI;
 
-use utf8;
-use strict;
+use common::sense;
 
 use List::Util ();
 
@@ -225,7 +224,7 @@ sub xy {
 
 package DC::UI::Base;
 
-use strict;
+use common::sense;
 
 use DC::OpenGL;
 
@@ -645,7 +644,8 @@ package DC::UI::DrawBG;
 
 our @ISA = DC::UI::Base::;
 
-use strict;
+use common::sense;
+
 use DC::OpenGL;
 
 sub new {
@@ -3056,7 +3056,7 @@ sub set_value {
 
 package DC::UI::Slider;
 
-use strict;
+use common::sense;
 
 use DC::OpenGL;
 

@@ -1,7 +1,7 @@
 package DC::Item;
 
-use strict;
-use utf8;
+use common::sense;
+
 use Encode;
 
 use Deliantra::Protocol::Constants;

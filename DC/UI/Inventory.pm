@@ -1,7 +1,6 @@
 package DC::UI::Inventory;
 
-use strict;
-use utf8;
+use common::sense;
 
 use DC::Macro;
 use DC::Item;

@@ -1,7 +1,6 @@
 package DC::UI::SpellList;
 
-use strict;
-use utf8;
+use common::sense;
 
 use DC::Macro;
 
@@ -24,11 +23,11 @@ my @TOOLTIP_NAME = (align => 0, can_events => 1, can_hover => 1, tooltip =>
 my @TOOLTIP_SKILL = (align => 0, can_events => 1, can_hover => 1, tooltip =>
    "<b>Skill</b>. The skill (or magic school) required to be able to attempt casting this spell.$TOOLTIP_ALL");
 my @TOOLTIP_LVL = (align => 1, can_events => 1, can_hover => 1, tooltip =>
-   "<b>Level</b>. Minimum level the caster needs in the associated skill to be able to attempt casting this spell.$TOOLTIP_ALL");
+   "<b>Effective Casting Level</b>. The effective level of the spell - figures in caster level, attuned and repelled.$TOOLTIP_ALL");
+my @TOOLTIP_MIN = (align => 1, can_events => 1, can_hover => 1, tooltip =>
+   "<b>Minmimum</b>. Minimum level (without attuned/repelled adjustment) that the caster needs in the associated skill to be able to attempt casting this spell.$TOOLTIP_ALL");
 my @TOOLTIP_SP  = (align => 1, can_events => 1, can_hover => 1, tooltip =>
    "<b>Spell points / Grace points</b>. Amount of spell or grace points used by each invocation.$TOOLTIP_ALL");
-my @TOOLTIP_DMG = (align => 1, can_events => 1, can_hover => 1, tooltip =>
-   "<b>Damage</b>. The amount of damage the spell deals when it hits.$TOOLTIP_ALL");
 
 sub rebuild_spell_list {
    my ($self) = @_;
@@ -43,9 +42,9 @@ sub rebuild_spell_list {
       push @add,
          1, 0, (new DC::UI::Label text => "Spell Name", @TOOLTIP_NAME),
          2, 0, (new DC::UI::Label text => "Skill", @TOOLTIP_SKILL),
-         3, 0, (new DC::UI::Label text => "Lvl"  , @TOOLTIP_LVL),
-         4, 0, (new DC::UI::Label text => "Sp/Gp", @TOOLTIP_SP),
-         5, 0, (new DC::UI::Label text => "Dmg"  , @TOOLTIP_DMG),
+         3, 0, (new DC::UI::Label text => "Min"  , @TOOLTIP_MIN),
+         4, 0, (new DC::UI::Label text => "Lvl"  , @TOOLTIP_LVL),
+         5, 0, (new DC::UI::Label text => "Sp/Gp", @TOOLTIP_SP),
       ;
 
       my $row = 0;
@@ -102,9 +101,9 @@ sub rebuild_spell_list {
 
          push @add,
             2, $row, (new DC::UI::Label text => $::CONN->{skill_info}{$spell->{skill}}, @TOOLTIP_SKILL),
-            3, $row, (new DC::UI::Label text => $spell->{level}, @TOOLTIP_LVL),
-            4, $row, (new DC::UI::Label text => $spell->{mana} || $spell->{grace}, @TOOLTIP_SP),
-            5, $row, (new DC::UI::Label text => $spell->{damage}, @TOOLTIP_DMG),
+            3, $row, (new DC::UI::Label text => $spell->{minlevel}, @TOOLTIP_MIN),
+            4, $row, (new DC::UI::Label text => $spell->{level}, @TOOLTIP_LVL),
+            5, $row, (new DC::UI::Label text => $spell->{mana} ? "$spell->{mana} sp" : "$spell->{grace} gp", @TOOLTIP_SP),
          ;
       }
 

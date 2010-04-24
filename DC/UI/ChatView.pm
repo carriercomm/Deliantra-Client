@@ -1,7 +1,6 @@
 package DC::UI::ChatView;
 
-use strict;
-use utf8;
+use common::sense;
 
 use Deliantra::Protocol::Constants;
 

@@ -1,7 +1,6 @@
 package DC::UI::Dockable;
 
-use strict;
-use utf8;
+use common::sense;
 
 our @ISA = DC::UI::Bin::;
 

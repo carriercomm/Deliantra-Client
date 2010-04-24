@@ -1,7 +1,6 @@
 package DC::UI::Canvas;
 
-use strict;
-use utf8;
+use common::sense;
 
 use List::Util qw(max min);
 

@@ -246,8 +246,8 @@ punishment.
 
 =head2 X<stat_mana>
 
-B<Spell points>. Measures of how much "fuel" you have for casting spells
-and incantations. Mana is calculated from your highest magic skill
+B<Mana (Spell points)>. Measures of how much "fuel" you have for casting
+spells and incantations. Mana is calculated from your highest magic skill
 school level and your Pow. Mana values can range between 1 to beyond 500
 (glowing crystals can increase the current spell points beyond your normal
 maximum). Higher values indicate greater amounts of mana.

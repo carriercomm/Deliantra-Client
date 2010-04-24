@@ -1,6 +1,6 @@
 package DC::OpenGL;
 
-use strict;
+use common::sense;
 
 use Carp ();
 use DC;
@@ -20,8 +20,6 @@ our %SHUTDOWN_HOOK;
 
 sub import {
    my $caller = caller;
-
-   no strict;
 
    my $symtab = *{"main::DC::OpenGL::"}{HASH};
 

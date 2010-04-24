@@ -1,9 +1,8 @@
 package DC::UI::Dockbar;
 
-use DC::UI::Dockable;
+use common::sense;
 
-use strict;
-use utf8;
+use DC::UI::Dockable;
 
 our @ISA = DC::UI::Toplevel::;
 

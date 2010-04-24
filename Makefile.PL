@@ -65,8 +65,9 @@ WriteMakefile(
     EXE_FILES => [qw(bin/deliantra)],
     VERSION_FROM => "DC.pm",
     PREREQ_PM => {
+       common::sense => 3.1,
        BDB           => 1.83,
-       Deliantra     => 1.23,
+       Deliantra     => 1.30,
        Time::HiRes   => 0,
        EV            => 3.42,
        Guard         => 1,

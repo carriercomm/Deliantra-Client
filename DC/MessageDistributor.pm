@@ -1,6 +1,6 @@
 package DC::MessageDistributor;
-use strict;
-no warnings;
+
+use common::sense;
 
 sub new {
    my $this  = shift;

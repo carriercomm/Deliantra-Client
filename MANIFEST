@@ -180,4 +180,3 @@ pod/skill_help.pod
 pod/tutorial.pod
 pod/ui.pod
 META.yml                                 Module meta-data (added by MakeMaker)
-META.json                                Module meta-data (added by MakeMaker)

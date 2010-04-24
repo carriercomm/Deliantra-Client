@@ -11,6 +11,28 @@ TODO: the ex command is always sent twice, as changing text causes a new descrit
 TODO: crash on switching bg music off?
 TODO: server restarts reorderign face numbers will disturb music faces played in client? caching?
 
+TODO: ex will be sent multiple times (animation effect)
+TODO: attuned/repelled spells in different colours?
+TODO: grace/sp spells in different colour?
+
+2.11 Sat Apr 24 10:08:34 CEST 2010
+	- support overriding the audio driver at runtime, for folks who know
+          what they are doing.
+	- upgrade to libSDL 1.2.14/SDL_mixer 1.2.11 for the GNU/Linux and
+          windows binaries, and also compile in multiple drivers (pulseaudio
+          disabled currently because it's too sucky and crashes on probe).
+	- replace level by minimum level, and damage by effective casting level
+          (for servers > 2.93).
+	- added some commandline arguments: <host> <user> <password>,
+          for the developers mostly.
+	- try a different method of avoiding music-related crashes.
+        - cfplus editor support protocol fixes.
+        - apply some common::sense 3.1 :)
+        - implement bandwidth-usage debug option.
+        - renamed env variable CFPLUS_DEBUG to DELIANTRA_DEBUG.
+        - display audio driver name that is in use.
+        - try to show splashscreen earlier.
+
 2.10 Fri Jan 15 16:14:02 CET 2010
 	- fix blending factors to avoid white-out when fow_intensity > 0.
 

@@ -14,8 +14,7 @@ DC::DB - async. database and filesystem access for deliantra
 
 package DC::DB;
 
-use strict;
-use utf8;
+use common::sense;
 
 use File::Path ();
 use Carp ();
@@ -290,7 +289,7 @@ sub logprint($$$) {
 
 package DC::DB::Server;
 
-use strict;
+use common::sense;
 
 use EV ();
 use Fcntl;

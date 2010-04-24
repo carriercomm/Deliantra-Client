@@ -14,7 +14,7 @@ DC::Texture - tetxure class for Deliantra-Client
 
 package DC::Texture;
 
-use strict;
+use common::sense;
 
 use List::Util qw(max min);
 use DC::OpenGL;

@@ -19,14 +19,14 @@ BEGIN {
 
       require Win32::GUI::SplashScreen;
 
-      # initialise the resolver now, as vista forces us back to the desktop
-      # when doing this.
-      use AnyEvent::DNS ();
-      AnyEvent::DNS::resolver;
-
       Win32::GUI::SplashScreen::Show (
          -file => "$ENV{PAR_TEMP}/SPLASH.bmp",
       );
+
+      # initialise the resolver now, as vista forces us back to the desktop
+      # when doing this later.
+      require AnyEvent::DNS;
+      AnyEvent::DNS::resolver ();
 
       $startup_done = sub {
          Win32::GUI::SplashScreen::Done (1);
@@ -34,8 +34,7 @@ BEGIN {
    }
 }
 
-use strict;
-use utf8;
+use common::sense;
 
 use Carp 'verbose';
 
@@ -146,6 +145,7 @@ our $NOW;
 our $CFG;
 our $PROFILE; # current profile
 our $FAST; # fast, low-quality mode, possibly useful for software-rendering
+our $DELIANTRA_DEBUG = $ENV{DELIANTRA_DEBUG} * 1;
 
 our $WANT_REFRESH;
 
@@ -520,6 +520,15 @@ sub audio_music_finished {
 
 sub audio_init {
    if ($CFG->{audio_enable}) {
+      if (length $CFG->{audio_driver}) {
+         local $ENV{SDL_AUDIODRIVER} = $CFG->{audio_driver};
+         DC::SDL_Init DC::SDL_INIT_AUDIO
+            and die "SDL::Init failed!\n";
+      } else {
+         DC::SDL_Init DC::SDL_INIT_AUDIO
+            and die "SDL::Init failed!\n";
+      }
+
       $ENV{MIX_EFFECTSMAXSPEED} = 1;
       $SDL_MIXER = !DC::Mix_OpenAudio
          $CFG->{audio_hw_frequency},
@@ -543,6 +552,11 @@ sub audio_init {
 }
 
 sub audio_shutdown {
+   if ($SDL_MIXER) {
+      DC::MixMusic::halt;
+      DC::Mix_AllocateChannels 0;
+   }
+
    undef $MUSIC_PLAYER;
    undef $MUSIC_PLAYING_META;
    undef $MUSIC_PLAYING_DATA;
@@ -552,10 +566,10 @@ sub audio_shutdown {
    %AUDIO_PLAY   = ();
    %AUDIO_CHUNK  = ();
 
-   DC::MixMusic::halt;
-   DC::Mix_AllocateChannels 0;
    DC::Mix_CloseAudio if $SDL_MIXER;
    undef $SDL_MIXER;
+
+   DC::SDL_QuitSubSystem DC::SDL_INIT_AUDIO;
 }
 
 #############################################################################
@@ -806,7 +820,12 @@ sub dc_connect {
          mapw => $mapw,
          maph => $maph,
 
-         client => "$DC::VERSION $] $^O",
+         c_version => {
+            client     => "deliantra",
+            clientver  => $DC::VERSION,
+            gl_vendor  => DC::OpenGL::gl_vendor,
+            gl_version => DC::OpenGL::gl_version,
+         },
 
          map_widget => $MAPWIDGET,
          statusbox  => $STATUSBOX,
@@ -848,12 +867,12 @@ sub start_game {
    # can be removed once AnyEvent::DNS is proven stable.
    if ($host eq "gameserver.deliantra.net") {
       AnyEvent::DNS::a "dnstest.deliantra.net", sub {
-         if ($_[0] ne "80.101.114.108") { # Perl
+         if ($_[0] ne "80.101.114.108") { # P-e-r-l
             status "dns failure, trying differently";
             $host = eval { Socket::inet_ntoa Socket::inet_aton "gameserver.deliantra.net" };
             unless (defined $host) {
                status "dns failure, using hardcoded address";
-               $host = "129.13.162.95";
+               $host = "194.126.175.154";
             }
          }
 
@@ -1139,8 +1158,11 @@ sub audio_tab_update {
    my $text = !$freq
       ? "audio is off"
       : "audio is enabled\n"
-      . "frequency (Hz): $freq\n"
-      . "channels: $chans";
+         . "driver: " . DC::SDL_AudioDriverName . "\n"
+         . "frequency (Hz): $freq\n"
+         . "channels: $chans\n"
+         . "chunk decoders available: " . (join ", ", DC::MixChunk::decoders) . "\n"
+         . "music decoders available: " . (join ", ", DC::MixMusic::decoders);
 
    $AUDIO_INFO->set_text ($text);
 }
@@ -1153,10 +1175,23 @@ sub audio_setup {
    my $row = 0;
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Audio Enable");
-   $table->add_at (1, $row++, new DC::UI::CheckBox
+   $table->add_at (1, $row, new DC::UI::CheckBox
       state => $CFG->{audio_enable},
       tooltip => "<b>Master Audio Enable.</b> If enabled, sound effects and music will be played. If disabled, no audio will be used and the soundcard will not be opened.",
       on_changed => sub { $CFG->{audio_enable} = $_[1]; 1 }
+   );
+   $table->add_at (2, $row++, my $driver = new DC::UI::HBox expand => 1);
+      
+   $driver->add (new DC::UI::Label align => 1, text => "     Audio driver override");
+   $driver->add (new DC::UI::Entry
+      text => $CFG->{audio_driver},
+      template => "dsound1234",
+      tooltip => "You can override the audio driver to use here. Leaving it empty will result "
+               . "in Deliantra picking one automatically. GNU/Linux users often prefer specific "
+               . "drivers though, and can experiment with <b>alsa</b>, <b>dsp</b>, <b>esd</b>, <b>pulse</b>, <b>arts</b>, <b>nas</b> "
+               . "or other system-specific drivers. Selecting the wrong driver here will simply result"
+               . "in no sound.",
+      on_changed => sub { my ($self, $value) = @_; $CFG->{audio_driver} = $value; 1 }
    );
 
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Sound Effects");
@@ -1179,7 +1214,7 @@ sub audio_setup {
    $table->add_at (0, $row, new DC::UI::Label align => 1, text => "Background Music");
    $table->add_at (1, $row, new DC::UI::CheckBox
       expand => 1, state => $CFG->{bgm_enable},
-      tooltip => "If enabled, playing of background music is enabled. If disabled, no background music will be played.",
+      tooltip => "If enabled, playing of background music is enabled. If disabled, no background music will be played. Needs server reconnect to take effect.",
       on_changed => sub {
          $CFG->{bgm_enable} = $_[1];
          $CONN->update_fx_want if $CONN;
@@ -1200,9 +1235,9 @@ sub audio_setup {
       options => [
          [    0, "default" , "Use System Default"],
          [11025, "11 kHz"  , "11kHz (low quality)"],
-         [22050, "22 kHz"  , "22kHz (reduced quality)"],
+         [22050, "22 kHz"  , "22kHz (reduced quality, recommended)"],
          [44100, "44.1 kHz", "44.1kHz (cd quality)"],
-         [48000, "48 kHz"  , "48kHz (studio quality)"],
+         [48000, "48 kHz"  , "48kHz (studio quality, not recommended)"],
       ],
       tooltip => "The sampling frequency to use. Higher sounds better, but also more cpu-intensive and might cause stuttering.",
       on_changed => sub {
@@ -1236,7 +1271,7 @@ sub audio_setup {
       c_colspan => 2, expand => 1,
       value => $CFG->{audio_hw_chunksize},
       tooltip => "The guarenteed latency. Lower is better, but also more cpu-intensive and might cause stuttering. If music playback "
-                 . "is stuttering, increase this value. Values of 50-100ms are optimal.",
+                 . "is stuttering, increase this value. Values of 50-150ms are optimal.",
       on_changed => sub {
          $CFG->{audio_hw_chunksize} = $_[1];
          audio_tab_update;
@@ -1326,20 +1361,39 @@ sub make_gauge_window {
    $win
 }
 
+our $BW_WATCHER;
+
+sub debug_toggle($) {
+   $DELIANTRA_DEBUG ^= $_[0];
+
+   if ($DELIANTRA_DEBUG & 16) {
+      $BW_WATCHER = EV::periodic 0, 1, 0, sub {
+         return unless $CONN;
+         debug sprintf "%8.2gKB/s", $CONN->{octets_in} / 1e3;
+         $CONN->{octets_in} = 0;
+      };
+   } else {
+      undef $BW_WATCHER;
+   }
+
+}
+
 sub debug_setup {
    my $table = new DC::UI::Table;
 
    $table->add_at (0, 0, new DC::UI::Label text => "Widget Borders");
-   $table->add_at (1, 0, new DC::UI::CheckBox on_changed => sub { $ENV{CFPLUS_DEBUG} ^= 1; 0 });
+   $table->add_at (1, 0, new DC::UI::CheckBox on_changed => sub { debug_toggle  1; 0 });
    $table->add_at (0, 1, new DC::UI::Label text => "Tooltip Widget Info");
-   $table->add_at (1, 1, new DC::UI::CheckBox on_changed => sub { $ENV{CFPLUS_DEBUG} ^= 2; 0 });
+   $table->add_at (1, 1, new DC::UI::CheckBox on_changed => sub { debug_toggle  2; 0 });
    $table->add_at (0, 2, new DC::UI::Label text => "Show FPS");
-   $table->add_at (1, 2, new DC::UI::CheckBox on_changed => sub { $ENV{CFPLUS_DEBUG} ^= 4; 0 });
+   $table->add_at (1, 2, new DC::UI::CheckBox on_changed => sub { debug_toggle  4; 0 });
    $table->add_at (0, 3, new DC::UI::Label text => "Suppress Tooltips");
-   $table->add_at (1, 3, new DC::UI::CheckBox on_changed => sub { $ENV{CFPLUS_DEBUG} ^= 8; 0 });
-   $table->add_at (0, 4, new DC::UI::Button text => "die on click(tm)", on_activate => sub { &DC::debug() } );
+   $table->add_at (1, 3, new DC::UI::CheckBox on_changed => sub { debug_toggle  8; 0 });
+   $table->add_at (0, 4, new DC::UI::Label text => "Show Bandwidth");
+   $table->add_at (1, 4, new DC::UI::CheckBox on_changed => sub { debug_toggle 16; 0 });
 
-   $table->add_at (0, 5, new DC::UI::TextEdit text => "line1\0152\0153\nµikachu\nづx゙つ゛");#d#
+   $table->add_at (0, 6, new DC::UI::Button text => "die on click(tm)", on_activate => sub { &DC::debug() } );
+   $table->add_at (0, 7, new DC::UI::TextEdit text => "line1\0152\0153\nµikachu\nづx゙つ゛");#d#
 
    $table->add_at (7,7, my $t = new DC::UI::Table expand => 0);
    $t->add_at (0,0, new DC::UI::Label text => "a a", c_rowspan => 1, c_colspan => 2);
@@ -1670,17 +1724,17 @@ sub login_setup {
 
    $table->add_at (0, 4, new DC::UI::Label align => 1, text => "Username");
    $table->add_at (1, 4, new DC::UI::Entry
-      text => $CFG->{profile}{default}{user},
+      text => $PROFILE->{user},
       tooltip => "The name of your character on the server. The name is case-sensitive!",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{profile}{default}{user} = $value; 1 }
+      on_changed => sub { my ($self, $value) = @_; $PROFILE->{user} = $value; 1 }
    );
 
    $table->add_at (0, 5, new DC::UI::Label align => 1, text => "Password");
    $table->add_at (1, 5, new DC::UI::Entry
-      text => $CFG->{profile}{default}{password},
+      text => $PROFILE->{password},
       hidden => 1,
       tooltip => "The password for your character.",
-      on_changed => sub { my ($self, $value) = @_; $CFG->{profile}{default}{password} = $value; 1 }
+      on_changed => sub { my ($self, $value) = @_; $PROFILE->{password} = $value; 1 }
    );
 
    $table->add_at (1, 11, $LOGIN_BUTTON = new DC::UI::Button
@@ -1726,11 +1780,11 @@ sub server_setup {
       $vbox->add (
          $HOST_ENTRY = new DC::UI::Entry
             expand => 1,
-            text => $CFG->{profile}{default}{host},
+            text => $PROFILE->{host},
             tooltip => "The hostname or ip address of the Deliantra server to connect to (e.g. <b>gameserver.deliantra.net</b>)",
             on_changed => sub {
                my ($self, $value) = @_;
-               $CFG->{profile}{default}{host} = $value;
+               $PROFILE->{host} = $value;
                1
             }
       );
@@ -1939,23 +1993,28 @@ sub autopickup_setup {
 
 my %SORT_ORDER = (
    type   => sub {
+      use sort 'stable';
       sort { $a->{type} <=> $b->{type} or $a->{name} cmp $b->{name} } @_
    },
    mtime  => sub {
-                my $NOW = time;
-                sort {
-                   my $atime = $a->{mtime} - $NOW; $atime = $atime < 5 * 60 ? int $atime / 60 : 6;
-                   my $btime = $b->{mtime} - $NOW; $btime = $btime < 5 * 60 ? int $btime / 60 : 6;
+      use sort 'stable';
+      my $NOW = time;
+      sort {
+         my $atime = $a->{mtime} - $NOW; $atime = $atime < 5 * 60 ? int $atime / 60 : 6;
+         my $btime = $b->{mtime} - $NOW; $btime = $btime < 5 * 60 ? int $btime / 60 : 6;
 
-                   ($a->{flags} & F_LOCKED) <=> ($b->{flags} & F_LOCKED)
-                      or $btime <=> $atime
-                      or $a->{type} <=> $b->{type}
-                } @_
-             },
-   weight => sub { sort {
-                $a->{weight} * ($a->{nrof} || 1) <=> $b->{weight} * ($b->{nrof} || 1)
-                   or $a->{type} <=> $b->{type}
-             } @_ },
+         ($a->{flags} & F_LOCKED) <=> ($b->{flags} & F_LOCKED)
+            or $btime <=> $atime
+            or $a->{type} <=> $b->{type}
+      } @_
+   },
+   weight => sub {
+      use sort 'stable';
+      sort {
+         $a->{weight} * ($a->{nrof} || 1) <=> $b->{weight} * ($b->{nrof} || 1)
+            or $a->{type} <=> $b->{type}
+      } @_
+   },
 );
 
 sub inventory_widget {
@@ -2406,11 +2465,6 @@ sub show_tip_of_the_day {
    };
 }
 
-sub sdl_init {
-   DC::SDL_Init DC::SDL_INIT_AUDIO #| DC::SDL_NOPARACHUTE
-      and die "SDL::Init failed!\n";
-}
-
 sub video_init {
    DC::set_theme $CFG->{uitheme};
 
@@ -2479,7 +2533,7 @@ sub video_init {
          padding => 0,
          z       => 100,
          force_x => "max",
-         force_y => 0;
+         force_y => 20;
       $DEBUG_STATUS->show;
 
       $STATUSBOX = new DC::UI::Statusbox;
@@ -2617,7 +2671,7 @@ my $animate_timer;
 my $fps = 9;
 
 sub force_refresh {
-   if ($ENV{CFPLUS_DEBUG} & 4) {
+   if ($DELIANTRA_DEBUG & 4) {
       $fps = $fps * 0.98 + 1 / (($NOW - $LAST_REFRESH) || 0.1) * 0.02;
       debug sprintf "%3.2f", $fps;
    }
@@ -2773,13 +2827,33 @@ sub main {
          map_shift_x         => -24, # arbitrary
          map_shift_y         => +24, # arbitrary
       );
-      
+
       while (my ($k, $v) = each %DEF_CFG) {
          $CFG->{$k} = $v unless exists $CFG->{$k};
       }
 
-      $CFG->{profile}{default}{host} ||= "gameserver.deliantra.net";
-      $PROFILE = $CFG->{profile}{default};
+      my @args = @ARGV;
+
+      my $profile = 'default';
+
+      for (my $i = 0; $i < @args; $i++) {
+         if ($args[$i] =~ /^--?profile$/) {
+            $profile = $args[$i + 1];
+            splice @args, $i, 2, ();
+            $i = 0;
+         } elsif ($args[$i] =~ /^--?h/) {
+            print STDERR "Usage: $0 [--profile name] [host [user [password]]]\n";
+            exit 0;
+         }
+      }
+
+      $CFG->{profile}{$profile} ||= {};
+      $PROFILE = $CFG->{profile}{$profile};
+      $PROFILE->{host} ||= "gameserver.deliantra.net";
+
+      $PROFILE->{host}     = $args[0] if @args > 0;
+      $PROFILE->{user}     = $args[1] if @args > 1;
+      $PROFILE->{password} = $args[2] if @args > 2;
 
       # convert old bindings (only default profile matters)
       if (my $bindings = delete $PROFILE->{bindings}) {
@@ -2792,8 +2866,6 @@ sub main {
             }
          }
       }
-
-      sdl_init;
 
       $ENV{FONTCONFIG_FILE} = DC::find_rcfile "fonts/fonts.conf";
       $ENV{FONTCONFIG_DIR} = DC::find_rcfile "fonts";
@@ -2812,7 +2884,7 @@ sub main {
          );
 
          DC::add_font $_ for @fonts;
-         
+
          $FONT_PROP  = new_from_file DC::Font $fonts[0];
          $FONT_FIXED = new_from_file DC::Font $fonts[1];
 
@@ -2845,6 +2917,8 @@ sub main {
       $startup_done->();
    };
 
+   debug_toggle 0;
+
    delete $SIG{__DIE__};
    EV::loop;
 
@@ -2866,22 +2940,23 @@ deliantra - A Deliantra MORPG game client
 
 =head1 SYNOPSIS
 
-Just run it - no commandline arguments are supported.
+   deliantra [--profile name] [host [user [password]]]
+   deliantra --help
 
 =head1 USAGE
 
-deliantra utilises OpenGL for all UI elements and the game. It is supposed to
-be used in fullscreen mode and interactively.
+The deliantra client utilises OpenGL for all UI elements and the game. It
+is supposed to be used in fullscreen mode and interactively.
 
 =head1 DEBUGGING
 
-
-CFPLUS_DEBUG - environment variable
+DELIANTRA_DEBUG - environment variable
 
    1   draw borders around widgets
    2   add low-level widget info to tooltips
    4   show fps
    8   suppress tooltips
+  16   show bandwidth downstream
 
 =head1 AUTHOR
 

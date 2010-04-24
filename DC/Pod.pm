@@ -1,7 +1,6 @@
 package DC::Pod;
 
-use strict;
-use utf8;
+use common::sense;
 
 use Storable;
 

@@ -240,23 +240,31 @@ any direction.
 
 =head2 disarm traps
 
-You can disarm previously discovered traps (for example, with the B<find traps> skill).
+You can disarm previously discovered traps (for example, with the B<find
+traps> skill).
+
+=head2 mining
+
+You know how to use a pickaxe to extract minerals from veins. You can also use
+spells of the mining spell school. For instance the I<detect mineral> spell.
 
 =head2 sense curse
 
-You can detect whether items that you hold are B<cursed> by firing in any
-direction while this skill is readied.
+You can detect whether items in your inventory or on the floor are
+B<cursed> by using this skill.
 
 =head2 sense magic
 
-You can detect whether items that you hold are B<magic> by firing in any
-direction while this skill is readied.
+You can detect whether items in your inventory or on the floor are
+B<magic> by using this skill.
 
 =head2 singing
 
-You may pacify hostile monsters with this area attack skill.  Certain
-kinds of monsters are immune. Success depends on user's level and her
-L<charisma|stat_Cha> vs. the monster's L<intelligence|stat_Int> and level.
+You may pacify hostile monsters with this area attack skill (it is
+directionless and affects the area around you - the higher the skill,
+the larger the area). Certain kinds of monsters are immune. Success
+depends on user's level and her L<charisma|stat_Cha> vs. the monster's
+L<intelligence|stat_Int> and level.
 
 Singing is a good companion skill for the L<oratory
 skill|skill_description/oratory>: first you pacify creates using singing,
@@ -282,11 +290,7 @@ those things.
 =head2 throwing
 
 You can throw items at monsters. To do this, fire at a monster with this skill
-readied. You can chose what to throw by marking an item, if you do not chose an
-item, an item from your inventory is randomly picked and thrown unless the item
-is locked.
-
-ERROR: Randomly?
+readied. You can chose what to throw by marking an item.
 
 =head2 use magic item
 
@@ -349,8 +353,6 @@ skill. Attacking is done by running into the opponent. This is a unique skill
 that can only be used by acidborns.
 
 =head2 poison nail
-
-TODO: Add goblins and think about the name goblin.
 
 You can do a "bare-handed attack" and inject poison into the opponent with
 this skill readied. Attacking is done by running into the opponent. This is a

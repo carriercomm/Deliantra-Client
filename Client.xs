@@ -1029,6 +1029,19 @@ poll_events ()
           }
 }
 
+char *
+SDL_AudioDriverName ()
+        CODE:
+{
+        char buf [256];
+        if (!SDL_AudioDriverName (buf, sizeof (buf)))
+          XSRETURN_UNDEF;
+
+        RETVAL = buf;
+}
+	OUTPUT:
+        RETVAL
+
 int
 Mix_OpenAudio (int frequency = 44100, int format = MIX_DEFAULT_FORMAT, int channels = 2, int chunksize = 4096)
   	POSTCALL:
@@ -2800,9 +2813,15 @@ find ()
             RETVAL = Mix_GroupOldest (-1);
 
             if (RETVAL < 0)
-              XSRETURN_UNDEF;
+              {
+                // happens sometimes, maybe it just stopped playing(?)
+                RETVAL = Mix_GroupAvailable (-1);
 
-            Mix_HaltChannel (RETVAL);
+                if (RETVAL < 0)
+                  XSRETURN_UNDEF;
+              }
+            else
+              Mix_HaltChannel (RETVAL);
           }
 
         Mix_UnregisterAllEffects (RETVAL);
@@ -2872,6 +2891,18 @@ MODULE = Deliantra::Client	PACKAGE = DC::MixChunk
 
 PROTOTYPES: DISABLE
 
+void
+decoders ()
+	PPCODE:
+#if SDL_MIXER_MAJOR_VERSION > 1 || SDL_MIXER_MINOR_VERSION > 2 || SDL_MIXER_PATCHLEVEL >= 10
+        int i, num = Mix_GetNumChunkDecoders ();
+        EXTEND (SP, num);
+        for (i = 0; i < num; ++i)
+          PUSHs (sv_2mortal (newSVpv (Mix_GetChunkDecoder (i), 0)));
+#else
+        XPUSHs (sv_2mortal (newSVpv ("(sdl mixer too old)", 0)));
+#endif
+
 DC::MixChunk
 new (SV *class, DC::RW rwops)
 	CODE:
@@ -2913,6 +2944,18 @@ play (DC::MixChunk self, DC::Channel channel = -1, int loops = 0, int ticks = -1
 
 MODULE = Deliantra::Client	PACKAGE = DC::MixMusic
 
+void
+decoders ()
+	PPCODE:
+#if SDL_MIXER_MAJOR_VERSION > 1 || SDL_MIXER_MINOR_VERSION > 2 || SDL_MIXER_PATCHLEVEL >= 10
+        int i, num = Mix_GetNumMusicDecoders ();
+        EXTEND (SP, num);
+        for (i = 0; i < num; ++i)
+          PUSHs (sv_2mortal (newSVpv (Mix_GetMusicDecoder (i), 0)));
+#else
+        XPUSHs (sv_2mortal (newSVpv ("(sdl mixer too old)", 0)));
+#endif
+
 int
 volume (int volume = -1)
 	PROTOTYPE: ;$
@@ -2932,6 +2975,13 @@ void
 halt ()
 	CODE:
         Mix_HaltMusic ();
+
+int
+playing ()
+	CODE:
+        RETVAL = Mix_PlayingMusic ();
+	OUTPUT:
+        RETVAL
 
 DC::MixMusic
 new (SV *class, DC::RW rwops)
@@ -3135,6 +3185,8 @@ GLdouble glGetDouble (GLenum pname)
 int glGetError ()
 
 void glFinish ()
+
+void glFlush ()
 
 void glClear (int mask)
 

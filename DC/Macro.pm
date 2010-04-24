@@ -1,6 +1,6 @@
 package DC::Macro;
 
-use strict;
+use common::sense;
 
 use List::Util ();
 use DC::UI;

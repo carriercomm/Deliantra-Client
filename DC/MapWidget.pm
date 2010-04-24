@@ -1,7 +1,6 @@
 package DC::MapWidget;
 
-use strict;
-use utf8;
+use common::sense;
 
 use List::Util qw(min max);
 
@@ -216,8 +215,8 @@ sub invoke_button_down {
 #            \&editor_invoke,
 #         ];
 
-         for my $type (qw(test name)) {
-            $::CONN->{editor_support}{type} ne $type
+         for my $type (@{ $::CONN->{editor_support}{servertypes} }) {
+            $::CONN->{editor_support}{servertype} ne $type
                or next;
             my $server = $::CONN->{editor_support}{"${type}server"}
                or next;
@@ -610,8 +609,7 @@ sub DESTROY {
 
 package DC::MapWidget::MapMap;
 
-use strict;
-use utf8;
+use common::sense;
 
 our @ISA = DC::UI::Base::;
 
@@ -715,7 +713,7 @@ sub _draw {
 
 package DC::MapWidget::Command;
 
-use strict;
+use common::sense;
 
 use DC::OpenGL;
 

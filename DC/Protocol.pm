@@ -1,7 +1,6 @@
 package DC::Protocol;
 
-use utf8;
-use strict;
+use common::sense;
 
 use Guard ();
 
@@ -541,7 +540,7 @@ sub update_stats_window {
  
    $self->update_weight;
 
-   $::STATWIDS->{"res_$_"}->set_text (sprintf "%d%", $stats->{$RES_TBL{$_}})
+   $::STATWIDS->{"res_$_"}->set_text (sprintf "%d%%", $stats->{$RES_TBL{$_}})
       for keys %RES_TBL;
 
    my $sktbl = $::STATWIDS->{skill_tbl};
@@ -1350,9 +1349,11 @@ sub update_server_info {
 
    my @yesno = ("<span foreground='red'>no</span>", "<span foreground='green'>yes</span>");
 
+   my $version = JSON::XS->new->encode ($self->{s_version});
+
    $::SERVER_INFO->set_markup (
       "server <tt>$self->{host}:$self->{port}</tt>\n"
-    . "protocol version <tt>$self->{version}</tt>\n"
+    . "protocol version <tt>$version</tt>\n"
     . "minimap support $yesno[$self->{setup}{mapinfocmd} > 0]\n"
     . "extended command support $yesno[$self->{setup}{extcmd} > 0]\n"
     . "examine command support $yesno[$self->{setup}{excmd} > 0]\n"
@@ -1391,9 +1392,6 @@ sub logged_in {
 
    $self->send_command ("output-rate $::CFG->{output_rate}") if $::CFG->{output_rate} > 0;
    $self->send_pickup ($::CFG->{pickup});
-
-   $self->send_exti_msg (clientlog => sprintf "OpenGL Info: %s [%s]",
-                                              DC::OpenGL::gl_vendor, DC::OpenGL::gl_version);#d#
 }
 
 sub lookat {
